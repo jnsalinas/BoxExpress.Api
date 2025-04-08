@@ -1,0 +1,6 @@
+@BoxExpress.Api_HostAddress = http://localhost:5143
+
+GET {{BoxExpress.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
