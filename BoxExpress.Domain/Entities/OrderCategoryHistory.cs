@@ -1,0 +1,13 @@
+namespace BoxExpress.Domain.Entities;
+
+public class OrderCategoryHistory : BaseEntity
+{
+    public int OrderId { get; set; }
+    public Order Order { get; set; } = null!;
+    public int ChangedBy { get; set; }
+    public User User { get; set; } = null!;
+    public int? OldCategoryId { get; set; }
+    public OrderCategory? OldCategory { get; set; }
+    public int NewCategoryId { get; set; }
+    public OrderCategory NewCategory { get; set; } = null!;
+}

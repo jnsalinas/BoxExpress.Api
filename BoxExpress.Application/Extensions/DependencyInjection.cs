@@ -1,0 +1,20 @@
+using Microsoft.Extensions.DependencyInjection;
+using AutoMapper;
+using BoxExpress.Application.Mappings;
+using BoxExpress.Application.Interfaces;
+using BoxExpress.Application.Services;
+
+namespace BoxExpress.Application.Extensions;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IWarehouseService, WarehouseService>();
+
+        services.AddAutoMapper(typeof(AutoMapperProfile));
+        
+        return services;
+    }
+}
