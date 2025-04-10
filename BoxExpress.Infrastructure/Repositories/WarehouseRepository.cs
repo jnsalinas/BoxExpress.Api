@@ -33,4 +33,13 @@ public class WarehouseRepository : Repository<Warehouse>, IWarehouseRepository
 
         return await query.ToListAsync();
     }
+
+    public async Task<Warehouse?> GetByIdWithDetailsAsync(int id)
+    {
+        return await _context.Set<Warehouse>()
+            .Include(w => w.Inventories)
+                .ThenInclude(p => p.ProductVariant)
+                    .ThenInclude(p => p.Product)
+            .FirstOrDefaultAsync(w => w.Id == id);
+    }
 }

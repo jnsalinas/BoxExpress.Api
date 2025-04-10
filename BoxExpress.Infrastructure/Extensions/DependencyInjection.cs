@@ -13,8 +13,12 @@ public static class DependencyInjection
         services.AddDbContext<BoxExpressDbContext>(options =>
             options.UseSqlServer(connectionString));
 
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IWarehouseInventoryRepository, WarehouseInventoryRepository>();
+        services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
 
         return services;
     }

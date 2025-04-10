@@ -8,4 +8,6 @@ public class Warehouse : BaseEntity
     public Country Country { get; set; } = null!;
     public int CityId { get; set; }
     public City City { get; set; } = null!;
+
+    public ICollection<WarehouseInventory> Inventories { get; set; } = new List<WarehouseInventory>();
 }
