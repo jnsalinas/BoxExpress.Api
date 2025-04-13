@@ -22,13 +22,13 @@
 
 //         public Task<T?> GetByIdAsync(int id)
 //         {
-//             var entity = _data.FirstOrDefault(e => e.Id == id);
+//             var entity = _data.FirstOrDefault(e => e.Id.Equals(id);
 //             return Task.FromResult(entity);
 //         }
 
 //         public Task<T> UpdateAsync(T entity)
 //         {
-//             var index = _data.FindIndex(e => e.Id == entity.Id);
+//             var index = _data.FindIndex(e => e.Id.Equals(entity.Id);
 //             if (index != -1)
 //             {
 //                 _data[index] = entity;
@@ -38,7 +38,7 @@
 
 //         public Task DeleteAsync(int id)
 //         {
-//             var entity = _data.FirstOrDefault(e => e.Id == id);
+//             var entity = _data.FirstOrDefault(e => e.Id.Equals(id);
 //             if (entity != null)
 //             {
 //                 _data.Remove(entity);

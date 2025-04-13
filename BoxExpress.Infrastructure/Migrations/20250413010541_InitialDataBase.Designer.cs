@@ -4,6 +4,7 @@ using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoxExpress.Infrastructure.Migrations
 {
     [DbContext(typeof(BoxExpressDbContext))]
-    partial class BoxExpressDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250413010541_InitialDataBase")]
+    partial class InitialDataBase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -218,9 +221,6 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     b.Property<decimal?>("Longitude")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("OrderCategoryId")
                         .HasColumnType("int");
@@ -441,13 +441,7 @@ namespace BoxExpress.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("Price")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("ShopifyProductId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Sku")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("StoreId")
@@ -474,16 +468,10 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("Price")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<string>("ShopifyVariantId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Sku")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -555,9 +543,6 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("time");
-
-                    b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
 
                     b.HasKey("Id");

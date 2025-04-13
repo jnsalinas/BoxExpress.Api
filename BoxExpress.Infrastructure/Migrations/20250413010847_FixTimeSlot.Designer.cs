@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoxExpress.Infrastructure.Migrations
 {
     [DbContext(typeof(BoxExpressDbContext))]
-    [Migration("20250408230410_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250413010847_FixTimeSlot")]
+    partial class FixTimeSlot
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,6 +50,76 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.ToTable("Cities");
                 });
 
+            modelBuilder.Entity("BoxExpress.Domain.Entities.Client", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Document")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Client");
+                });
+
+            modelBuilder.Entity("BoxExpress.Domain.Entities.ClientAddress", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Complement")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("Latitude")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Longitude")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("ClientId");
+
+                    b.ToTable("ClientAddress");
+                });
+
             modelBuilder.Entity("BoxExpress.Domain.Entities.Country", b =>
                 {
                     b.Property<int>("Id")
@@ -70,6 +140,34 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.ToTable("Countries");
                 });
 
+            modelBuilder.Entity("BoxExpress.Domain.Entities.Currency", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Currency");
+                });
+
             modelBuilder.Entity("BoxExpress.Domain.Entities.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -77,6 +175,28 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ClientAddressId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Contains")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CountryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CourierComment")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -87,11 +207,19 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<int>("CreatorId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeliveredDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<decimal>("DeliveryFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Latitude")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Longitude")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("OrderCategoryId")
@@ -100,21 +228,48 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<int>("OrderStatusId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("RescheduledDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ScheduledDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SecondManagement")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
+
+                    b.Property<int>("TimeSlotId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("WarehouseId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("ClientAddressId");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("CountryId");
+
                     b.HasIndex("CreatorId");
+
+                    b.HasIndex("CurrencyId");
 
                     b.HasIndex("OrderCategoryId");
 
                     b.HasIndex("OrderStatusId");
 
                     b.HasIndex("StoreId");
+
+                    b.HasIndex("TimeSlotId");
 
                     b.HasIndex("WarehouseId");
 
@@ -374,6 +529,28 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.HasIndex("CountryId");
 
                     b.ToTable("Stores");
+                });
+
+            modelBuilder.Entity("BoxExpress.Domain.Entities.TimeSlot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TimeSlots");
                 });
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.TransactionType", b =>
@@ -641,21 +818,69 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Navigation("Country");
                 });
 
+            modelBuilder.Entity("BoxExpress.Domain.Entities.ClientAddress", b =>
+                {
+                    b.HasOne("BoxExpress.Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BoxExpress.Domain.Entities.Client", "Client")
+                        .WithMany("Addresses")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("Client");
+                });
+
             modelBuilder.Entity("BoxExpress.Domain.Entities.Order", b =>
                 {
+                    b.HasOne("BoxExpress.Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BoxExpress.Domain.Entities.ClientAddress", "ClientAddress")
+                        .WithMany("Orders")
+                        .HasForeignKey("ClientAddressId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BoxExpress.Domain.Entities.Client", "Client")
+                        .WithMany("Orders")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BoxExpress.Domain.Entities.Country", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("BoxExpress.Domain.Entities.User", "Creator")
                         .WithMany()
                         .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("BoxExpress.Domain.Entities.OrderCategory", "OrderCategory")
+                    b.HasOne("BoxExpress.Domain.Entities.Currency", "Currency")
+                        .WithMany("Orders")
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BoxExpress.Domain.Entities.OrderCategory", "Category")
                         .WithMany()
                         .HasForeignKey("OrderCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("BoxExpress.Domain.Entities.OrderStatus", "OrderStatus")
+                    b.HasOne("BoxExpress.Domain.Entities.OrderStatus", "Status")
                         .WithMany()
                         .HasForeignKey("OrderStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -667,18 +892,36 @@ namespace BoxExpress.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("BoxExpress.Domain.Entities.TimeSlot", "TimeSlot")
+                        .WithMany("Orders")
+                        .HasForeignKey("TimeSlotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("BoxExpress.Domain.Entities.Warehouse", "Warehouse")
                         .WithMany()
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.Navigation("Category");
+
+                    b.Navigation("City");
+
+                    b.Navigation("Client");
+
+                    b.Navigation("ClientAddress");
+
+                    b.Navigation("Country");
+
                     b.Navigation("Creator");
 
-                    b.Navigation("OrderCategory");
+                    b.Navigation("Currency");
 
-                    b.Navigation("OrderStatus");
+                    b.Navigation("Status");
 
                     b.Navigation("Store");
+
+                    b.Navigation("TimeSlot");
 
                     b.Navigation("Warehouse");
                 });
@@ -910,7 +1153,7 @@ namespace BoxExpress.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("BoxExpress.Domain.Entities.Warehouse", "Warehouse")
-                        .WithMany()
+                        .WithMany("Inventories")
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -931,9 +1174,36 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Navigation("Store");
                 });
 
+            modelBuilder.Entity("BoxExpress.Domain.Entities.Client", b =>
+                {
+                    b.Navigation("Addresses");
+
+                    b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("BoxExpress.Domain.Entities.ClientAddress", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
             modelBuilder.Entity("BoxExpress.Domain.Entities.Country", b =>
                 {
                     b.Navigation("Cities");
+                });
+
+            modelBuilder.Entity("BoxExpress.Domain.Entities.Currency", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("BoxExpress.Domain.Entities.TimeSlot", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("BoxExpress.Domain.Entities.Warehouse", b =>
+                {
+                    b.Navigation("Inventories");
                 });
 #pragma warning restore 612, 618
         }

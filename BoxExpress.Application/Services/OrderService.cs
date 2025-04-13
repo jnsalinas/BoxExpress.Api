@@ -1,29 +1,35 @@
+using AutoMapper;
+using BoxExpress.Application.Dtos;
+using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Application.Interfaces;
 using BoxExpress.Domain.Entities;
+using BoxExpress.Domain.Filters;
 using BoxExpress.Domain.Interfaces;
 
 namespace BoxExpress.Application.Services;
 
 public class OrderService : IOrderService
 {
-    private readonly IRepository<Order> _repository;
 
-    public OrderService(IRepository<Order> repository)
+    private readonly IMapper _mapper;
+
+    private readonly IOrderRepository _repository;
+
+    public OrderService(IOrderRepository repository, IMapper mapper)
     {
         _repository = repository;
+        _mapper = mapper;
+
     }
 
-    public async Task<IEnumerable<Order>> GetAllAsync()
-        => await _repository.GetAllAsync();
+    public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter) =>
+             ApiResponse<IEnumerable<OrderDto>>.Success(_mapper.Map<List<OrderDto>>(await _repository.GetFilteredAsync(_mapper.Map<OrderFilter>(filter))));
 
-    public async Task<Order?> GetByIdAsync(int id)
-    {
-        return await _repository.GetByIdAsync(id);
-    }
+    public async Task<ApiResponse<OrderDetailDto?>> GetByIdAsync(int id) =>
+        ApiResponse<OrderDetailDto?>.Success(_mapper.Map<OrderDetailDto>(await _repository.GetByIdWithDetailsAsync(id)));
 
-    public async Task<Order> AddAsync(Order order)
-    {
-        order.CreatedAt = DateTime.UtcNow;
-        return await _repository.AddAsync(order);
-    }
+    // public async Task<ApiResponse<OrderDto>> AddAsync(OrderDto order)
+    // {
+    //     // return await _repository.AddAsync(order);
+    // }
 }

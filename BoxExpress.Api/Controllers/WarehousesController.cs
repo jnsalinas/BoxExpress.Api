@@ -28,7 +28,7 @@ public class WarehousesController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _warehouseService.GetByIdAsync(id);
-        if (result == null) return NotFound();
+        if (result.Equals(null)) return NotFound();
         return Ok(result);
     }
 
@@ -36,7 +36,7 @@ public class WarehousesController : ControllerBase
     public async Task<IActionResult> AddInventoryToWarehouse(int warehouseId, [FromBody] List<CreateProductWithVariantsDto> products)
     {
         var result = await _warehouseService.AddInventoryToWarehouseAsync(warehouseId, products);
-        if (result == null) return NotFound();
+        if (result.Equals(null)) return NotFound();
         return Ok(result);
     }
 }

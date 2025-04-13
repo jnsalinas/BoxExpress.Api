@@ -1,0 +1,26 @@
+namespace BoxExpress.Application.Dtos;
+
+public class OrderDto
+{
+    public int Id { get; set; }
+    public string? Country { get; set; }
+    public string? City { get; set; }
+    public DateTime? DeliveryDate { get; set; }
+    public DateTime? RescheduleDate { get; set; }
+    public string? Contains { get; set; }
+    public string? Latitude { get; set; }
+    public string? Longitude { get; set; }
+    public string? ClientAddress { get; set; }
+    public string? ClientFullName { get; set; }
+    public string? ClientDocument { get; set; }
+    public string? ClientPhone { get; set; }
+    public decimal TotalAmount { get; set; }
+    public DateTime? ScheduledDate { get; set; }
+    public string? Status { get; set; }
+    public string? Category { get; set; }
+    public string? StoreName { get; set; }
+    public string? Notes { get; set; }
+    public string? Code { get; set; }
+    public decimal? DeliveryFee { get; set; }
+
+}

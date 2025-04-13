@@ -6,11 +6,27 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BoxExpress.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialDataBase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Client",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Document = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Client", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Countries",
                 columns: table => new
@@ -23,6 +39,22 @@ namespace BoxExpress.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Countries", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Currency",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Symbol = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Currency", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -68,6 +100,20 @@ namespace BoxExpress.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TimeSlots",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EndTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TimeSlots", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TransactionTypes",
                 columns: table => new
                 {
@@ -98,6 +144,38 @@ namespace BoxExpress.Infrastructure.Migrations
                         name: "FK_Cities_Countries_CountryId",
                         column: x => x.CountryId,
                         principalTable: "Countries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ClientAddress",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ClientId = table.Column<int>(type: "int", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Complement = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CityId = table.Column<int>(type: "int", nullable: false),
+                    Latitude = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Longitude = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    IsDefault = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ClientAddress", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ClientAddress_Cities_CityId",
+                        column: x => x.CityId,
+                        principalTable: "Cities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ClientAddress_Client_ClientId",
+                        column: x => x.ClientId,
+                        principalTable: "Client",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -308,19 +386,64 @@ namespace BoxExpress.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    TimeSlotId = table.Column<int>(type: "int", nullable: false),
                     StoreId = table.Column<int>(type: "int", nullable: false),
                     CreatedBy = table.Column<int>(type: "int", nullable: false),
                     CreatorId = table.Column<int>(type: "int", nullable: false),
                     OrderStatusId = table.Column<int>(type: "int", nullable: false),
                     OrderCategoryId = table.Column<int>(type: "int", nullable: false),
                     DeliveryFee = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CurrencyId = table.Column<int>(type: "int", nullable: false),
                     WarehouseId = table.Column<int>(type: "int", nullable: true),
+                    ClientId = table.Column<int>(type: "int", nullable: false),
+                    ClientAddressId = table.Column<int>(type: "int", nullable: false),
+                    CityId = table.Column<int>(type: "int", nullable: false),
+                    CountryId = table.Column<int>(type: "int", nullable: true),
+                    DeliveredDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RescheduledDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Contains = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecondManagement = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CourierComment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Latitude = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Longitude = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ScheduledDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Orders_Cities_CityId",
+                        column: x => x.CityId,
+                        principalTable: "Cities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_ClientAddress_ClientAddressId",
+                        column: x => x.ClientAddressId,
+                        principalTable: "ClientAddress",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_Client_ClientId",
+                        column: x => x.ClientId,
+                        principalTable: "Client",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_Countries_CountryId",
+                        column: x => x.CountryId,
+                        principalTable: "Countries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_Currency_CurrencyId",
+                        column: x => x.CurrencyId,
+                        principalTable: "Currency",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Orders_OrderCategories_OrderCategoryId",
                         column: x => x.OrderCategoryId,
@@ -337,6 +460,12 @@ namespace BoxExpress.Infrastructure.Migrations
                         name: "FK_Orders_Stores_StoreId",
                         column: x => x.StoreId,
                         principalTable: "Stores",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_TimeSlots_TimeSlotId",
+                        column: x => x.TimeSlotId,
+                        principalTable: "TimeSlots",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -536,6 +665,16 @@ namespace BoxExpress.Infrastructure.Migrations
                 column: "CountryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ClientAddress_CityId",
+                table: "ClientAddress",
+                column: "CityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ClientAddress_ClientId",
+                table: "ClientAddress",
+                column: "ClientId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderCategoryHistories_NewCategoryId",
                 table: "OrderCategoryHistories",
                 column: "NewCategoryId");
@@ -566,9 +705,34 @@ namespace BoxExpress.Infrastructure.Migrations
                 column: "ProductVariantId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_CityId",
+                table: "Orders",
+                column: "CityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_ClientAddressId",
+                table: "Orders",
+                column: "ClientAddressId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_ClientId",
+                table: "Orders",
+                column: "ClientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_CountryId",
+                table: "Orders",
+                column: "CountryId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_CreatorId",
                 table: "Orders",
                 column: "CreatorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_CurrencyId",
+                table: "Orders",
+                column: "CurrencyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_OrderCategoryId",
@@ -584,6 +748,11 @@ namespace BoxExpress.Infrastructure.Migrations
                 name: "IX_Orders_StoreId",
                 table: "Orders",
                 column: "StoreId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_TimeSlotId",
+                table: "Orders",
+                column: "TimeSlotId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_WarehouseId",
@@ -730,10 +899,19 @@ namespace BoxExpress.Infrastructure.Migrations
                 name: "ProductVariants");
 
             migrationBuilder.DropTable(
+                name: "ClientAddress");
+
+            migrationBuilder.DropTable(
+                name: "Currency");
+
+            migrationBuilder.DropTable(
                 name: "OrderCategories");
 
             migrationBuilder.DropTable(
                 name: "OrderStatuses");
+
+            migrationBuilder.DropTable(
+                name: "TimeSlots");
 
             migrationBuilder.DropTable(
                 name: "Users");
@@ -743,6 +921,9 @@ namespace BoxExpress.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "Client");
 
             migrationBuilder.DropTable(
                 name: "Roles");

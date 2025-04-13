@@ -6,4 +6,6 @@ public class ProductVariant : BaseEntity
     public Product Product { get; set; } = null!;
     public string? Name { get; set; }
     public string? ShopifyVariantId { get; set; }
+    public string? Sku { get; set; } = string.Empty;
+    public decimal? Price { get; set; }
 }

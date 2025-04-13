@@ -21,18 +21,11 @@ public class WarehouseService : IWarehouseService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<ApiResponse<IEnumerable<WarehouseDto>>> GetAllAsync(WarehouseFilterDto filter)
-    {
-        List<Warehouse> warehouses = await _repository.GetFilteredAsync(_mapper.Map<WarehouseFilter>(filter));
-        return ApiResponse<IEnumerable<WarehouseDto>>.Success(_mapper.Map<List<WarehouseDto>>(warehouses));
-    }
+    public async Task<ApiResponse<IEnumerable<WarehouseDto>>> GetAllAsync(WarehouseFilterDto filter) =>
+         ApiResponse<IEnumerable<WarehouseDto>>.Success(_mapper.Map<List<WarehouseDto>>(await _repository.GetFilteredAsync(_mapper.Map<WarehouseFilter>(filter))));
 
-    public async Task<ApiResponse<WarehouseDetailDto?>> GetByIdAsync(int id)
-    {
-        Warehouse? warehouses = await _repository.GetByIdWithDetailsAsync(id);
-        return ApiResponse<WarehouseDetailDto?>.Success(_mapper.Map<WarehouseDetailDto>(warehouses));
-        ;
-    }
+    public async Task<ApiResponse<WarehouseDetailDto?>> GetByIdAsync(int id) =>
+        ApiResponse<WarehouseDetailDto?>.Success(_mapper.Map<WarehouseDetailDto>(await _repository.GetByIdWithDetailsAsync(id)));
 
     // UnitOfWork es un patrón que coordina varios repositorios para que puedas hacer múltiples operaciones sobre la base de datos en una única transacción.
     // ✅ Su objetivo es garantizar que todo se guarde o nada se guarde (atomicidad).

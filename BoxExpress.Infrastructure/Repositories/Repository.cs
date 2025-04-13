@@ -28,7 +28,7 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
 
     public Task<T?> GetByIdAsync(int id)
     {
-        return _context.Set<T>().FirstOrDefaultAsync(x => x.Id == id);
+        return _context.Set<T>().FirstOrDefaultAsync(x => x.Id.Equals(id));
     }
     public async Task<T> UpdateAsync(T entity)
     {

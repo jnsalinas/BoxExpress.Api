@@ -4,7 +4,7 @@ using BoxExpress.Domain.Entities;
 namespace BoxExpress.Infrastructure.Persistence
 {
     //Correr migrations: 
-    // dotnet ef migrations add InitialCreate --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add InitialDataBase --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
 
     public class BoxExpressDbContext : DbContext
@@ -30,7 +30,7 @@ namespace BoxExpress.Infrastructure.Persistence
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<WalletTransaction> WalletTransactions { get; set; }
         public DbSet<WithdrawalRequest> WithdrawalRequests { get; set; }
-
+        public DbSet<TimeSlot> TimeSlots { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Aplica DeleteBehavior.Restrict a todas las foreign keys

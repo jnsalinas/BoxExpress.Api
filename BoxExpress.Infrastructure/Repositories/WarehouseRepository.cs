@@ -26,10 +26,10 @@ public class WarehouseRepository : Repository<Warehouse>, IWarehouseRepository
             query = query.Where(w => w.Name.Contains(filter.Name));
 
         if (filter.CityId.HasValue && filter.CityId > 0)
-            query = query.Where(w => w.CityId == filter.CityId);
+            query = query.Where(w => w.CityId.Equals(filter.CityId));
 
         if (filter.CountryId.HasValue && filter.CountryId > 0)
-            query = query.Where(w => w.CountryId == filter.CountryId);
+            query = query.Where(w => w.CountryId.Equals(filter.CountryId));
 
         return await query.ToListAsync();
     }
@@ -40,6 +40,6 @@ public class WarehouseRepository : Repository<Warehouse>, IWarehouseRepository
             .Include(w => w.Inventories)
                 .ThenInclude(p => p.ProductVariant)
                     .ThenInclude(p => p.Product)
-            .FirstOrDefaultAsync(w => w.Id == id);
+            .FirstOrDefaultAsync(w => w.Id.Equals(id));
     }
 }

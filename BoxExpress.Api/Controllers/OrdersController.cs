@@ -1,4 +1,5 @@
 // BoxExpress.Api/Controllers/OrdersController.cs
+using BoxExpress.Application.Dtos;
 using BoxExpress.Application.Interfaces;
 using BoxExpress.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -16,25 +17,25 @@ public class OrdersController : ControllerBase
         _orderService = orderService;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
+    [HttpPost("search")]
+    public async Task<IActionResult> Search([FromBody] OrderFilterDto filter)
     {
-        var orders = await _orderService.GetAllAsync();
-        return Ok(orders);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Create(Order order)
-    {
-        var created = await _orderService.AddAsync(order);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        var result = await _orderService.GetAllAsync(filter);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var order = await _orderService.GetByIdAsync(id);
-        if (order == null) return NotFound();
-        return Ok(order);
+        var result = await _orderService.GetByIdAsync(id);
+        if (result.Equals(null)) return NotFound();
+        return Ok(result);
     }
+
+    // [HttpPost]
+    // public async Task<IActionResult> Create(Order order)
+    // {
+    //     var created = await _orderService.AddAsync(order);
+    //     return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+    // }
 }

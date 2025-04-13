@@ -1,4 +1,5 @@
 using BoxExpress.Domain.Entities;
+using BoxExpress.Domain.Filters;
 
 namespace BoxExpress.Domain.Interfaces;
 public interface IRepository<T> where T : BaseEntity

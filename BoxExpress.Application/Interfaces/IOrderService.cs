@@ -1,10 +1,12 @@
+using BoxExpress.Application.Dtos;
+using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Domain.Entities;
 
 namespace BoxExpress.Application.Interfaces;
 
 public interface IOrderService
 {
-    Task<IEnumerable<Order>> GetAllAsync();
-    Task<Order?> GetByIdAsync(int id);
-    Task<Order> AddAsync(Order order);
+    Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter);
+    Task<ApiResponse<OrderDetailDto?>> GetByIdAsync(int id);
+    // Task<ApiResponse<OrderDto>> AddAsync(OrderDto order);
 }
