@@ -32,10 +32,9 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
-    // [HttpPost]
-    // public async Task<IActionResult> Create(Order order)
-    // {
-    //     var created = await _orderService.AddAsync(order);
-    //     return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-    // }
+    [HttpPatch("{orderId}/warehouse/{warehouseId}")]
+    public async Task<IActionResult> UpdateWarehouse(int orderId, int warehouseId)
+    {
+        return Ok(await _orderService.UpdateWarehouseAsync(orderId, warehouseId));
+    }
 }

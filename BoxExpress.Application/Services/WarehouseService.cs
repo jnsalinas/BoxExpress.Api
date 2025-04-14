@@ -71,7 +71,7 @@ public class WarehouseService : IWarehouseService
         }
         catch (Exception ex)
         {
-            return ApiResponse<bool>.Failure("Error al guardar el inventario: " + ex.Message);
+            return ApiResponse<bool>.Fail("Error al guardar el inventario: " + ex.Message);
         }
 
     }

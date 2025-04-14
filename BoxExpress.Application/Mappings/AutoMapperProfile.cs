@@ -48,6 +48,8 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City.Name))
             .ForMember(dest => dest.ClientAddress, opt => opt.MapFrom(src => src.ClientAddress.Address))
             .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.Store.Name))
+            .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.OrderCategoryId))
+            .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.OrderCategoryId))
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name));
 
         // Filtros

@@ -19,7 +19,7 @@ public class ApiResponse<T>
         };
     }
 
-    public static ApiResponse<T> Failure(string message)
+    public static ApiResponse<T> Fail(string message)
     {
         return new ApiResponse<T>
         {

@@ -17,10 +17,13 @@ public class OrderDto
     public decimal TotalAmount { get; set; }
     public DateTime? ScheduledDate { get; set; }
     public string? Status { get; set; }
+    public int? StatusId { get; set; }
     public string? Category { get; set; }
+    public int? CategoryId { get; set; }
     public string? StoreName { get; set; }
     public string? Notes { get; set; }
     public string? Code { get; set; }
     public decimal? DeliveryFee { get; set; }
+    public int? WarehouseId { get; set; }
 
 }
