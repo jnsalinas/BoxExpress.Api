@@ -7,4 +7,6 @@ public class Store : BaseEntity
     public Country Country { get; set; } = null!;
     public int CityId { get; set; }
     public City City { get; set; } = null!;
+    public int WalletId { get; set; }
+    public Wallet Wallet { get; set; } = null!;
 }

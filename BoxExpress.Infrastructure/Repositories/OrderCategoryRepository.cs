@@ -6,17 +6,17 @@ using BoxExpress.Domain.Filters;
 
 namespace BoxExpress.Infrastructure.Repositories;
 
-public class OrderStatusRepository : Repository<OrderStatus>, IOrderStatusRepository
+public class OrderCategoryRepository : Repository<OrderCategory>, IOrderCategoryRepository
 {
     private readonly BoxExpressDbContext _context;
 
-    public OrderStatusRepository(BoxExpressDbContext context) : base(context)
+    public OrderCategoryRepository(BoxExpressDbContext context) : base(context)
     {
         _context = context;
     }
 
-    public async Task<OrderStatus?> GetByNameAsync(string name)
+       public async Task<OrderCategory?> GetByNameAsync(string name)
     {
-        return await _context.Set<OrderStatus>().FirstOrDefaultAsync(w => w.Name.Equals(name));
+        return await _context.Set<OrderCategory>().FirstOrDefaultAsync(w => w.Name.Equals(name));
     }
 }

@@ -10,4 +10,6 @@ public class WalletTransaction : BaseEntity
     public string? Description { get; set; }
     public int? RelatedOrderId { get; set; }
     public Order? RelatedOrder { get; set; }
+    public int CreatorId { get; set; }
+    public User Creator { get; set; } = null!;
 }

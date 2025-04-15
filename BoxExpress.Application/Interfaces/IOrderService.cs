@@ -9,4 +9,6 @@ public interface IOrderService
     Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter);
     Task<ApiResponse<OrderDetailDto?>> GetByIdAsync(int id);
     Task<ApiResponse<OrderDto>> UpdateWarehouseAsync(int orderId, int warehouseId);
+    Task<ApiResponse<OrderDto>> UpdateStatusAsync(int orderId, int warehouseId);
+
 }

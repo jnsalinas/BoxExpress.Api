@@ -37,4 +37,10 @@ public class OrdersController : ControllerBase
     {
         return Ok(await _orderService.UpdateWarehouseAsync(orderId, warehouseId));
     }
+
+    [HttpPatch("{orderId}/status/{statusId}")]
+    public async Task<IActionResult> UpdateStatus(int orderId, int statusId)
+    {
+        return Ok(await _orderService.UpdateStatusAsync(orderId, statusId));
+    }
 }

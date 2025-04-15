@@ -6,11 +6,11 @@ using BoxExpress.Domain.Filters;
 
 namespace BoxExpress.Infrastructure.Repositories;
 
-public class OrderCategoryRepository : Repository<OrderCategory>, IOrderCategoryRepository
+public class OrderStatusHistoryRepository : Repository<OrderStatusHistory>, IOrderStatusHistoryRepository
 {
     private readonly BoxExpressDbContext _context;
 
-    public OrderCategoryRepository(BoxExpressDbContext context) : base(context)
+    public OrderStatusHistoryRepository(BoxExpressDbContext context) : base(context)
     {
         _context = context;
     }

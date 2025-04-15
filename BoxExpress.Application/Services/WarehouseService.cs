@@ -35,7 +35,7 @@ public class WarehouseService : IWarehouseService
         {
             foreach (var productDto in products)
             {
-                Product product = new Product
+                Product product = new()
                 {
                     Name = productDto.Name,
                     ShopifyProductId = productDto.ShopifyProductId,
@@ -46,7 +46,7 @@ public class WarehouseService : IWarehouseService
 
                 foreach (var variantDto in productDto.Variants)
                 {
-                    ProductVariant variant = new ProductVariant
+                    ProductVariant variant = new()
                     {
                         Name = variantDto.Name,
                         ShopifyVariantId = variantDto.ShopifyVariantId,
@@ -55,7 +55,7 @@ public class WarehouseService : IWarehouseService
 
                     await _unitOfWork.Variants.AddAsync(variant);
 
-                    WarehouseInventory inventory = new WarehouseInventory
+                    WarehouseInventory inventory = new()
                     {
                         WarehouseId = warehouseId,
                         ProductVariant = variant,

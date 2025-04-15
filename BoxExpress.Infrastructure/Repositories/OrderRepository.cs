@@ -45,7 +45,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             .Include(w => w.ClientAddress)
             .Include(w => w.Warehouse)
             .Include(w => w.Store)
-            .Include(w => w.Store)
+                .ThenInclude(w => w.Wallet)
             .FirstOrDefaultAsync(w => w.Id.Equals(id));
     }
 }
