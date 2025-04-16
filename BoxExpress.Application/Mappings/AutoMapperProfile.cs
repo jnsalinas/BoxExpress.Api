@@ -12,6 +12,10 @@ public class AutoMapperProfile : Profile
         // Entity ➜ DTO para mostrar
         CreateMap<OrderStatus, OrderStatusDto>();
         CreateMap<OrderCategory, OrderCategoryDto>();
+        
+        CreateMap<WalletTransaction, WalletTransactionDto>()
+            .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.Wallet.Store.Name))
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Creator.FirstName + " " + src.Creator.LastName));
 
         CreateMap<Warehouse, WarehouseDto>()
             .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.Name))
@@ -57,6 +61,7 @@ public class AutoMapperProfile : Profile
         CreateMap<OrderFilterDto, OrderFilter>();
         CreateMap<OrderStatusFilterDto, OrderStatusFilter>();
         CreateMap<OrderCategoryFilterDto, OrderCategoryFilter>();
+        CreateMap<WalletTransactionFilterDto, WalletTransactionFilter>();
 
         // DTOs de creación / actualización
         // CreateMap<WarehouseCreateDto, Warehouse>();

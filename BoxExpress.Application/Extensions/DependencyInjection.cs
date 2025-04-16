@@ -14,7 +14,8 @@ public static class DependencyInjection
         services.AddScoped<IWarehouseService, WarehouseService>();
         services.AddScoped<IOrderStatusService, OrderStatusService>();
         services.AddScoped<IOrderCategoryService, OrderCategoryService>();
-
+        services.AddScoped<IWalletTransactionService, WalletTransactionService>();
+        
         services.AddAutoMapper(typeof(AutoMapperProfile));
         
         return services;

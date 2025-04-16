@@ -14,4 +14,13 @@ public class WalletTransactionRepository : Repository<WalletTransaction>, IWalle
     {
         _context = context;
     }
+
+    public async Task<List<WalletTransaction>> GetFilteredAsync(WalletTransactionFilter filter)
+    {
+        return await _context.WalletTransactions
+            .Include(w => w.Wallet)
+                .ThenInclude(w => w.Store)
+            .Include(w => w.Creator)
+            .ToListAsync();
+    }
 }
