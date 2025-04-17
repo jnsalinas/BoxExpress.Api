@@ -12,7 +12,7 @@ public class AutoMapperProfile : Profile
         // Entity ➜ DTO para mostrar
         CreateMap<OrderStatus, OrderStatusDto>();
         CreateMap<OrderCategory, OrderCategoryDto>();
-        
+
         CreateMap<WalletTransaction, WalletTransactionDto>()
             .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.Wallet.Store.Name))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Creator.FirstName + " " + src.Creator.LastName));
@@ -27,17 +27,21 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Products, opt => opt.MapFrom(src =>
                 src.Inventories
                 .GroupBy(wi => wi.ProductVariant.Product)
-                .Select(g => new ProductInventoryDto
+                .Select(g => new ProductDto
                 {
                     ShopifyId = g.Key.ShopifyProductId,
                     Id = g.Key.Id,
                     Name = g.Key.Name,
-                    Variants = g.Select(vi => new VariantInventoryDto
+                    Sku = g.Key.Sku,
+                    Price = g.Key.Price,
+                    Variants = g.Select(vi => new ProductVariantDto
                     {
                         ShopifyId = vi.ProductVariant.ShopifyVariantId,
                         Id = vi.ProductVariant.Id,
                         Name = !string.IsNullOrEmpty(vi.ProductVariant.Name) ? vi.ProductVariant.Name : string.Empty,
-                        Quantity = vi.Quantity
+                        Quantity = vi.Quantity,
+                        Sku = vi.ProductVariant.Sku,
+                        Price = vi.ProductVariant.Price,
                     }).ToList()
                 }).ToList()
             ));

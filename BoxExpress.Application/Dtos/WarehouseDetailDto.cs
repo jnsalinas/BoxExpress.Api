@@ -2,5 +2,5 @@ namespace BoxExpress.Application.Dtos;
 
 public class WarehouseDetailDto : WarehouseDto
 {
-    public List<ProductInventoryDto> Products { get; set; } = new();
+    public List<ProductDto> Products { get; set; } = new();
 }

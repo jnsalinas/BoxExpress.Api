@@ -73,6 +73,101 @@ public class WarehouseService : IWarehouseService
         {
             return ApiResponse<bool>.Fail("Error al guardar el inventario: " + ex.Message);
         }
-
     }
+
+// public async Task<ApiResponse<bool>> UpdateInventoryInWarehouseAsync(int warehouseId, List<CreateProductWithVariantsDto> products)
+// {
+//     await _unitOfWork.BeginTransactionAsync(); // Inicia la transacción
+
+//     try
+//     {
+//         foreach (var productDto in products)
+//         {
+//             var product = await _unitOfWork.Products.GetByIdAsync(productDto.Id.Value);
+//             if (product == null)
+//             {
+//                 return ApiResponse<bool>.Fail($"Producto con ID {productDto.Id} no encontrado.");
+//             }
+
+//             // Actualizar detalles del producto
+//             product.Name = productDto.Name;
+//             product.ShopifyProductId = productDto.ShopifyProductId;
+//             await _unitOfWork.Products.UpdateAsync(product);
+
+//             // Cargar variantes e inventarios existentes
+//             var existingVariants = await _unitOfWork.Variants.GetByProductIdAsync(product.Id);
+//             var existingInventories = await _unitOfWork.Inventories.GetByWarehouseIdAsync(warehouseId);
+
+//             // Eliminar variantes que ya no están
+//             foreach (var existingVariant in existingVariants)
+//             {
+//                 if (!productDto.Variants.Any(v => v.Id == existingVariant.Id))
+//                 {
+//                     await _unitOfWork.Variants.DeleteAsync(existingVariant);
+
+//                     // Eliminar inventario asociado
+//                     var inventory = existingInventories.FirstOrDefault(i => i.ProductVariantId == existingVariant.Id);
+//                     if (inventory != null)
+//                     {
+//                         await _unitOfWork.Inventories.DeleteAsync(inventory);
+//                     }
+//                 }
+//             }
+
+//             // Procesar las variantes (actualizar o agregar)
+//             foreach (var variantDto in productDto.Variants)
+//             {
+//                 var variant = existingVariants.FirstOrDefault(v => v.Id == variantDto.Id);
+//                 if (variant == null)
+//                 {
+//                     // Crear nueva variante si no existe
+//                     variant = new ProductVariant
+//                     {
+//                         Name = variantDto.Name,
+//                         ShopifyVariantId = variantDto.ShopifyVariantId,
+//                         Product = product
+//                     };
+//                     await _unitOfWork.Variants.AddAsync(variant);
+//                 }
+//                 else
+//                 {
+//                     // Actualizar variante existente
+//                     variant.Name = variantDto.Name;
+//                     variant.ShopifyVariantId = variantDto.ShopifyVariantId;
+//                     await _unitOfWork.Variants.UpdateAsync(variant);
+//                 }
+
+//                 // Actualizar o agregar inventarios
+//                 var inventory = existingInventories.FirstOrDefault(i => i.ProductVariantId == variant.Id);
+//                 if (inventory == null)
+//                 {
+//                     inventory = new WarehouseInventory
+//                     {
+//                         WarehouseId = warehouseId,
+//                         ProductVariant = variant,
+//                         Quantity = variantDto.Quantity
+//                     };
+//                     await _unitOfWork.Inventories.AddAsync(inventory);
+//                 }
+//                 else
+//                 {
+//                     inventory.Quantity = variantDto.Quantity;
+//                     await _unitOfWork.Inventories.UpdateAsync(inventory);
+//                 }
+//             }
+//         }
+
+//         await _unitOfWork.SaveChangesAsync(); // Guarda los cambios
+//         await _unitOfWork.CommitAsync(); // Confirma la transacción
+//         return ApiResponse<bool>.Success(true, "Inventario actualizado exitosamente");
+//     }
+//     catch (Exception ex)
+//     {
+//         await _unitOfWork.RollbackAsync(); // Reversa la transacción si hay un error
+//         return ApiResponse<bool>.Fail("Error al actualizar el inventario: " + ex.Message);
+//     }
+// }
+
+
+
 }

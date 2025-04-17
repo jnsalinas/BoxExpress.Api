@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using BoxExpress.Domain.Interfaces;
 
 public interface IUnitOfWork
@@ -7,4 +8,7 @@ public interface IUnitOfWork
     IWarehouseInventoryRepository Inventories { get; }
 
     Task<int> SaveChangesAsync();
+    Task BeginTransactionAsync();
+    Task CommitAsync();
+    Task RollbackAsync();
 }

@@ -1,10 +1,12 @@
 using BoxExpress.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace BoxExpress.Infrastructure.Persistence;
 
 public class UnitOfWork : IUnitOfWork
 {
     private readonly BoxExpressDbContext _context;
+    private IDbContextTransaction? _transaction;
 
     public IProductRepository Products { get; }
     public IProductVariantRepository Variants { get; }
@@ -20,6 +22,29 @@ public class UnitOfWork : IUnitOfWork
         Products = products;
         Variants = variants;
         Inventories = inventories;
+    }
+
+    public async Task BeginTransactionAsync()
+    {
+        _transaction = await _context.Database.BeginTransactionAsync();
+    }
+
+    public async Task CommitAsync()
+    {
+        if (_transaction != null)
+        {
+            await _transaction.CommitAsync();
+            _transaction = null;
+        }
+    }
+
+    public async Task RollbackAsync()
+    {
+        if (_transaction != null)
+        {
+            await _transaction.RollbackAsync();
+            _transaction = null;
+        }
     }
 
     public async Task<int> SaveChangesAsync()
