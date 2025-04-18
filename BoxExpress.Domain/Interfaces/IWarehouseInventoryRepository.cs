@@ -5,5 +5,5 @@ using BoxExpress.Domain.Filters;
 namespace BoxExpress.Domain.Interfaces;
 public interface IWarehouseInventoryRepository : IRepository<WarehouseInventory>
 {
-
+    Task<WarehouseInventory?> GetByWarehouseIdAndProductVariantId(int warehouseId, int productVariantId);
 }

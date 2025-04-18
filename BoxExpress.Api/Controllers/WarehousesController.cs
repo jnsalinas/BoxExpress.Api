@@ -39,4 +39,15 @@ public class WarehousesController : ControllerBase
         if (result.Equals(null)) return NotFound();
         return Ok(result);
     }
+
+    [HttpPost("transfer")]
+    public async Task<IActionResult> TransferInventory([FromBody] WarehouseInventoryTransferDto transferDto)
+    {
+        var result = await _warehouseService.TransferInventoryAsync(transferDto);
+        if (!result.Data)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
 }

@@ -9,5 +9,6 @@ public interface IWarehouseService
     Task<ApiResponse<IEnumerable<WarehouseDto>>> GetAllAsync(WarehouseFilterDto filter);
     Task<ApiResponse<WarehouseDetailDto?>> GetByIdAsync(int id);
     Task<ApiResponse<bool>> AddInventoryToWarehouseAsync(int warehouseId, List<CreateProductWithVariantsDto> products);
+    Task<ApiResponse<bool>> TransferInventoryAsync(WarehouseInventoryTransferDto warehouseInventoryTransferDto);
 
 }

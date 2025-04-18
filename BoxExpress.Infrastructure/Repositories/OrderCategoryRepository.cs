@@ -17,6 +17,6 @@ public class OrderCategoryRepository : Repository<OrderCategory>, IOrderCategory
 
        public async Task<OrderCategory?> GetByNameAsync(string name)
     {
-        return await _context.Set<OrderCategory>().FirstOrDefaultAsync(w => w.Name.Equals(name));
+        return await _context.OrderCategories.FirstOrDefaultAsync(w => w.Name.Equals(name));
     }
 }

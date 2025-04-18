@@ -60,6 +60,10 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.Status.Id))
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name));
 
+
+        CreateMap<ProductVariant, ProductVariantAutocompleteDto>()
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
+
         // Filtros
         CreateMap<WarehouseFilterDto, WarehouseFilter>();
         CreateMap<OrderFilterDto, OrderFilter>();

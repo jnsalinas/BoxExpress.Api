@@ -31,6 +31,7 @@ namespace BoxExpress.Infrastructure.Persistence
         public DbSet<WalletTransaction> WalletTransactions { get; set; }
         public DbSet<WithdrawalRequest> WithdrawalRequests { get; set; }
         public DbSet<TimeSlot> TimeSlots { get; set; }
+        public DbSet<WarehouseInventoryTransfer> WarehouseInventoryTransfers { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Aplica DeleteBehavior.Restrict a todas las foreign keys

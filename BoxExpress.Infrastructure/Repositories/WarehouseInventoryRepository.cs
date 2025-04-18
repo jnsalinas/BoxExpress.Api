@@ -14,4 +14,12 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
     {
         _context = context;
     }
+
+    public async Task<WarehouseInventory?> GetByWarehouseIdAndProductVariantId(int warehouseId, int productVariantId)
+    {
+        return await _context.WarehouseInventories
+            .Include(wi => wi.ProductVariant)
+            .ThenInclude(pv => pv.Product)
+            .FirstOrDefaultAsync(wi => wi.WarehouseId == warehouseId && wi.ProductVariantId == productVariantId);
+    }
 }

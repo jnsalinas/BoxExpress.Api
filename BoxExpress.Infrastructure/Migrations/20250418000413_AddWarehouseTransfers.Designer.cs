@@ -4,6 +4,7 @@ using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoxExpress.Infrastructure.Migrations
 {
     [DbContext(typeof(BoxExpressDbContext))]
-    partial class BoxExpressDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250418000413_AddWarehouseTransfers")]
+    partial class AddWarehouseTransfers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -776,40 +779,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.ToTable("WarehouseInventories");
                 });
 
-            modelBuilder.Entity("BoxExpress.Domain.Entities.WarehouseInventoryTransfer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("FromWarehouseId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductVariantId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ToWarehouseId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FromWarehouseId");
-
-                    b.HasIndex("ProductVariantId");
-
-                    b.HasIndex("ToWarehouseId");
-
-                    b.ToTable("WarehouseInventoryTransfers");
-                });
-
             modelBuilder.Entity("BoxExpress.Domain.Entities.WithdrawalRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -1217,33 +1186,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Navigation("ProductVariant");
 
                     b.Navigation("Warehouse");
-                });
-
-            modelBuilder.Entity("BoxExpress.Domain.Entities.WarehouseInventoryTransfer", b =>
-                {
-                    b.HasOne("BoxExpress.Domain.Entities.Warehouse", "FromWarehouse")
-                        .WithMany()
-                        .HasForeignKey("FromWarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BoxExpress.Domain.Entities.ProductVariant", "ProductVariant")
-                        .WithMany()
-                        .HasForeignKey("ProductVariantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BoxExpress.Domain.Entities.Warehouse", "ToWarehouse")
-                        .WithMany()
-                        .HasForeignKey("ToWarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FromWarehouse");
-
-                    b.Navigation("ProductVariant");
-
-                    b.Navigation("ToWarehouse");
                 });
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.WithdrawalRequest", b =>

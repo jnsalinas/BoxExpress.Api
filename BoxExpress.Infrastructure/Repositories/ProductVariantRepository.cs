@@ -14,4 +14,19 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
     {
         _context = context;
     }
+
+    public async Task<List<ProductVariant>> GetVariantsAutocompleteAsync(string query)
+    {
+        return await _context.ProductVariants
+            .Where
+            (
+                x =>
+                    (!string.IsNullOrEmpty(x.Name) && x.Name.Contains(query))
+                    || (!string.IsNullOrEmpty(x.Sku) && x.Sku.Contains(query))
+                    || x.Product.Name.Contains(query)
+                    || (!string.IsNullOrEmpty(x.Product.Sku) && x.Product.Sku.Contains(query))
+            )
+            .Include(x => x.Product)
+            .ToListAsync();
+    }
 }

@@ -4,8 +4,7 @@ using BoxExpress.Application.Dtos.Common;
 
 namespace BoxExpress.Application.Interfaces;
 
-public interface IOrderCategoryService
+public interface IProductVariantService
 {
-    Task<ApiResponse<IEnumerable<OrderCategoryDto>>> GetAllAsync(OrderCategoryFilterDto filter);
-
+    Task<ApiResponse<List<ProductVariantAutocompleteDto>>> GetVariantsAutocompleteAsync(string query);
 }
