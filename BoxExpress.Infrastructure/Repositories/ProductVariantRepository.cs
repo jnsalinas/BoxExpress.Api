@@ -15,9 +15,9 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
         _context = context;
     }
 
-    public async Task<List<ProductVariant>> GetVariantsAutocompleteAsync(string query)
+    public async Task<List<ProductVariant>> GetVariantsAutocompleteAsync(string query, int warehouseOrigonId)
     {
-        return await _context.ProductVariants
+        List<ProductVariant> productVariants = await _context.ProductVariants
             .Where
             (
                 x =>
@@ -28,5 +28,14 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
             )
             .Include(x => x.Product)
             .ToListAsync();
+
+        foreach (var productVariant in productVariants)
+        {
+            productVariant.AvailableUnits = (await _context.WarehouseInventories
+            .FirstOrDefaultAsync(x => x.ProductVariantId
+            .Equals(productVariant.Id) && x.WarehouseId.Equals(warehouseOrigonId)))?.Quantity;
+        }
+
+        return productVariants;
     }
 }

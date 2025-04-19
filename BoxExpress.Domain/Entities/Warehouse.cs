@@ -10,5 +10,6 @@ public class Warehouse : BaseEntity
     public City City { get; set; } = null!;
     public string? Manager { get; set; }
     public string? Address { get; set; }
+    public bool IsMain { get; set; }
     public ICollection<WarehouseInventory> Inventories { get; set; } = new List<WarehouseInventory>();
 }

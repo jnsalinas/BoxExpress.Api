@@ -18,12 +18,13 @@ public class ProductVariantsController : ControllerBase
     }
 
     [HttpGet("autocomplete")]
-    public async Task<IActionResult> Search([FromQuery] string query)
+    public async Task<IActionResult> Search([FromQuery] string query, [FromQuery] int warehouseOriginId)
+
     {
         if (string.IsNullOrWhiteSpace(query))
             return BadRequest("Query is required.");
 
-        var result = await _productVariantService.GetVariantsAutocompleteAsync(query);
+        var result = await _productVariantService.GetVariantsAutocompleteAsync(query, warehouseOriginId);
         return Ok(result);
     }
 }

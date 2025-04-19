@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace BoxExpress.Domain.Entities;
 
 public class ProductVariant : BaseEntity
@@ -8,4 +10,8 @@ public class ProductVariant : BaseEntity
     public string? ShopifyVariantId { get; set; }
     public string? Sku { get; set; } = string.Empty;
     public decimal? Price { get; set; }
+    
+    [NotMapped]
+    public int? AvailableUnits { get; set; }
+    public ICollection<WarehouseInventory> WarehouseInventories { get; set; } = new List<WarehouseInventory>();
 }
