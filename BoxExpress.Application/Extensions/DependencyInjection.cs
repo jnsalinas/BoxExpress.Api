@@ -3,8 +3,6 @@ using AutoMapper;
 using BoxExpress.Application.Mappings;
 using BoxExpress.Application.Interfaces;
 using BoxExpress.Application.Services;
-using BoxExpress.Application.Dtos;
-using BoxExpress.Application.Exporters;
 
 namespace BoxExpress.Application.Extensions;
 
@@ -22,6 +20,9 @@ public static class DependencyInjection
         services.AddScoped<IExcelExporter<WalletTransactionDto>, WalletTransactionsExporter>();
         services.AddScoped<IStoreService, StoreService>();
         services.AddScoped<ITimeSlotService, TimeSlotService>();
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IAuthService, AuthService>();
+
         services.AddAutoMapper(typeof(AutoMapperProfile));
         return services;
     }
