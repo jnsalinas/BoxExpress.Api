@@ -9,6 +9,8 @@ using BoxExpress.Application.Mappings;
 using BoxExpress.Application.Extensions;
 using AutoMapper;
 using BoxExpress.Infrastructure.Extensions;
+using BoxExpress.Application.Configurations;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,7 @@ builder.Services.AddDbContext<BoxExpressDbContext>(options =>
 // Agrega soporte para controladores
 builder.Services.AddControllers();
 
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration.GetConnectionString("DefaultConnection")!);
 

@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IOrderStatusHistoryRepository, OrderStatusHistoryRepository>();
         services.AddScoped<IOrderCategoryHistoryRepository, OrderCategoryHistoryRepository>();
         services.AddScoped<IWarehouseInventoryTransferRepository, WarehouseInventoryTransferRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
 
 
         return services;
