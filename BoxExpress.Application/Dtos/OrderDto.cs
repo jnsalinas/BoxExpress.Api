@@ -25,5 +25,6 @@ public class OrderDto
     public string? Code { get; set; }
     public decimal? DeliveryFee { get; set; }
     public int? WarehouseId { get; set; }
-
+    public string? WarehouseName { get; set; }
+    public string? Color { get; set; }
 }

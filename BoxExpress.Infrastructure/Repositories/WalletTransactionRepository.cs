@@ -15,12 +15,37 @@ public class WalletTransactionRepository : Repository<WalletTransaction>, IWalle
         _context = context;
     }
 
-    public async Task<List<WalletTransaction>> GetFilteredAsync(WalletTransactionFilter filter)
+    public async Task<(List<WalletTransaction> Transactions, int TotalCount)> GetFilteredAsync(WalletTransactionFilter filter)
     {
-        return await _context.WalletTransactions
+        var query = _context.WalletTransactions.AsQueryable();
+        if (filter.StoreId.HasValue)
+        {
+            query = query.Where(w => w.Wallet.Store.Id == filter.StoreId.Value);
+        }
+        if (filter.OrderId.HasValue)
+        {
+            query = query.Where(w => w.RelatedOrderId == filter.OrderId.Value);
+        }
+        if (filter.StartDate.HasValue)
+        {
+            query = query.Where(w => w.CreatedAt >= filter.StartDate.Value);
+        }
+        if (filter.EndDate.HasValue)
+        {
+            query = query.Where(w => w.CreatedAt <= filter.EndDate.Value);
+        }
+
+        var totalCount = await query.CountAsync();
+
+        return (await query
+            .Include(w => w.OrderStatus)
+            .Include(w => w.TransactionType)
             .Include(w => w.Wallet)
                 .ThenInclude(w => w.Store)
             .Include(w => w.Creator)
-            .ToListAsync();
+            .OrderByDescending(w => w.CreatedAt)
+            .Skip((filter.Page - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .ToListAsync(), totalCount);
     }
 }

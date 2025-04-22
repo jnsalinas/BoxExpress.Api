@@ -30,10 +30,17 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         if (filter.CountryId.HasValue && filter.CountryId > 0)
             query = query.Where(w => w.CountryId.Equals(filter.CountryId));
 
-        if (filter.CategoryId.HasValue && filter.CategoryId > 0)
+        if (filter.CategoryId.HasValue && filter.CategoryId > 1)
             query = query.Where(w => w.OrderCategoryId.Equals(filter.CategoryId));
 
-        return await query.Include(x => x.Client).Include(x => x.Category).Include(x => x.ClientAddress).Include(x => x.Status).Include(x => x.City).Include(x => x.Country).ToListAsync();
+        return await query.Include(x => x.Client)
+        .Include(x => x.Category)
+        .Include(x => x.ClientAddress)
+        .Include(x => x.Status)
+        .Include(x => x.City)
+        .Include(x => x.Country)
+        .Include(x => x.Warehouse)
+        .ToListAsync();
     }
 
     public async Task<Order?> GetByIdWithDetailsAsync(int id)
@@ -44,6 +51,8 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             .Include(w => w.Country)
             .Include(w => w.ClientAddress)
             .Include(w => w.Warehouse)
+            .Include(w => w.Status)
+            .Include(w => w.Category)
             .Include(w => w.Store)
                 .ThenInclude(w => w.Wallet)
             .FirstOrDefaultAsync(w => w.Id.Equals(id));

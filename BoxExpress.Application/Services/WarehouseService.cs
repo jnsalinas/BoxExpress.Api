@@ -76,7 +76,7 @@ public class WarehouseService : IWarehouseService
             }
 
             await _unitOfWork.SaveChangesAsync();
-            return ApiResponse<bool>.Success(true, "Inventario creado exitosamente");
+            return ApiResponse<bool>.Success(true, null, "Inventario creado exitosamente");
         }
         catch (Exception ex)
         {

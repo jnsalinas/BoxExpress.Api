@@ -5,5 +5,5 @@ using BoxExpress.Domain.Filters;
 namespace BoxExpress.Domain.Interfaces;
 public interface IWalletTransactionRepository : IRepository<WalletTransaction>
 {
-    Task<List<WalletTransaction>> GetFilteredAsync(WalletTransactionFilter filter);
+    Task<(List<WalletTransaction> Transactions, int TotalCount)> GetFilteredAsync(WalletTransactionFilter filter);
 }
