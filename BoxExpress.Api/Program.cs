@@ -10,7 +10,10 @@ using BoxExpress.Application.Extensions;
 using AutoMapper;
 using BoxExpress.Infrastructure.Extensions;
 using BoxExpress.Application.Configurations;
-using Microsoft.Extensions.Configuration;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using BoxExpress.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +33,9 @@ builder.Services.AddDbContext<BoxExpressDbContext>(options =>
 // Agrega soporte para controladores
 builder.Services.AddControllers();
 
+// Agrega soporte para validar jwt
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration.GetConnectionString("DefaultConnection")!);
@@ -38,6 +44,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
 
 app.UseCors("AllowAll");
 
@@ -48,6 +55,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Mapea los controladores

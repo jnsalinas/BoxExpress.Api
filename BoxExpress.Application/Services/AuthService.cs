@@ -38,7 +38,7 @@ namespace BoxExpress.Application.Services
 
             var claimsExtras = new[]
             {
-                new Claim("role", user.RoleId.ToString()),
+                new Claim(ClaimTypes.Role, user.Role.Name),
             };
 
             var authResponseDto = _tokens.CreateToken(user.Id.ToString(), user.Email, claimsExtras);
