@@ -11,9 +11,11 @@ namespace BoxExpress.Api.Controllers;
 public class WarehousesController : ControllerBase
 {
     private readonly IWarehouseService _warehouseService;
+    private readonly IExcelExporter<WarehouseDto> _excelExporter;
 
-    public WarehousesController(IWarehouseService warehouseService)
+    public WarehousesController(IWarehouseService warehouseService, IExcelExporter<WarehouseDto> excelExporter)
     {
+        _excelExporter = excelExporter;
         _warehouseService = warehouseService;
     }
 
@@ -49,5 +51,4 @@ public class WarehousesController : ControllerBase
 
         return Ok(result);
     }
-
 }
