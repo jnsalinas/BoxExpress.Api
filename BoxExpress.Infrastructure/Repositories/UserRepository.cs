@@ -21,7 +21,9 @@ namespace BoxExpress.Infrastructure.Repositories
         public async Task<User?> GetByEmailAsync(string email)
         {
             return await _context.Set<User>()
-            .FirstOrDefaultAsync(w => w.Email.Equals(email));
+                .AsNoTracking()
+                .Include(w => w.Role)
+                .FirstOrDefaultAsync(w => w.Email.Equals(email));
         }
     }
 }
