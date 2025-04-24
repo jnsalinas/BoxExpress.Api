@@ -20,7 +20,8 @@ public static class DependencyInjection
         services.AddScoped<IProductVariantService, ProductVariantService>();
         services.AddScoped<IExcelExporter<WarehouseDto>, WarehouseExcelExporter>();
         services.AddScoped<IExcelExporter<WalletTransactionDto>, WalletTransactionsExporter>();
-
+        services.AddScoped<IStoreService, StoreService>();
+        services.AddScoped<ITimeSlotService, TimeSlotService>();
         services.AddAutoMapper(typeof(AutoMapperProfile));
         return services;
     }

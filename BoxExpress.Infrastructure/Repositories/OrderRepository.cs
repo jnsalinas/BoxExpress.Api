@@ -26,12 +26,18 @@ public class OrderRepository : Repository<Order>, IOrderRepository
 
         if (filter.CityId.HasValue && filter.CityId > 0)
             query = query.Where(w => w.CityId.Equals(filter.CityId));
-
         if (filter.CountryId.HasValue && filter.CountryId > 0)
             query = query.Where(w => w.CountryId.Equals(filter.CountryId));
-
         if (filter.CategoryId.HasValue && filter.CategoryId > 1)
             query = query.Where(w => w.OrderCategoryId.Equals(filter.CategoryId));
+        if (filter.EndDate.HasValue)
+            query = query.Where(w => w.CreatedAt <= filter.EndDate.Value);
+        if (filter.StartDate.HasValue)
+            query = query.Where(w => w.CreatedAt >= filter.StartDate.Value);
+        if (filter.StoreId.HasValue && filter.StoreId > 0)
+            query = query.Where(w => w.StoreId.Equals(filter.StoreId));
+        if (filter.OrderId.HasValue && filter.OrderId > 0)
+            query = query.Where(w => w.Id.Equals(filter.OrderId));
 
         return await query.Include(x => x.Client)
         .Include(x => x.Category)

@@ -10,6 +10,8 @@ public class AutoMapperProfile : Profile
     public AutoMapperProfile()
     {
         // Entity ➜ DTO para mostrar
+        CreateMap<TimeSlot, TimeSlotDto>();
+        CreateMap<Store, StoreDto>();
         CreateMap<OrderStatus, OrderStatusDto>();
         CreateMap<OrderCategory, OrderCategoryDto>();
 
@@ -59,6 +61,9 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.ClientAddress, opt => opt.MapFrom(src => src.ClientAddress.Address))
             .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.Store.Name))
             .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.OrderCategoryId))
+            .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.Status.Id))
+            .ForMember(dest => dest.TimeSlotStartTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.StartTime : TimeSpan.Zero))
+            .ForMember(dest => dest.TimeSlotEndTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.EndTime : TimeSpan.Zero))
             .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.Status.Id))
             .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : string.Empty))
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name));

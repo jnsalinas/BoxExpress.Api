@@ -58,4 +58,20 @@ app.MapGet("/", context =>
     return Task.CompletedTask;
 });
 
+// 💡 Principios básicos:
+// Domain: solo conoce entidades y lógica de negocio pura.
+
+// Application: usa DTOs para comunicar datos entre capas (como entre API y Services).
+
+// Infrastructure: implementa los contratos de Domain, sin introducir lógica de negocio.
+
+// API: es la capa externa que consume Application.
+
+// se usa para no romper la inversión de dependencias.
+
+//Aislamiento de capas
+
+// “Duplication is better than the wrong abstraction.”
+// — Sandi Metz
+
 //dotnet run --project BoxExpress.Api/BoxExpress.Api.csproj
