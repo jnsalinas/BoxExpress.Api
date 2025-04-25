@@ -14,4 +14,15 @@ public class OrderCategoryHistoryRepository : Repository<OrderCategoryHistory>, 
     {
         _context = context;
     }
+
+    public async Task<List<OrderCategoryHistory>> GetByOrderIdAsync(int orderId)
+    {
+        return await _context.OrderCategoryHistories
+        .Where(w => w.OrderId.Equals(orderId))
+        .Include(x => x.OldCategory)
+        .Include(x => x.NewCategory)
+        .Include(x => x.Creator)
+        .OrderByDescending(x => x.CreatedAt)
+        .ToListAsync();
+    }
 }

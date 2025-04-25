@@ -46,6 +46,8 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         .Include(x => x.City)
         .Include(x => x.Country)
         .Include(x => x.Warehouse)
+        .Include(x => x.TimeSlot)
+        .Include(x => x.Currency)
         .ToListAsync();
     }
 

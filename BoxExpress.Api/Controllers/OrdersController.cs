@@ -43,4 +43,33 @@ public class OrdersController : ControllerBase
     {
         return Ok(await _orderService.UpdateStatusAsync(orderId, statusId));
     }
+
+    [HttpPatch("{orderId}/schedule")]
+    public async Task<IActionResult> UpdateSchedule(int orderId, [FromBody] OrderScheduleUpdateDto dto)
+    {
+        var updated = await _orderService.UpdateScheduleAsync(orderId, dto);
+        return Ok(updated);
+    }
+
+    [HttpGet("{orderId}/status-history")]
+    public async Task<IActionResult> GetStatusHistory(int orderId)
+    {
+        var result = await _orderService.GetStatusHistoryAsync(orderId);
+        return Ok(result);
+    }
+
+    [HttpGet("{orderId}/category-history")]
+    public async Task<IActionResult> GetCategoryHistory(int orderId)
+    {
+        var result = await _orderService.GetCategoryHistoryAsync(orderId);
+        return Ok(result);
+    }
+
+    [HttpGet("{orderId}/products")]
+    public async Task<IActionResult> GetProducts(int orderId)
+    {
+        var result = await _orderService.GetProductsAsync(orderId);
+        return Ok(result);
+    }
+
 }

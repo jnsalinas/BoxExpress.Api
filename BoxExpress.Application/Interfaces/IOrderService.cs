@@ -7,8 +7,11 @@ namespace BoxExpress.Application.Interfaces;
 public interface IOrderService
 {
     Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter);
-    Task<ApiResponse<OrderDetailDto?>> GetByIdAsync(int id);
+    Task<ApiResponse<OrderDto?>> GetByIdAsync(int id);
     Task<ApiResponse<OrderDto>> UpdateWarehouseAsync(int orderId, int warehouseId);
     Task<ApiResponse<OrderDto>> UpdateStatusAsync(int orderId, int warehouseId);
-
+    Task<ApiResponse<OrderDto>> UpdateScheduleAsync(int orderId, OrderScheduleUpdateDto orderScheduleUpdateDto);
+    Task<ApiResponse<List<OrderStatusHistoryDto>>> GetStatusHistoryAsync(int orderId);
+    Task<ApiResponse<List<OrderCategoryHistoryDto>>> GetCategoryHistoryAsync(int orderId);
+    Task<ApiResponse<List<OrderProductDto>>> GetProductsAsync(int orderId);
 }

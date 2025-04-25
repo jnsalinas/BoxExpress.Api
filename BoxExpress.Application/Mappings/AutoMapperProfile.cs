@@ -61,15 +61,23 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.ClientAddress, opt => opt.MapFrom(src => src.ClientAddress.Address))
             .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.Store.Name))
             .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.OrderCategoryId))
-            .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.Status.Id))
             .ForMember(dest => dest.TimeSlotStartTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.StartTime : TimeSpan.Zero))
             .ForMember(dest => dest.TimeSlotEndTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.EndTime : TimeSpan.Zero))
             .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.Status.Id))
+            .ForMember(dest => dest.CurrencyCode, opt => opt.MapFrom(src => src.Currency.Code))
             .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : string.Empty))
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name));
 
         CreateMap<ProductVariant, ProductVariantAutocompleteDto>()
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
+
+        CreateMap<OrderStatusHistory, OrderStatusHistoryDto>()
+            .ForMember(dest => dest.OldStatus, opt => opt.MapFrom(src => src.OldStatus.Name))
+            .ForMember(dest => dest.NewStatus, opt => opt.MapFrom(src => src.NewStatus.Name));
+
+        CreateMap<OrderCategoryHistory, OrderCategoryHistoryDto>()
+            .ForMember(dest => dest.OldCategory, opt => opt.MapFrom(src => src.OldCategory.Name))
+            .ForMember(dest => dest.NewCategory, opt => opt.MapFrom(src => src.NewCategory.Name));
 
         // Filtros
         CreateMap<WarehouseFilterDto, WarehouseFilter>();
