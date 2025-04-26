@@ -7,9 +7,11 @@ public class WalletTransaction : BaseEntity
     public int TransactionTypeId { get; set; }
     public TransactionType TransactionType { get; set; } = null!;
     public decimal Amount { get; set; }
-    public string? Description { get; set; }
-    public int? RelatedOrderId { get; set; }
-    public Order? RelatedOrder { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public int RelatedOrderId { get; set; }
+    public Order RelatedOrder { get; set; } = null!;
     public int CreatorId { get; set; }
     public User Creator { get; set; } = null!;
+    public int OrderStatusId { get; set; }
+    public OrderStatus OrderStatus { get; set; } = null!;
 }

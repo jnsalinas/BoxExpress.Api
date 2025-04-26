@@ -20,6 +20,7 @@ public class OrderService : IOrderService
     private readonly IWalletTransactionRepository _walletTransactionRepository;
     private readonly IOrderStatusHistoryRepository _orderStatusHistoryRepository;
     private readonly IOrderCategoryHistoryRepository _orderCategoryHistoryRepository;
+    private readonly IWalletTransactionService _walletTransactionService;
 
     public OrderService(
         IOrderRepository repository,
@@ -29,14 +30,16 @@ public class OrderService : IOrderService
         IWalletTransactionRepository walletTransactionRepository,
         ITransactionTypeRepository transactionTypeRepository,
         IOrderStatusHistoryRepository orderStatusHistoryRepository,
-        IOrderCategoryHistoryRepository orderCategoryHistoryRepository
+        IOrderCategoryHistoryRepository orderCategoryHistoryRepository,
+        IWalletTransactionService walletTransactionService
         )
     {
         _orderCategoryHistoryRepository = orderCategoryHistoryRepository;
         _walletTransactionRepository = walletTransactionRepository;
         _orderStatusHistoryRepository = orderStatusHistoryRepository;
-        _orderCategoryRepository = orderCategoryRepository;
         _transactionTypeRepository = transactionTypeRepository;
+        _walletTransactionService = walletTransactionService;
+        _orderCategoryRepository = orderCategoryRepository;
         _orderStatusRepository = orderStatusRepository;
         _repository = repository;
         _mapper = mapper;
@@ -93,40 +96,28 @@ public class OrderService : IOrderService
         OrderStatus? orderStatus = await _orderStatusRepository.GetByIdAsync(statusId);
         if (orderStatus == null)
             return ApiResponse<OrderDto>.Fail("Status not found");
+
+        List<TransactionType>? transactionsType = await _transactionTypeRepository.GetAllAsync();
+        TransactionType? inboundTransactionType = transactionsType.FirstOrDefault(x => x.Name.Equals(TransactionTypeConstants.Inbound));
+        if (inboundTransactionType == null)
+            return ApiResponse<OrderDto>.Fail("Inbound Transaction type not found");
+
+        TransactionType? outboundTransactionType = transactionsType.FirstOrDefault(x => x.Name.Equals(TransactionTypeConstants.Outbound));
+        if (outboundTransactionType == null)
+            return ApiResponse<OrderDto>.Fail("Outbound Transaction type not found");
         #endregion
 
-        //Todo aca van solo los que mueven la wallet
-        TransactionType? transactionType = null;
         switch (orderStatus.Name)
         {
             case OrderStatusConstants.Delivered:
-                transactionType = await _transactionTypeRepository.GetByNameAsync(TransactionTypeConstants.Inbound);
-                //hacer operacion con la wallet el balance
+                await _walletTransactionService.RegisterSuccessfulDeliveryAsync(order, statusId);
                 break;
-            case OrderStatusConstants.Cancelled:
-                //todo si previamente estaba entregada debe mover wallet 
-                transactionType = await _transactionTypeRepository.GetByNameAsync(TransactionTypeConstants.Outbound);
-                //hacer operacion con la wallet el balance
+            default:
+                if (order.Status.Name.Equals(OrderStatusConstants.Delivered))
+                    await _walletTransactionService.RegisterStatusCorrectionAsync(order, statusId);
                 break;
         }
 
-        if (transactionType != null)
-        {
-            //todo comenazar a validar logica de estados, si era antes entregado el cancelado debe mover la wallet
-            //todo validar que mas logica tiene el wallettransaction y si es necesario crear el wallettransactionservice para que maneje toda la logica
-            await _walletTransactionRepository.AddAsync(new()
-            {
-                CreatedAt = DateTime.Now,
-                WalletId = order.Store.WalletId,
-                TransactionTypeId = transactionType.Id, //todo en el codigo de smartmonkey hay entrada y salida
-                Amount = order.TotalAmount,
-                Description = WalletDescriptionConstants.SuccessfulDeliveryPrefix + orderId,
-                RelatedOrderId = order.Id,
-                CreatorId = 2, //todo tomar del token
-            });
-        }
-
-        //todo guardar log de cambio de estado
         await _orderStatusHistoryRepository.AddAsync(new()
         {
             OrderId = order.Id,
@@ -140,6 +131,4 @@ public class OrderService : IOrderService
         await _repository.UpdateAsync(order);
         return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
     }
-
-
 }

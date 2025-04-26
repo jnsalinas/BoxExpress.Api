@@ -6,15 +6,18 @@ public class ApiResponse<T>
 {
     [JsonPropertyName("success")]
     public bool IsSuccess { get; set; } = true;
+
     public string? Message { get; set; }
     public T? Data { get; set; }
+    public PaginationDto? Pagination { get; set; }
 
-    public static ApiResponse<T> Success(T? data, string? message = null)
+    public static ApiResponse<T> Success(T? data, PaginationDto? pagination = null, string? message = null)
     {
         return new ApiResponse<T>
         {
             IsSuccess = true,
             Data = data,
+            Pagination = pagination,
             Message = message
         };
     }

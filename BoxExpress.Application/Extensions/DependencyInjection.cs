@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
-using AutoMapper;
+using BoxExpress.Application.Dtos;
+using BoxExpress.Application.Exporters;
 using BoxExpress.Application.Mappings;
 using BoxExpress.Application.Interfaces;
 using BoxExpress.Application.Services;
@@ -16,8 +17,13 @@ public static class DependencyInjection
         services.AddScoped<IOrderCategoryService, OrderCategoryService>();
         services.AddScoped<IWalletTransactionService, WalletTransactionService>();
         services.AddScoped<IProductVariantService, ProductVariantService>();
+        services.AddScoped<IExcelExporter<WarehouseDto>, WarehouseExcelExporter>();
+        services.AddScoped<IExcelExporter<WalletTransactionDto>, WalletTransactionsExporter>();
+        services.AddScoped<IStoreService, StoreService>();
+        services.AddScoped<ITimeSlotService, TimeSlotService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUserService, UserService>();
 
         services.AddAutoMapper(typeof(AutoMapperProfile));
         return services;

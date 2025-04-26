@@ -10,11 +10,15 @@ public class AutoMapperProfile : Profile
     public AutoMapperProfile()
     {
         // Entity ➜ DTO para mostrar
+        CreateMap<TimeSlot, TimeSlotDto>();
+        CreateMap<Store, StoreDto>();
         CreateMap<OrderStatus, OrderStatusDto>();
         CreateMap<OrderCategory, OrderCategoryDto>();
 
         CreateMap<WalletTransaction, WalletTransactionDto>()
-            .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.Wallet.Store.Name))
+            .ForMember(dest => dest.Store, opt => opt.MapFrom(src => src.Wallet.Store.Name))
+            .ForMember(dest => dest.TransactionType, opt => opt.MapFrom(src => src.TransactionType.Name))
+            .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => src.OrderStatus.Name))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Creator.FirstName + " " + src.Creator.LastName));
 
         CreateMap<Warehouse, WarehouseDto>()
@@ -58,8 +62,11 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.Store.Name))
             .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.OrderCategoryId))
             .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.Status.Id))
+            .ForMember(dest => dest.TimeSlotStartTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.StartTime : TimeSpan.Zero))
+            .ForMember(dest => dest.TimeSlotEndTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.EndTime : TimeSpan.Zero))
+            .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.Status.Id))
+            .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : string.Empty))
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name));
-
 
         CreateMap<ProductVariant, ProductVariantAutocompleteDto>()
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
@@ -72,6 +79,9 @@ public class AutoMapperProfile : Profile
         CreateMap<WalletTransactionFilterDto, WalletTransactionFilter>();
 
         // DTOs de creación / actualización
+        CreateMap<CreateUserDto, Store>()
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.StoreName));
+        CreateMap<CreateUserDto, User>();
         // CreateMap<WarehouseCreateDto, Warehouse>();
         // CreateMap<WarehouseUpdateDto, Warehouse>();
     }

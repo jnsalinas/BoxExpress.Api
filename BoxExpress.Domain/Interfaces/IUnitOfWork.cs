@@ -6,6 +6,10 @@ public interface IUnitOfWork
     IProductRepository Products { get; }
     IProductVariantRepository Variants { get; }
     IWarehouseInventoryRepository Inventories { get; }
+    IWalletRepository Wallets { get; }
+    IStoreRepository Stores { get; }
+    
+    IUserRepository Users { get; }
 
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();
