@@ -21,6 +21,7 @@ public class OrderService : IOrderService
     private readonly IOrderStatusHistoryRepository _orderStatusHistoryRepository;
     private readonly IOrderCategoryHistoryRepository _orderCategoryHistoryRepository;
     private readonly IWalletTransactionService _walletTransactionService;
+    private readonly IOrderItemRepository _orderItemRepository;
 
     public OrderService(
         IOrderRepository repository,
@@ -31,7 +32,8 @@ public class OrderService : IOrderService
         ITransactionTypeRepository transactionTypeRepository,
         IOrderStatusHistoryRepository orderStatusHistoryRepository,
         IOrderCategoryHistoryRepository orderCategoryHistoryRepository,
-        IWalletTransactionService walletTransactionService
+        IWalletTransactionService walletTransactionService,
+        IOrderItemRepository orderItemRepository
         )
     {
         _orderCategoryHistoryRepository = orderCategoryHistoryRepository;
@@ -41,6 +43,7 @@ public class OrderService : IOrderService
         _walletTransactionService = walletTransactionService;
         _orderCategoryRepository = orderCategoryRepository;
         _orderStatusRepository = orderStatusRepository;
+        _orderItemRepository = orderItemRepository;
         _repository = repository;
         _mapper = mapper;
     }
@@ -82,6 +85,7 @@ public class OrderService : IOrderService
         });
 
         order.OrderCategoryId = (int)newCategoryId;
+        order.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(order);
         return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
     }
@@ -161,14 +165,15 @@ public class OrderService : IOrderService
         return ApiResponse<List<OrderStatusHistoryDto>>.Success(listHistory);
     }
 
-   public async Task<ApiResponse<List<OrderCategoryHistoryDto>>> GetCategoryHistoryAsync(int orderId)
+    public async Task<ApiResponse<List<OrderCategoryHistoryDto>>> GetCategoryHistoryAsync(int orderId)
     {
         var listHistory = _mapper.Map<List<OrderCategoryHistoryDto>>(await _orderCategoryHistoryRepository.GetByOrderIdAsync(orderId));
         return ApiResponse<List<OrderCategoryHistoryDto>>.Success(listHistory);
     }
 
-    public async Task<ApiResponse<List<OrderProductDto>>> GetProductsAsync(int id)
+    public async Task<ApiResponse<List<OrderItemDto>>> GetProductsAsync(int orderId)
     {
-        throw new NotImplementedException();
+        var listOrederItems = _mapper.Map<List<OrderItemDto>>(await _orderItemRepository.GetByOrderIdAsync(orderId));
+        return ApiResponse<List<OrderItemDto>>.Success(listOrederItems);
     }
 }

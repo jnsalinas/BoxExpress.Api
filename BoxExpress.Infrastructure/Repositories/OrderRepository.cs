@@ -22,6 +22,9 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             .Include(w => w.Country)
             .Include(w => w.Store)
             .Include(w => w.Client)
+            .Include(w => w.OrderItems)
+                .ThenInclude(w => w.ProductVariant)
+                .ThenInclude(w => w.Product)
             .AsQueryable();
 
         if (filter.CityId.HasValue && filter.CityId > 0)
@@ -48,6 +51,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         .Include(x => x.Warehouse)
         .Include(x => x.TimeSlot)
         .Include(x => x.Currency)
+        .OrderByDescending(x => x.UpdatedAt)
         .ToListAsync();
     }
 
@@ -63,6 +67,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             .Include(w => w.Category)
             .Include(w => w.Store)
                 .ThenInclude(w => w.Wallet)
+            .Include(w => w.Currency)
             .FirstOrDefaultAsync(w => w.Id.Equals(id));
     }
 }

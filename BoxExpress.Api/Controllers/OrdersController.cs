@@ -10,11 +10,15 @@ namespace BoxExpress.Api.Controllers;
 [Route("api/[controller]")]
 public class OrdersController : ControllerBase
 {
+    // private readonly IExcelExporter<OrderStatusHistoryDto> _excelStatusExporter;
     private readonly IOrderService _orderService;
 
-    public OrdersController(IOrderService orderService)
+    public OrdersController(IOrderService orderService
+    //, IExcelExporter<OrderStatusHistoryDto> excelStatusExporter
+    )
     {
         _orderService = orderService;
+        // _excelStatusExporter = excelStatusExporter;
     }
 
     [HttpPost("search")]
@@ -72,4 +76,20 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
+    // [HttpGet("export/{orderId}")]
+    // public async Task<IActionResult> ExportToExcel(int orderId)
+    // {
+    //     var result = await _orderService.GetStatusHistoryAsync(orderId);
+    //     if (result.Data == null || !result.Data.Any())
+    //     {
+    //         return NotFound("No data found to export.");
+    //     }
+
+    //     var bytes = _excelStatusExporter.ExportToExcel(result.Data.ToList());
+    //     return File(
+    //         bytes,
+    //         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    //         $"StatusHistory_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
+    //     );
+    // }
 }

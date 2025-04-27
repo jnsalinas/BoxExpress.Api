@@ -13,5 +13,5 @@ public interface IOrderService
     Task<ApiResponse<OrderDto>> UpdateScheduleAsync(int orderId, OrderScheduleUpdateDto orderScheduleUpdateDto);
     Task<ApiResponse<List<OrderStatusHistoryDto>>> GetStatusHistoryAsync(int orderId);
     Task<ApiResponse<List<OrderCategoryHistoryDto>>> GetCategoryHistoryAsync(int orderId);
-    Task<ApiResponse<List<OrderProductDto>>> GetProductsAsync(int orderId);
+    Task<ApiResponse<List<OrderItemDto>>> GetProductsAsync(int orderId);
 }

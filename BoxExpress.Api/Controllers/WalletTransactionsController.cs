@@ -26,9 +26,10 @@ public class WalletTransactionsController : ControllerBase
         return Ok(result);
     }
 
-     [HttpPost("export")]
+    [HttpPost("export")]
     public async Task<IActionResult> ExportToExcel([FromBody] WalletTransactionFilterDto filter)
     {
+        filter.IsAll = true;
         var result = await _walletTransactionService.GetAllAsync(filter);
         if (result.Data == null || !result.Data.Any())
         {
@@ -39,7 +40,7 @@ public class WalletTransactionsController : ControllerBase
         return File(
             bytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"Bodegas_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
+            $"WalletTransaction_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
         );
     }
 }

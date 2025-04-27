@@ -30,4 +30,6 @@ public class OrderDto
     public int? WarehouseId { get; set; }
     public string? WarehouseName { get; set; }
     public string? CurrencyCode { get; set; }
+    public List<OrderItemDto>? OrderItems { get; set; }
+    public int? StoreId { get; internal set; }
 }
