@@ -32,4 +32,5 @@ public class OrderDto
     public string? CurrencyCode { get; set; }
     public List<OrderItemDto>? OrderItems { get; set; }
     public int? StoreId { get; internal set; }
+    public DateTime? CreatedAt { get; set; }
 }

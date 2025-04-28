@@ -15,7 +15,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         _context = context;
     }
 
-    public async Task<List<Order>> GetFilteredAsync(OrderFilter filter)
+    public async Task<(List<Order> Transactions, int TotalCount)> GetFilteredAsync(OrderFilter filter)
     {
         var query = _context.Orders
             .Include(w => w.City)
@@ -42,7 +42,9 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         if (filter.OrderId.HasValue && filter.OrderId > 0)
             query = query.Where(w => w.Id.Equals(filter.OrderId));
 
-        return await query.Include(x => x.Client)
+        var totalCount = await query.CountAsync();
+
+        var orderQuery = query.Include(x => x.Client)
         .Include(x => x.Category)
         .Include(x => x.ClientAddress)
         .Include(x => x.Status)
@@ -51,8 +53,16 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         .Include(x => x.Warehouse)
         .Include(x => x.TimeSlot)
         .Include(x => x.Currency)
-        .OrderByDescending(x => x.UpdatedAt)
-        .ToListAsync();
+        .OrderByDescending(x => x.UpdatedAt).AsQueryable();
+
+        if (!filter.IsAll)
+        {
+            orderQuery = orderQuery
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize);
+        }
+
+        return (await orderQuery.ToListAsync(), totalCount);
     }
 
     public async Task<Order?> GetByIdWithDetailsAsync(int id)

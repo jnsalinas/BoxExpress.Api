@@ -10,15 +10,14 @@ namespace BoxExpress.Api.Controllers;
 [Route("api/[controller]")]
 public class OrdersController : ControllerBase
 {
-    // private readonly IExcelExporter<OrderStatusHistoryDto> _excelStatusExporter;
+    private readonly IExcelExporter<OrderDto> _excelExporter;
     private readonly IOrderService _orderService;
 
-    public OrdersController(IOrderService orderService
-    //, IExcelExporter<OrderStatusHistoryDto> excelStatusExporter
+    public OrdersController(IOrderService orderService, IExcelExporter<OrderDto> excelStatusExporter
     )
     {
         _orderService = orderService;
-        // _excelStatusExporter = excelStatusExporter;
+        _excelExporter = excelStatusExporter;
     }
 
     [HttpPost("search")]
@@ -76,20 +75,21 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
-    // [HttpGet("export/{orderId}")]
-    // public async Task<IActionResult> ExportToExcel(int orderId)
-    // {
-    //     var result = await _orderService.GetStatusHistoryAsync(orderId);
-    //     if (result.Data == null || !result.Data.Any())
-    //     {
-    //         return NotFound("No data found to export.");
-    //     }
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportToExcel([FromBody] OrderFilterDto filter)
+    {
+        filter.IsAll = true;
+        var result = await _orderService.GetAllAsync(filter);
+        if (result.Data == null || !result.Data.Any())
+        {
+            return NotFound("No data found to export.");
+        }
 
-    //     var bytes = _excelStatusExporter.ExportToExcel(result.Data.ToList());
-    //     return File(
-    //         bytes,
-    //         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    //         $"StatusHistory_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
-    //     );
-    // }
+        var bytes = _excelExporter.ExportToExcel(result.Data.ToList());
+        return File(
+            bytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"WalletTransaction_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
+        );
+    }
 }

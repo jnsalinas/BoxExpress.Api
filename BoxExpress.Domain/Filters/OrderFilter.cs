@@ -1,6 +1,6 @@
 namespace BoxExpress.Domain.Filters;
 
-public class OrderFilter
+public class OrderFilter : BaseFilter
 {
     public string? Name { get; set; }
     public int? CityId { get; set; }
