@@ -42,13 +42,25 @@ public class WarehousesController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("transfer")]
-    public async Task<IActionResult> TransferInventory([FromBody] WarehouseInventoryTransferDto transferDto)
+    [HttpPost("{warehouseId}/transfers")]
+    public async Task<IActionResult> CreateTransferAsync(int warehouseId, [FromBody] WarehouseInventoryTransferDto transferDto)
     {
-        var result = await _warehouseService.TransferInventoryAsync(transferDto);
-        if (!result.Data)
-            return BadRequest(result);
+        transferDto.FromWarehouseId = warehouseId;  // Asignar la bodega de origen
+        var result = await _warehouseService.CreateTransferAsync(transferDto);
+        return Ok(result);
+    }
 
+    [HttpPost("transfers/{id}/accept")]
+    public async Task<IActionResult> AcceptTransferAsync(int id)
+    {
+        var result = await _warehouseService.AcceptTransferAsync(id, 2); //todo: pasar el usuario de la sesion
+        return Ok(result);
+    }
+
+    [HttpPost("transfers/{id}/reject")]
+    public async Task<IActionResult> RejectTransferAsync(int id, [FromBody] WarehouseInventoryTransferRejectDto warehouseInventoryTransferRejectDto)
+    {
+        var result = await _warehouseService.RejectTransferAsync(id, 2, warehouseInventoryTransferRejectDto.Reason); //todo: pasar el usuario de la sesion
         return Ok(result);
     }
 }

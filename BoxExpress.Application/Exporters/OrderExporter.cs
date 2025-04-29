@@ -27,7 +27,7 @@ public class OrderExporter : IExcelExporter<OrderDto>
         worksheet.Cell(1, row++).Value = "Categoría";
 
         int rowAux;
-        for (int i = 0; i < data.Count; i++)
+        for (int i = 0; i < data?.Count; i++)
         {
             rowAux = 1;
             worksheet.Cell(i + 2, rowAux++).Value = data[i].Id;
@@ -40,15 +40,15 @@ public class OrderExporter : IExcelExporter<OrderDto>
             worksheet.Cell(i + 2, rowAux++).Value = data[i].Notes;
 
             string contains = data[i].Contains ?? string.Empty;
-            if (data[i].OrderItems != null && data[i].OrderItems.Any())
+            if (data[i].OrderItems?.Any() ?? false)
             {
                 contains = string.Empty;
-                for (int j = 0; j < data[i].OrderItems.Count; j++)
+                for (int j = 0; j < data?[i]?.OrderItems?.Count; j++)
                 {
-                    var item = data[i].OrderItems[j];
-                    contains += (item.ProductName ?? "") + " " + (item.ProductVariantName ?? "") + " " + (item.Quantity?.ToString() ?? "");
+                    var item = data[i]?.OrderItems?[j];
+                    contains += (item?.ProductName ?? "") + " " + (item?.ProductVariantName ?? "") + " " + (item?.Quantity?.ToString() ?? "");
 
-                    if (j < data[i].OrderItems.Count - 1)
+                    if (j < data?[i]?.OrderItems?.Count - 1)
                     {
                         contains += ", ";
                     }
@@ -57,10 +57,10 @@ public class OrderExporter : IExcelExporter<OrderDto>
             }
 
             worksheet.Cell(i + 2, rowAux++).Value = contains;
-            worksheet.Cell(i + 2, rowAux++).Value = data[i].TotalAmount;
-            worksheet.Cell(i + 2, rowAux++).Value = data[i].DeliveryFee;
-            worksheet.Cell(i + 2, rowAux++).Value = data[i].City;
-            worksheet.Cell(i + 2, rowAux++).Value = data[i].Category;
+            worksheet.Cell(i + 2, rowAux++).Value = data?[i].TotalAmount;
+            worksheet.Cell(i + 2, rowAux++).Value = data?[i].DeliveryFee;
+            worksheet.Cell(i + 2, rowAux++).Value = data?[i].City;
+            worksheet.Cell(i + 2, rowAux++).Value = data?[i].Category;
         }
 
         using var stream = new MemoryStream();

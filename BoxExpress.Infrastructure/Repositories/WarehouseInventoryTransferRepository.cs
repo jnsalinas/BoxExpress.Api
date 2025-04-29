@@ -14,4 +14,12 @@ public class WarehouseInventoryTransferRepository : Repository<WarehouseInventor
     {
         _context = context;
     }
+
+    public async Task<WarehouseInventoryTransfer?> GetByIdWithDetailsAsync(int id)
+    {
+        return
+        await _context.WarehouseInventoryTransfers
+            .Include(x => x.TransferDetails)
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
 }

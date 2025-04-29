@@ -89,6 +89,11 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductVariant.Product.Name))
             .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity));
 
+        CreateMap<WarehouseInventoryTransferDto, WarehouseInventoryTransfer>()
+            .ForMember(dest => dest.TransferDetails, opt => opt.MapFrom(src => src.TransferDetails));
+
+        CreateMap<WarehouseInventoryTransferDetailDto, WarehouseInventoryTransferDetail>();
+
         // Filtros
         CreateMap<WarehouseFilterDto, WarehouseFilter>();
         CreateMap<OrderFilterDto, OrderFilter>();

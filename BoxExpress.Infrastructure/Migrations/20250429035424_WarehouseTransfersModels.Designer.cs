@@ -4,6 +4,7 @@ using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoxExpress.Infrastructure.Migrations
 {
     [DbContext(typeof(BoxExpressDbContext))]
-    partial class BoxExpressDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250429035424_WarehouseTransfersModels")]
+    partial class WarehouseTransfersModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -865,9 +868,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CreatorId")
-                        .HasColumnType("int");
-
                     b.Property<int>("FromWarehouseId")
                         .HasColumnType("int");
 
@@ -886,8 +886,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AcceptedByUserId");
-
-                    b.HasIndex("CreatorId");
 
                     b.HasIndex("FromWarehouseId");
 
@@ -1355,12 +1353,6 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasForeignKey("AcceptedByUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("BoxExpress.Domain.Entities.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("BoxExpress.Domain.Entities.Warehouse", "FromWarehouse")
                         .WithMany()
                         .HasForeignKey("FromWarehouseId")
@@ -1374,8 +1366,6 @@ namespace BoxExpress.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("AcceptedByUser");
-
-                    b.Navigation("Creator");
 
                     b.Navigation("FromWarehouse");
 

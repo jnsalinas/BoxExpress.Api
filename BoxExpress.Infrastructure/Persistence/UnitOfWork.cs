@@ -11,17 +11,20 @@ public class UnitOfWork : IUnitOfWork
     public IProductRepository Products { get; }
     public IProductVariantRepository Variants { get; }
     public IWarehouseInventoryRepository Inventories { get; }
+    public IWarehouseInventoryTransferRepository WarehouseInventoryTransfers { get; }
 
     public UnitOfWork(
         BoxExpressDbContext context,
         IProductRepository products,
         IProductVariantRepository variants,
-        IWarehouseInventoryRepository inventories)
+        IWarehouseInventoryRepository inventories,
+        IWarehouseInventoryTransferRepository transfers)
     {
         _context = context;
         Products = products;
         Variants = variants;
         Inventories = inventories;
+        WarehouseInventoryTransfers = transfers;
     }
 
     public async Task BeginTransactionAsync()
