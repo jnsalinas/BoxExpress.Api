@@ -79,9 +79,9 @@ public class AutoMapperProfile : Profile
         CreateMap<WalletTransactionFilterDto, WalletTransactionFilter>();
 
         // DTOs de creación / actualización
-        CreateMap<CreateUserDto, Store>()
+        CreateMap<CreateStoreDto, Store>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.StoreName));
-        CreateMap<CreateUserDto, User>();
+        CreateMap<CreateStoreDto, User>();
         // CreateMap<WarehouseCreateDto, Warehouse>();
         // CreateMap<WarehouseUpdateDto, Warehouse>();
     }

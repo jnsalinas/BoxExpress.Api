@@ -6,5 +6,5 @@ namespace BoxExpress.Application.Interfaces;
 
 public interface IUserService
 {
-    Task<ApiResponse<bool>> AddUserAsync(CreateUserDto createUserDto);
+   
 }

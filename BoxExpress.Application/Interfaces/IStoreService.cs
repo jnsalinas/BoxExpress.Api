@@ -7,4 +7,5 @@ namespace BoxExpress.Application.Interfaces;
 public interface IStoreService
 {
     Task<ApiResponse<IEnumerable<StoreDto>>> GetAllAsync(StoreFilterDto filter);
+    Task<ApiResponse<bool>> AddStoreAsync(CreateStoreDto createStoreDto);
 }
