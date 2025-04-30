@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BoxExpress.Application.Dtos
 {
-    public class CreateUserDto
+    public class CreateStoreDto
     {
         public required string Email { get; set; }
         public required string Password { get; set; }

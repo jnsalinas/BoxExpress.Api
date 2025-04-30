@@ -21,42 +21,5 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    public async Task<ApiResponse<bool>> AddUserAsync(CreateUserDto createUserDto)
-    {
-        try
-        {
-            await _unitOfWork.BeginTransactionAsync();
-            var createdAt = DateTime.Now;
-            var wallet = await _unitOfWork.Wallets.AddAsync(new Wallet()
-            {
-                CreatedAt = createdAt,
-                Balance = createUserDto.Balance,
-            });
-            
-            var store = _mapper.Map<Store>(createUserDto);
-            store.CreatedAt = createdAt;
-            store.WalletId = wallet.Id;
-            
-            await _unitOfWork.Stores.AddAsync(store);
-
-            var user = _mapper.Map<User>(createUserDto);
-            user.CreatedAt = createdAt;
-            user.StoreId = store.Id;
-            user.RoleId = 2;
-            user.PasswordHash = BcryptHelper.Hash(createUserDto.Password);
-            
-            await _unitOfWork.Users.AddAsync(user);
-
-            await _unitOfWork.SaveChangesAsync();
-
-            await _unitOfWork.CommitAsync();
-            
-            return ApiResponse<bool>.Success(true, null, "Usuario creado exitosamente");
-        }
-        catch (Exception ex)
-        {
-            await _unitOfWork.RollbackAsync();
-            return ApiResponse<bool>.Fail("Error al crear usuario: " + ex.Message);
-        }
-    }
+    
 }

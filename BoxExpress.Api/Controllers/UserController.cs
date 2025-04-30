@@ -16,12 +16,4 @@ public class UserController : ControllerBase
     {
         _userService = userService;
     }
-    
-    [Authorize(Roles = "Administrador")]
-    [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateUserDto createUserDto)
-    {
-        var result = await _userService.AddUserAsync(createUserDto);
-        return Ok(result);
-    }
 }
