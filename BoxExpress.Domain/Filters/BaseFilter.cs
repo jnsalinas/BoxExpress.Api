@@ -6,4 +6,6 @@ public class BaseFilter
     public int PageSize { get; set; } = 10;
     public string? SortBy { get; set; }
     public bool IsAscending { get; set; } = true;
+    public bool IsAll { get; set; } = false;
+
 }

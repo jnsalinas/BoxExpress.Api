@@ -40,6 +40,9 @@ namespace BoxExpress.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CountryId");
@@ -69,6 +72,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -108,6 +114,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<decimal?>("Longitude")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");
@@ -131,6 +140,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -159,6 +171,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<string>("Symbol")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -198,7 +213,7 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CreatedBy")
+                    b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
 
                     b.Property<int>("CreatorId")
@@ -240,11 +255,14 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TimeSlotId")
+                    b.Property<int?>("TimeSlotId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("WarehouseId")
                         .HasColumnType("int");
@@ -291,6 +309,9 @@ namespace BoxExpress.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.ToTable("OrderCategories");
@@ -318,6 +339,9 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -355,6 +379,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
@@ -378,6 +405,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -406,6 +436,9 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -447,6 +480,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<int?>("StoreId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("StoreId");
@@ -480,6 +516,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<string>("Sku")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
@@ -501,6 +540,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -527,6 +569,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("WalletId")
                         .HasColumnType("int");
@@ -560,6 +605,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.ToTable("TimeSlots");
@@ -579,6 +627,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -637,6 +688,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<int?>("StoreId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");
@@ -662,6 +716,9 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
@@ -698,6 +755,9 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     b.Property<int>("TransactionTypeId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("WalletId")
                         .HasColumnType("int");
@@ -747,6 +807,9 @@ namespace BoxExpress.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");
@@ -773,6 +836,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("WarehouseId")
                         .HasColumnType("int");
 
@@ -793,11 +859,53 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AcceptedByUserId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("CreatorId")
+                        .HasColumnType("int");
+
                     b.Property<int>("FromWarehouseId")
                         .HasColumnType("int");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ToWarehouseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcceptedByUserId");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("FromWarehouseId");
+
+                    b.HasIndex("ToWarehouseId");
+
+                    b.ToTable("WarehouseInventoryTransfers");
+                });
+
+            modelBuilder.Entity("BoxExpress.Domain.Entities.WarehouseInventoryTransferDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("ProductVariantId")
                         .HasColumnType("int");
@@ -805,18 +913,19 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<int>("ToWarehouseId")
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("WarehouseInventoryTransferId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FromWarehouseId");
-
                     b.HasIndex("ProductVariantId");
 
-                    b.HasIndex("ToWarehouseId");
+                    b.HasIndex("WarehouseInventoryTransferId");
 
-                    b.ToTable("WarehouseInventoryTransfers");
+                    b.ToTable("WarehouseInventoryTransferDetails");
                 });
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.WithdrawalRequest", b =>
@@ -860,6 +969,9 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -956,8 +1068,7 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.HasOne("BoxExpress.Domain.Entities.TimeSlot", "TimeSlot")
                         .WithMany("Orders")
                         .HasForeignKey("TimeSlotId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("BoxExpress.Domain.Entities.Warehouse", "Warehouse")
                         .WithMany()
@@ -1024,7 +1135,7 @@ namespace BoxExpress.Infrastructure.Migrations
             modelBuilder.Entity("BoxExpress.Domain.Entities.OrderItem", b =>
                 {
                     b.HasOne("BoxExpress.Domain.Entities.Order", "Order")
-                        .WithMany()
+                        .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1239,15 +1350,20 @@ namespace BoxExpress.Infrastructure.Migrations
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.WarehouseInventoryTransfer", b =>
                 {
-                    b.HasOne("BoxExpress.Domain.Entities.Warehouse", "FromWarehouse")
+                    b.HasOne("BoxExpress.Domain.Entities.User", "AcceptedByUser")
                         .WithMany()
-                        .HasForeignKey("FromWarehouseId")
+                        .HasForeignKey("AcceptedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BoxExpress.Domain.Entities.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("BoxExpress.Domain.Entities.ProductVariant", "ProductVariant")
+                    b.HasOne("BoxExpress.Domain.Entities.Warehouse", "FromWarehouse")
                         .WithMany()
-                        .HasForeignKey("ProductVariantId")
+                        .HasForeignKey("FromWarehouseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1257,11 +1373,32 @@ namespace BoxExpress.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("AcceptedByUser");
+
+                    b.Navigation("Creator");
+
                     b.Navigation("FromWarehouse");
+
+                    b.Navigation("ToWarehouse");
+                });
+
+            modelBuilder.Entity("BoxExpress.Domain.Entities.WarehouseInventoryTransferDetail", b =>
+                {
+                    b.HasOne("BoxExpress.Domain.Entities.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BoxExpress.Domain.Entities.WarehouseInventoryTransfer", "WarehouseInventoryTransfer")
+                        .WithMany("TransferDetails")
+                        .HasForeignKey("WarehouseInventoryTransferId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("ProductVariant");
 
-                    b.Navigation("ToWarehouse");
+                    b.Navigation("WarehouseInventoryTransfer");
                 });
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.WithdrawalRequest", b =>
@@ -1297,6 +1434,11 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Navigation("Orders");
                 });
 
+            modelBuilder.Entity("BoxExpress.Domain.Entities.Order", b =>
+                {
+                    b.Navigation("OrderItems");
+                });
+
             modelBuilder.Entity("BoxExpress.Domain.Entities.ProductVariant", b =>
                 {
                     b.Navigation("WarehouseInventories");
@@ -1316,6 +1458,11 @@ namespace BoxExpress.Infrastructure.Migrations
             modelBuilder.Entity("BoxExpress.Domain.Entities.Warehouse", b =>
                 {
                     b.Navigation("Inventories");
+                });
+
+            modelBuilder.Entity("BoxExpress.Domain.Entities.WarehouseInventoryTransfer", b =>
+                {
+                    b.Navigation("TransferDetails");
                 });
 #pragma warning restore 612, 618
         }

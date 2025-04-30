@@ -37,15 +37,24 @@ public class WalletTransactionRepository : Repository<WalletTransaction>, IWalle
 
         var totalCount = await query.CountAsync();
 
-        return (await query
-            .Include(w => w.OrderStatus)
-            .Include(w => w.TransactionType)
-            .Include(w => w.Wallet)
-                .ThenInclude(w => w.Store)
-            .Include(w => w.Creator)
-            .OrderByDescending(w => w.CreatedAt)
-            .Skip((filter.Page - 1) * filter.PageSize)
-            .Take(filter.PageSize)
-            .ToListAsync(), totalCount);
+        var transactionsQuery = query
+       .Include(w => w.OrderStatus)
+       .Include(w => w.TransactionType)
+       .Include(w => w.Wallet)
+           .ThenInclude(w => w.Store)
+       .Include(w => w.Creator)
+       .OrderByDescending(w => w.CreatedAt)
+       .AsQueryable();
+
+        if (!filter.IsAll)
+        {
+            transactionsQuery = transactionsQuery
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize);
+        }
+
+        var transactions = await transactionsQuery.ToListAsync();
+
+        return (transactions, totalCount);
     }
 }

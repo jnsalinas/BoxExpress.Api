@@ -4,12 +4,12 @@ namespace BoxExpress.Domain.Entities;
 
 public class Order : BaseEntity
 {
-    public int TimeSlotId { get; set; } // Franja horaria elegida
+    public int? TimeSlotId { get; set; } // Franja horaria elegida
     public TimeSlot TimeSlot { get; set; } = null!;
     public int StoreId { get; set; }
     public Store Store { get; set; } = null!;
 
-    public int CreatedBy { get; set; }
+    public int? CreatedBy { get; set; }
     public User Creator { get; set; } = null!;
 
     public int OrderStatusId { get; set; }
@@ -37,7 +37,7 @@ public class Order : BaseEntity
     public DateTime? DeliveredDate { get; set; } // cuando realmente se entregó el pedido
     public DateTime? RescheduledDate { get; set; } // fecha de progrmaacion
     public string Code { get; set; } = string.Empty;
-    public string? Contains { get; set; }
+    public string? Contains { get; set; } // de shopify el resto debe sacar los productos que contiene
     public string? SecondManagement { get; set; }
     public string? CourierComment { get; set; }
     public decimal? Latitude { get; set; }
@@ -45,4 +45,5 @@ public class Order : BaseEntity
     public decimal TotalAmount { get; set; }
     public DateTime? ScheduledDate { get; set; } // Fecha elegida para entrega
     public string? Notes { get; set; }
+    public List<OrderItem> OrderItems { get; set; } = new();
 }

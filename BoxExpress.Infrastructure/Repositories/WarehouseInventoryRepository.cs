@@ -15,7 +15,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
         _context = context;
     }
 
-    public async Task<WarehouseInventory?> GetByWarehouseIdAndProductVariantId(int warehouseId, int productVariantId)
+    public async Task<WarehouseInventory?> GetByWarehouseAndProductVariant(int warehouseId, int productVariantId)
     {
         return await _context.WarehouseInventories
             .Include(wi => wi.ProductVariant)

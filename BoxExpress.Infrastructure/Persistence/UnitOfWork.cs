@@ -11,10 +11,9 @@ public class UnitOfWork : IUnitOfWork
     public IProductRepository Products { get; }
     public IProductVariantRepository Variants { get; }
     public IWarehouseInventoryRepository Inventories { get; }
+    public IWarehouseInventoryTransferRepository WarehouseInventoryTransfers { get; }
     public IWalletRepository Wallets { get; }
-    
     public IStoreRepository Stores { get; }
-    
     public IUserRepository Users { get; }
 
     public UnitOfWork(
@@ -22,6 +21,7 @@ public class UnitOfWork : IUnitOfWork
         IProductRepository products,
         IProductVariantRepository variants,
         IWarehouseInventoryRepository inventories,
+        IWarehouseInventoryTransferRepository transfers,
         IWalletRepository wallets,
         IStoreRepository stores,
         IUserRepository users)
@@ -30,6 +30,7 @@ public class UnitOfWork : IUnitOfWork
         Products = products;
         Variants = variants;
         Inventories = inventories;
+        WarehouseInventoryTransfers = transfers;
         Wallets = wallets;
         Stores = stores;
         Users = users;

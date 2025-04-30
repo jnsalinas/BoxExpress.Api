@@ -14,4 +14,16 @@ public class OrderStatusHistoryRepository : Repository<OrderStatusHistory>, IOrd
     {
         _context = context;
     }
+
+    public async Task<List<OrderStatusHistory>> GetByOrderIdAsync(int orderId)
+    {
+        return await _context.OrderStatusHistories
+            .Where(w => w.OrderId.Equals(orderId))
+            .Include(x => x.OldStatus)
+            .Include(x => x.NewStatus)
+            .Include(x => x.Creator)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
+    }
+
 }

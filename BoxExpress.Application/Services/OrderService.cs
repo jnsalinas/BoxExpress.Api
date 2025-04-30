@@ -21,6 +21,7 @@ public class OrderService : IOrderService
     private readonly IOrderStatusHistoryRepository _orderStatusHistoryRepository;
     private readonly IOrderCategoryHistoryRepository _orderCategoryHistoryRepository;
     private readonly IWalletTransactionService _walletTransactionService;
+    private readonly IOrderItemRepository _orderItemRepository;
 
     public OrderService(
         IOrderRepository repository,
@@ -31,7 +32,8 @@ public class OrderService : IOrderService
         ITransactionTypeRepository transactionTypeRepository,
         IOrderStatusHistoryRepository orderStatusHistoryRepository,
         IOrderCategoryHistoryRepository orderCategoryHistoryRepository,
-        IWalletTransactionService walletTransactionService
+        IWalletTransactionService walletTransactionService,
+        IOrderItemRepository orderItemRepository
         )
     {
         _orderCategoryHistoryRepository = orderCategoryHistoryRepository;
@@ -41,15 +43,19 @@ public class OrderService : IOrderService
         _walletTransactionService = walletTransactionService;
         _orderCategoryRepository = orderCategoryRepository;
         _orderStatusRepository = orderStatusRepository;
+        _orderItemRepository = orderItemRepository;
         _repository = repository;
         _mapper = mapper;
     }
 
-    public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter) =>
-             ApiResponse<IEnumerable<OrderDto>>.Success(_mapper.Map<List<OrderDto>>(await _repository.GetFilteredAsync(_mapper.Map<OrderFilter>(filter))));
+    public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter) 
+    {
+        var (orders, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<OrderFilter>(filter));
+        return ApiResponse<IEnumerable<OrderDto>>.Success(_mapper.Map<List<OrderDto>>(orders), new PaginationDto(totalCount, filter.PageSize, filter.Page));
+    }
 
-    public async Task<ApiResponse<OrderDetailDto?>> GetByIdAsync(int id) =>
-        ApiResponse<OrderDetailDto?>.Success(_mapper.Map<OrderDetailDto>(await _repository.GetByIdWithDetailsAsync(id)));
+    public async Task<ApiResponse<OrderDto?>> GetByIdAsync(int id) =>
+        ApiResponse<OrderDto?>.Success(_mapper.Map<OrderDto>(await _repository.GetByIdWithDetailsAsync(id)));
 
     public async Task<ApiResponse<OrderDto>> UpdateWarehouseAsync(int orderId, int warehouseId)
     {
@@ -82,6 +88,7 @@ public class OrderService : IOrderService
         });
 
         order.OrderCategoryId = (int)newCategoryId;
+        order.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(order);
         return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
     }
@@ -92,6 +99,9 @@ public class OrderService : IOrderService
         Order? order = await _repository.GetByIdWithDetailsAsync(orderId);
         if (order == null)
             return ApiResponse<OrderDto>.Fail("Order not found");
+
+        if (order.OrderStatusId.Equals(statusId))
+            return ApiResponse<OrderDto>.Fail("Same status");
 
         OrderStatus? orderStatus = await _orderStatusRepository.GetByIdAsync(statusId);
         if (orderStatus == null)
@@ -130,5 +140,43 @@ public class OrderService : IOrderService
         order.OrderStatusId = statusId;
         await _repository.UpdateAsync(order);
         return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
+    }
+
+
+    public async Task<ApiResponse<OrderDto>> UpdateScheduleAsync(int orderId, OrderScheduleUpdateDto orderScheduleUpdateDto)
+    {
+        if (orderScheduleUpdateDto.StatusId.HasValue)
+        {
+            await UpdateStatusAsync(orderId, orderScheduleUpdateDto.StatusId.Value);
+        }
+
+        Order? order = await _repository.GetByIdWithDetailsAsync(orderId);
+        if (order == null)
+        {
+            return ApiResponse<OrderDto>.Fail("Order not found");
+        }
+
+        order.ScheduledDate = orderScheduleUpdateDto.ScheduledDate ?? order.ScheduledDate;
+        order.TimeSlotId = orderScheduleUpdateDto.TimeSlotId ?? order.TimeSlotId;
+        await _repository.UpdateAsync(order);
+        return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
+    }
+
+    public async Task<ApiResponse<List<OrderStatusHistoryDto>>> GetStatusHistoryAsync(int orderId)
+    {
+        var listHistory = _mapper.Map<List<OrderStatusHistoryDto>>(await _orderStatusHistoryRepository.GetByOrderIdAsync(orderId));
+        return ApiResponse<List<OrderStatusHistoryDto>>.Success(listHistory);
+    }
+
+    public async Task<ApiResponse<List<OrderCategoryHistoryDto>>> GetCategoryHistoryAsync(int orderId)
+    {
+        var listHistory = _mapper.Map<List<OrderCategoryHistoryDto>>(await _orderCategoryHistoryRepository.GetByOrderIdAsync(orderId));
+        return ApiResponse<List<OrderCategoryHistoryDto>>.Success(listHistory);
+    }
+
+    public async Task<ApiResponse<List<OrderItemDto>>> GetProductsAsync(int orderId)
+    {
+        var listOrederItems = _mapper.Map<List<OrderItemDto>>(await _orderItemRepository.GetByOrderIdAsync(orderId));
+        return ApiResponse<List<OrderItemDto>>.Success(listOrederItems);
     }
 }

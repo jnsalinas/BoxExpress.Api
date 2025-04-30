@@ -8,4 +8,6 @@ public class BaseFilterDto
     public string? SearchTerm { get; set; }
     public string? SortBy { get; set; }
     public string? SortDirection { get; set; }
+    public bool IsAll { get; set; } = false;
+
 }

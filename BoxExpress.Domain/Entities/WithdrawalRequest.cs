@@ -10,7 +10,7 @@ public class WithdrawalRequest : BaseEntity
     public string? Bank { get; set; }
     public string? AccountNumber { get; set; }
     public string? Description { get; set; }
-    public string Status { get; set; } = "Pending";
+    public string Status { get; set; } = "Pending"; //todo poner esto en una tabla
     public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ProcessedAt { get; set; }
 }

@@ -1,0 +1,13 @@
+using BoxExpress.Application.Dtos;
+using BoxExpress.Application.Dtos.Common;
+using BoxExpress.Domain.Entities;
+
+namespace BoxExpress.Application.Interfaces;
+
+public interface IWarehouseInventoryTransferService
+{
+    Task<ApiResponse<IEnumerable<WarehouseInventoryTransferDto>>> GetAllAsync(WarehouseInventoryTransferFilterDto filter);
+    Task<ApiResponse<WarehouseInventoryTransferDto?>> GetByIdAsync(int id);
+    Task<ApiResponse<bool>> AcceptTransferAsync(int transferId, int userId);
+    Task<ApiResponse<bool>> RejectTransferAsync(int transferId, int userId, string rejectionReason);
+}

@@ -5,6 +5,7 @@ public class OrderDto
     public int Id { get; set; }
     public string? Country { get; set; }
     public string? City { get; set; }
+    public int? TimeSlotId { get; set; }
     public TimeSpan? TimeSlotStartTime { get; set; }
     public TimeSpan? TimeSlotEndTime { get; set; }
     public DateTime? DeliveryDate { get; set; }
@@ -28,5 +29,8 @@ public class OrderDto
     public decimal? DeliveryFee { get; set; }
     public int? WarehouseId { get; set; }
     public string? WarehouseName { get; set; }
-    public string? Color { get; set; }
+    public string? CurrencyCode { get; set; }
+    public List<OrderItemDto>? OrderItems { get; set; }
+    public int? StoreId { get; internal set; }
+    public DateTime? CreatedAt { get; set; }
 }
