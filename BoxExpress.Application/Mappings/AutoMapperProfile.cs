@@ -94,12 +94,24 @@ public class AutoMapperProfile : Profile
 
         CreateMap<WarehouseInventoryTransferDetailDto, WarehouseInventoryTransferDetail>();
 
+        CreateMap<WarehouseInventoryTransfer, WarehouseInventoryTransferDto>()
+            .ForMember(dest => dest.TransferDetails, opt => opt.MapFrom(src => src.TransferDetails))
+            .ForMember(dest => dest.ToWarehouse, opt => opt.MapFrom(src => src.ToWarehouse.Name))
+            .ForMember(dest => dest.Creator, opt => opt.MapFrom(src => src.Creator.FullName))
+            .ForMember(dest => dest.AcceptedBy, opt => opt.MapFrom(src => src.AcceptedByUser != null ? src.AcceptedByUser.FullName : string.Empty))
+            .ForMember(dest => dest.FromWarehouse, opt => opt.MapFrom(src => src.FromWarehouse.Name));
+
+        CreateMap<WarehouseInventoryTransferDetail, WarehouseInventoryTransferDetailDto>()
+            .ForMember(dest => dest.ProductVariant, opt => opt.MapFrom(src => src.ProductVariant.Name))
+            .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.ProductVariant.Product.Name));
+
         // Filtros
         CreateMap<WarehouseFilterDto, WarehouseFilter>();
         CreateMap<OrderFilterDto, OrderFilter>();
         CreateMap<OrderStatusFilterDto, OrderStatusFilter>();
         CreateMap<OrderCategoryFilterDto, OrderCategoryFilter>();
         CreateMap<WalletTransactionFilterDto, WalletTransactionFilter>();
+        CreateMap<WarehouseInventoryTransferFilterDto, WarehouseInventoryTransferFilter>();
 
         // DTOs de creación / actualización
         // CreateMap<WarehouseCreateDto, Warehouse>();

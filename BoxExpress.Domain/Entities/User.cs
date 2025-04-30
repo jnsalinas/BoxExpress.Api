@@ -19,4 +19,15 @@ public class User : BaseEntity
     public string? CompanyName { get; set; }
     public string? LegalName { get; set; }
     public string? DocumentNumber { get; set; }
+
+    public string? FullName
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(FirstName) && string.IsNullOrWhiteSpace(LastName))
+                return null;
+
+            return $"{FirstName} {LastName}".Trim();
+        }
+    }
 }

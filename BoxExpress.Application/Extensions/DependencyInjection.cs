@@ -17,6 +17,7 @@ public static class DependencyInjection
         services.AddScoped<IOrderStatusService, OrderStatusService>();
         services.AddScoped<IOrderCategoryService, OrderCategoryService>();
         services.AddScoped<IWalletTransactionService, WalletTransactionService>();
+        services.AddScoped<IWarehouseInventoryTransferService, WarehouseInventoryTransferService>();
         services.AddScoped<IProductVariantService, ProductVariantService>();
         services.AddScoped<IExcelExporter<WarehouseDto>, WarehouseExcelExporter>();
         services.AddScoped<IExcelExporter<WalletTransactionDto>, WalletTransactionsExporter>();

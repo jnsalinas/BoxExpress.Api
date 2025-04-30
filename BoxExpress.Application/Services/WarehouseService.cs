@@ -87,88 +87,89 @@ public class WarehouseService : IWarehouseService
     public async Task<ApiResponse<bool>> CreateTransferAsync(WarehouseInventoryTransferDto warehouseInventoryTransferDto)
     {
         var newTransfer = _mapper.Map<WarehouseInventoryTransfer>(warehouseInventoryTransferDto);
+        newTransfer.Status = TransferStatus.Pending;
         newTransfer.CreatorId = 2; //todo: poner usuario con la sesion
         var newWarehouseInventoryTransfer = await _warehouseInventoryTransferRepository.AddAsync(newTransfer);
         return ApiResponse<bool>.Success(newWarehouseInventoryTransfer.Id > 0, null, "Inventario creado exitosamente");
     }
 
-    public async Task<ApiResponse<bool>> TryValidateTransferAsync(int transferId)
-    {
-        var transfer = await _warehouseInventoryTransferRepository.GetByIdWithDetailsAsync(transferId);
-        if (transfer == null)
-            return ApiResponse<bool>.Fail("La transferencia no existe.");
+    // public async Task<ApiResponse<bool>> TryValidateTransferAsync(int transferId)
+    // {
+    //     var transfer = await _warehouseInventoryTransferRepository.GetByIdWithDetailsAsync(transferId);
+    //     if (transfer == null)
+    //         return ApiResponse<bool>.Fail("La transferencia no existe.");
 
-        foreach (var item in transfer.TransferDetails)
-        {
-            var inventory = await _warehouseInventoryRepository.GetByWarehouseAndProductVariant(transfer.FromWarehouseId, item.ProductVariantId);
+    //     foreach (var item in transfer.TransferDetails)
+    //     {
+    //         var inventory = await _warehouseInventoryRepository.GetByWarehouseAndProductVariant(transfer.FromWarehouseId, item.ProductVariantId);
 
-            if (inventory == null || inventory.Quantity < item.Quantity)
-            {
-                return ApiResponse<bool>.Fail($"Inventario insuficiente para el producto variante {item.ProductVariantId}.");
-            }
-        }
+    //         if (inventory == null || inventory.Quantity < item.Quantity)
+    //         {
+    //             return ApiResponse<bool>.Fail($"Inventario insuficiente para el producto variante {item.ProductVariantId}.");
+    //         }
+    //     }
 
-        return ApiResponse<bool>.Success(true);
-    }
+    //     return ApiResponse<bool>.Success(true);
+    // }
 
-    public async Task<ApiResponse<bool>> AcceptTransferAsync(int transferId, int userId)
-    {
-        var transfer = await _warehouseInventoryTransferRepository.GetByIdWithDetailsAsync(transferId);
-        if (transfer == null)
-            return ApiResponse<bool>.Fail("La transferencia no existe.");
+    // public async Task<ApiResponse<bool>> AcceptTransferAsync(int transferId, int userId)
+    // {
+    //     var transfer = await _warehouseInventoryTransferRepository.GetByIdWithDetailsAsync(transferId);
+    //     if (transfer == null)
+    //         return ApiResponse<bool>.Fail("La transferencia no existe.");
 
-        var validationResult = await TryValidateTransferAsync(transferId);
-        if (!validationResult.IsSuccess)
-            return validationResult;
+    //     var validationResult = await TryValidateTransferAsync(transferId);
+    //     if (!validationResult.IsSuccess)
+    //         return validationResult;
 
-        // Ejecutar la transferencia
-        foreach (var item in transfer.TransferDetails)
-        {
-            // Restar de origen
-            var inventoryOrigin = await _warehouseInventoryRepository.GetByWarehouseAndProductVariant(transfer.FromWarehouseId, item.ProductVariantId);
-            inventoryOrigin.Quantity -= item.Quantity;
-            await _unitOfWork.Inventories.UpdateAsync(inventoryOrigin);
+    //     // Ejecutar la transferencia
+    //     foreach (var item in transfer.TransferDetails)
+    //     {
+    //         // Restar de origen
+    //         var inventoryOrigin = await _warehouseInventoryRepository.GetByWarehouseAndProductVariant(transfer.FromWarehouseId, item.ProductVariantId);
+    //         inventoryOrigin.Quantity -= item.Quantity;
+    //         await _unitOfWork.Inventories.UpdateAsync(inventoryOrigin);
 
-            // Sumar en destino
-            var inventoryDestination = await _warehouseInventoryRepository.GetByWarehouseAndProductVariant(transfer.ToWarehouseId, item.ProductVariantId);
-            if (inventoryDestination == null)
-            {
-                inventoryDestination = new WarehouseInventory
-                {
-                    WarehouseId = transfer.ToWarehouseId,
-                    ProductVariantId = item.ProductVariantId,
-                    Quantity = item.Quantity
-                };
-                await _unitOfWork.Inventories.AddAsync(inventoryDestination);
-            }
-            else
-            {
-                inventoryDestination.Quantity += item.Quantity;
-                await _unitOfWork.Inventories.UpdateAsync(inventoryDestination);
-            }
-        }
+    //         // Sumar en destino
+    //         var inventoryDestination = await _warehouseInventoryRepository.GetByWarehouseAndProductVariant(transfer.ToWarehouseId, item.ProductVariantId);
+    //         if (inventoryDestination == null)
+    //         {
+    //             inventoryDestination = new WarehouseInventory
+    //             {
+    //                 WarehouseId = transfer.ToWarehouseId,
+    //                 ProductVariantId = item.ProductVariantId,
+    //                 Quantity = item.Quantity
+    //             };
+    //             await _unitOfWork.Inventories.AddAsync(inventoryDestination);
+    //         }
+    //         else
+    //         {
+    //             inventoryDestination.Quantity += item.Quantity;
+    //             await _unitOfWork.Inventories.UpdateAsync(inventoryDestination);
+    //         }
+    //     }
 
-        transfer.Status = TransferStatus.Accepted;
-        transfer.AcceptedByUserId = userId;
-        transfer.UpdatedAt = DateTime.UtcNow;
-        await _unitOfWork.WarehouseInventoryTransfers.UpdateAsync(transfer);
+    //     transfer.Status = TransferStatus.Accepted;
+    //     transfer.AcceptedByUserId = userId;
+    //     transfer.UpdatedAt = DateTime.UtcNow;
+    //     await _unitOfWork.WarehouseInventoryTransfers.UpdateAsync(transfer);
 
-        await _unitOfWork.SaveChangesAsync();
-        return ApiResponse<bool>.Success(true, null, "Transferencia aceptada correctamente.");
-    }
+    //     await _unitOfWork.SaveChangesAsync();
+    //     return ApiResponse<bool>.Success(true, null, "Transferencia aceptada correctamente.");
+    // }
 
-    public async Task<ApiResponse<bool>> RejectTransferAsync(int transferId, int userId, string rejectionReason)
-    {
-        var transfer = await _warehouseInventoryTransferRepository.GetByIdWithDetailsAsync(transferId);
-        if (transfer == null)
-            return ApiResponse<bool>.Fail("La transferencia no existe.");
+    // public async Task<ApiResponse<bool>> RejectTransferAsync(int transferId, int userId, string rejectionReason)
+    // {
+    //     var transfer = await _warehouseInventoryTransferRepository.GetByIdWithDetailsAsync(transferId);
+    //     if (transfer == null)
+    //         return ApiResponse<bool>.Fail("La transferencia no existe.");
 
-        transfer.Status = TransferStatus.Rejected;
-        transfer.AcceptedByUserId = userId;
-        transfer.UpdatedAt = DateTime.UtcNow;
-        transfer.RejectionReason = rejectionReason;
-        await _warehouseInventoryTransferRepository.UpdateAsync(transfer);
-        return ApiResponse<bool>.Success(true, null, "Transferencia rechazada correctamente.");
-    }
+    //     transfer.Status = TransferStatus.Rejected;
+    //     transfer.AcceptedByUserId = userId;
+    //     transfer.UpdatedAt = DateTime.UtcNow;
+    //     transfer.RejectionReason = rejectionReason;
+    //     await _warehouseInventoryTransferRepository.UpdateAsync(transfer);
+    //     return ApiResponse<bool>.Success(true, null, "Transferencia rechazada correctamente.");
+    // }
 
 }

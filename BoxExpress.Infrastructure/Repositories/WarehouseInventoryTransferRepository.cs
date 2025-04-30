@@ -15,6 +15,35 @@ public class WarehouseInventoryTransferRepository : Repository<WarehouseInventor
         _context = context;
     }
 
+    public async Task<(List<WarehouseInventoryTransfer> Transactions, int TotalCount)> GetFilteredAsync(WarehouseInventoryTransferFilter filter)
+    {
+        var query = _context.WarehouseInventoryTransfers
+            .AsQueryable();
+
+        //todo: poner los filtros 
+
+        var totalCount = await query.CountAsync();
+        var warehouseInventoryTransferQuery = query
+            .Include(w => w.Creator)
+            .Include(w => w.TransferDetails)
+                .ThenInclude(x => x.ProductVariant)
+                .ThenInclude(x => x.Product)
+            .Include(w => w.ToWarehouse)
+            .Include(w => w.FromWarehouse)
+
+            .OrderBy(x => x.UpdatedAt)
+            .AsQueryable();
+
+        if (!filter.IsAll)
+        {
+            warehouseInventoryTransferQuery = warehouseInventoryTransferQuery
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize);
+        }
+
+        return (await warehouseInventoryTransferQuery.ToListAsync(), totalCount);
+    }
+
     public async Task<WarehouseInventoryTransfer?> GetByIdWithDetailsAsync(int id)
     {
         return
