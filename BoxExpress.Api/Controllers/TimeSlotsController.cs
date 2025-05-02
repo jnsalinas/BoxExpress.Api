@@ -10,17 +10,17 @@ namespace BoxExpress.Api.Controllers;
 [Route("api/[controller]")]
 public class TimeSlotsController : ControllerBase
 {
-    private readonly ITimeSlotService _TimeSlotService;
+    private readonly ITimeSlotService _timeSlotService;
 
-    public TimeSlotsController(ITimeSlotService TimeSlotService)
+    public TimeSlotsController(ITimeSlotService timeSlotService)
     {
-        _TimeSlotService = TimeSlotService;
+        _timeSlotService = timeSlotService;
     }
 
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] TimeSlotFilterDto filter)
     {
-        var result = await _TimeSlotService.GetAllAsync(filter);
+        var result = await _timeSlotService.GetAllAsync(filter);
         return Ok(result);
     }
 }

@@ -69,7 +69,6 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name))
             .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems));
 
-
         CreateMap<ProductVariant, ProductVariantAutocompleteDto>()
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
 
@@ -105,6 +104,11 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.ProductVariant, opt => opt.MapFrom(src => src.ProductVariant.Name))
             .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.ProductVariant.Product.Name));
 
+        CreateMap<WithdrawalRequest, WithdrawalRequestDto>()
+            .ForMember(dest => dest.Creator, opt => opt.MapFrom(src => src.Creator.FullName))
+            .ForMember(dest => dest.Store, opt => opt.MapFrom(src => src.Store.Name))
+            .ReverseMap(); //todo: poner reversemap en otros
+
         // Filtros
         CreateMap<WarehouseFilterDto, WarehouseFilter>();
         CreateMap<OrderFilterDto, OrderFilter>();
@@ -112,6 +116,7 @@ public class AutoMapperProfile : Profile
         CreateMap<OrderCategoryFilterDto, OrderCategoryFilter>();
         CreateMap<WalletTransactionFilterDto, WalletTransactionFilter>();
         CreateMap<WarehouseInventoryTransferFilterDto, WarehouseInventoryTransferFilter>();
+        CreateMap<WithdrawalRequestFilterDto, WithdrawalRequestFilter>();
 
         // DTOs de creación / actualización
         CreateMap<CreateStoreDto, Store>()

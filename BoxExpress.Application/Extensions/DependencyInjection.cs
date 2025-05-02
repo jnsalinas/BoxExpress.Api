@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IWithdrawalRequestService, WithdrawalRequestService>();
 
         services.AddAutoMapper(typeof(AutoMapperProfile));
         return services;

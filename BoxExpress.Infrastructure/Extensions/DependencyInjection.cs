@@ -32,7 +32,7 @@ public static class DependencyInjection
         services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
         services.AddScoped<IOrderItemRepository, OrderItemRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
-
+        services.AddScoped<IWithdrawalRequestRepository, WithdrawalRequestRepository>();
 
         return services;
     }

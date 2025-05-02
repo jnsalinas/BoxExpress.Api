@@ -4,7 +4,6 @@ namespace BoxExpress.Application.Dtos;
 
 public class WarehouseInventoryTransferDto : BaseDto
 {
-    public int? Id { get; set; }
     public string? ToWarehouse { get; set; }
     public string? FromWarehouse { get; set; }
     public int FromWarehouseId { get; set; }

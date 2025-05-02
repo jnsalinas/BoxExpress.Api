@@ -10,7 +10,16 @@ public class WithdrawalRequest : BaseEntity
     public string? Bank { get; set; }
     public string? AccountNumber { get; set; }
     public string? Description { get; set; }
-    public string Status { get; set; } = "Pending"; //todo poner esto en una tabla
-    public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
+    public WithdrawalRequestStatus Status { get; set; } = WithdrawalRequestStatus.Pending;
     public DateTime? ProcessedAt { get; set; }
+    public int CreatorId { get; set; }
+    public User Creator { get; set; } = null!;
+}
+
+
+public enum WithdrawalRequestStatus //todo: pasar a otra carpeta
+{
+    Pending = 0,
+    Accepted = 1,
+    Rejected = 2
 }
