@@ -109,6 +109,10 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Store, opt => opt.MapFrom(src => src.Store.Name))
             .ReverseMap(); //todo: poner reversemap en otros
 
+        CreateMap<Bank, BankDto>();
+        CreateMap<DocumentType, DocumentTypeDto>();
+
+
         // Filtros
         CreateMap<WarehouseFilterDto, WarehouseFilter>();
         CreateMap<OrderFilterDto, OrderFilter>();
@@ -122,6 +126,7 @@ public class AutoMapperProfile : Profile
         CreateMap<CreateStoreDto, Store>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.StoreName));
         CreateMap<CreateStoreDto, User>();
+        CreateMap<WithdrawalRequestCreateDto, WithdrawalRequest>();
         // CreateMap<WarehouseCreateDto, Warehouse>();
         // CreateMap<WarehouseUpdateDto, Warehouse>();
     }

@@ -21,6 +21,14 @@ public class WarehouseInventoryTransferRepository : Repository<WarehouseInventor
             .AsQueryable();
 
         //todo: poner los filtros 
+        if (filter.ToWarehouseId.HasValue)
+        {
+            query = query.Where(x => x.ToWarehouseId.Equals(filter.ToWarehouseId.Value));
+        }
+        if (filter.FromWarehouseId.HasValue)
+        {
+            query = query.Where(x => x.FromWarehouseId.Equals(filter.FromWarehouseId.Value));
+        }
 
         var totalCount = await query.CountAsync();
         var warehouseInventoryTransferQuery = query
@@ -30,7 +38,6 @@ public class WarehouseInventoryTransferRepository : Repository<WarehouseInventor
                 .ThenInclude(x => x.Product)
             .Include(w => w.ToWarehouse)
             .Include(w => w.FromWarehouse)
-
             .OrderBy(x => x.UpdatedAt)
             .AsQueryable();
 

@@ -4,6 +4,7 @@ using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoxExpress.Infrastructure.Migrations
 {
     [DbContext(typeof(BoxExpressDbContext))]
-    partial class BoxExpressDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250504215935_WithdrawalRequestAdditionalData")]
+    partial class WithdrawalRequestAdditionalData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -793,13 +796,10 @@ namespace BoxExpress.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("OrderStatusId")
+                    b.Property<int>("OrderStatusId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("RelatedOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RelatedWithdrawalRequestId")
+                    b.Property<int>("RelatedOrderId")
                         .HasColumnType("int");
 
                     b.Property<int>("TransactionTypeId")
@@ -818,8 +818,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.HasIndex("OrderStatusId");
 
                     b.HasIndex("RelatedOrderId");
-
-                    b.HasIndex("RelatedWithdrawalRequestId");
 
                     b.HasIndex("TransactionTypeId");
 
@@ -996,8 +994,14 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Bank")
+                    b.Property<int?>("ApprovedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ApprovedDescription")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("BankId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -1017,12 +1021,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<DateTime?>("ProcessedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ReviewedByUserId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -1034,11 +1032,13 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ApprovedByUserId");
+
+                    b.HasIndex("BankId");
+
                     b.HasIndex("CreatorId");
 
                     b.HasIndex("DocumentTypeId");
-
-                    b.HasIndex("ReviewedByUserId");
 
                     b.HasIndex("StoreId");
 
@@ -1343,17 +1343,14 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.HasOne("BoxExpress.Domain.Entities.OrderStatus", "OrderStatus")
                         .WithMany()
                         .HasForeignKey("OrderStatusId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("BoxExpress.Domain.Entities.Order", "RelatedOrder")
                         .WithMany()
                         .HasForeignKey("RelatedOrderId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("BoxExpress.Domain.Entities.WithdrawalRequest", "RelatedWithdrawalRequest")
-                        .WithMany()
-                        .HasForeignKey("RelatedWithdrawalRequestId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("BoxExpress.Domain.Entities.TransactionType", "TransactionType")
                         .WithMany()
@@ -1372,8 +1369,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Navigation("OrderStatus");
 
                     b.Navigation("RelatedOrder");
-
-                    b.Navigation("RelatedWithdrawalRequest");
 
                     b.Navigation("TransactionType");
 
@@ -1473,6 +1468,16 @@ namespace BoxExpress.Infrastructure.Migrations
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.WithdrawalRequest", b =>
                 {
+                    b.HasOne("BoxExpress.Domain.Entities.User", "ApprovedByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BoxExpress.Domain.Entities.Bank", "Bank")
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("BoxExpress.Domain.Entities.User", "Creator")
                         .WithMany()
                         .HasForeignKey("CreatorId")
@@ -1484,22 +1489,19 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasForeignKey("DocumentTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("BoxExpress.Domain.Entities.User", "ReviewedByUser")
-                        .WithMany()
-                        .HasForeignKey("ReviewedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("BoxExpress.Domain.Entities.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("ApprovedByUser");
+
+                    b.Navigation("Bank");
+
                     b.Navigation("Creator");
 
                     b.Navigation("DocumentType");
-
-                    b.Navigation("ReviewedByUser");
 
                     b.Navigation("Store");
                 });

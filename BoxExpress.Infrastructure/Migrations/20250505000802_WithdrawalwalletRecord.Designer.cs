@@ -4,6 +4,7 @@ using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoxExpress.Infrastructure.Migrations
 {
     [DbContext(typeof(BoxExpressDbContext))]
-    partial class BoxExpressDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250505000802_WithdrawalwalletRecord")]
+    partial class WithdrawalwalletRecord
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -996,6 +999,12 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int?>("ApprovedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ApprovedDescription")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Bank")
                         .HasColumnType("nvarchar(max)");
 
@@ -1017,12 +1026,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<DateTime?>("ProcessedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ReviewedByUserId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -1034,11 +1037,11 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ApprovedByUserId");
+
                     b.HasIndex("CreatorId");
 
                     b.HasIndex("DocumentTypeId");
-
-                    b.HasIndex("ReviewedByUserId");
 
                     b.HasIndex("StoreId");
 
@@ -1473,6 +1476,11 @@ namespace BoxExpress.Infrastructure.Migrations
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.WithdrawalRequest", b =>
                 {
+                    b.HasOne("BoxExpress.Domain.Entities.User", "ApprovedByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("BoxExpress.Domain.Entities.User", "Creator")
                         .WithMany()
                         .HasForeignKey("CreatorId")
@@ -1484,22 +1492,17 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasForeignKey("DocumentTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("BoxExpress.Domain.Entities.User", "ReviewedByUser")
-                        .WithMany()
-                        .HasForeignKey("ReviewedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("BoxExpress.Domain.Entities.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("ApprovedByUser");
+
                     b.Navigation("Creator");
 
                     b.Navigation("DocumentType");
-
-                    b.Navigation("ReviewedByUser");
 
                     b.Navigation("Store");
                 });

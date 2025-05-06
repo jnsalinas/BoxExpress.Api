@@ -80,7 +80,7 @@ public class OrderService : IOrderService
         //log
         await _orderCategoryHistoryRepository.AddAsync(new()
         {
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
             OrderId = order.Id,
             OldCategoryId = order.OrderCategoryId,
             NewCategoryId = (int)newCategoryId,
@@ -133,7 +133,7 @@ public class OrderService : IOrderService
             OrderId = order.Id,
             OldStatusId = order.OrderStatusId,
             NewStatusId = statusId,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
             CreatorId = 2 //todo tomar del token
         });
 

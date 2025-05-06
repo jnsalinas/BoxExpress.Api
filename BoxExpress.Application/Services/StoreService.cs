@@ -27,7 +27,7 @@ public class StoreService : IStoreService
         try
         {
             await _unitOfWork.BeginTransactionAsync();
-            var createdAt = DateTime.Now;
+            var createdAt = DateTime.UtcNow;
             var wallet = await _unitOfWork.Wallets.AddAsync(new Wallet()
             {
                 CreatedAt = createdAt,

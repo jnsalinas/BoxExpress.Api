@@ -40,7 +40,6 @@ public class WalletTransactionService : IWalletTransactionService
         {
             throw new InvalidOperationException("Transaction types not found");
         }
-        
 
         // Register the successful delivery transaction
         await _repository.AddAsync(new WalletTransaction
@@ -51,7 +50,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.SuccessfulDeliveryPrefix, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = 2,
+            CreatorId = 2,//todo: poner usuario por sesion
         });
 
         // Register the delivery fee transaction
@@ -63,7 +62,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.DeliveredOrderDiscountPrefix, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = 2,
+            CreatorId = 2,//todo: poner usuario por sesion
         });
     }
 
@@ -89,7 +88,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.DiscountForOrderStatusCorrection, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = 2,
+            CreatorId = 2, //todo: poner usuario por sesion
         });
 
         // Register the refund transaction
@@ -101,7 +100,31 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.RefundForOrderStatusCorrection, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = 2,
+            CreatorId = 2,//todo: poner usuario por sesion
+        });
+    }
+
+    public async Task RegisterSuccessfulWithdrawalRequestAcceptedAsync(WithdrawalRequest withdrawalRequest)
+    {
+        //todo organizar codigo, evitar repeticion
+        var types = await _transactionTypeRepository.GetAllAsync();
+
+        var outbound = types.FirstOrDefault(x => x.Name == TransactionTypeConstants.Outbound);
+
+        if (outbound == null)
+        {
+            throw new InvalidOperationException("Transaction types not found");
+        }
+
+        // Register the successful delivery transaction
+        await _repository.AddAsync(new WalletTransaction
+        {
+            WalletId = withdrawalRequest.Store.WalletId,
+            TransactionTypeId = outbound.Id,
+            Amount = withdrawalRequest.Amount,
+            Description = string.Format(WalletDescriptionConstants.WithdrawalRequestAccepted, withdrawalRequest.Id),
+            RelatedWithdrawalRequestId = withdrawalRequest.Id,
+            CreatorId = 2,//todo: poner usuario por sesion
         });
     }
 }

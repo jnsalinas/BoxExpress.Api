@@ -1,8 +1,9 @@
+using BoxExpress.Application.Dtos.Common;
+
 namespace BoxExpress.Application.Dtos;
 
-public class TimeSlotDto
+public class TimeSlotDto : BaseDto
 {
-    public int Id { get; set; }
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
 }

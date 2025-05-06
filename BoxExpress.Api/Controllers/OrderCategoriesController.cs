@@ -9,7 +9,7 @@ namespace BoxExpress.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+// [Authorize]
 public class OrderCategoriesController : ControllerBase
 {
     private readonly IOrderCategoryService _orderCategoryService;

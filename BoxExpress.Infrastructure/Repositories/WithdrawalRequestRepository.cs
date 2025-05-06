@@ -28,4 +28,12 @@ public class WithdrawalRequestRepository : Repository<WithdrawalRequest>, IWithd
         int totalCount = query.Count();
         return (await query.ToListAsync(), totalCount);
     }
+
+    public async Task<WithdrawalRequest?> GetByIdWithDetailsAsync(int id)
+    {
+        return await _context.WithdrawalRequests
+            .Include(x => x.Store)
+            .Include(x => x.Creator)
+            .FirstOrDefaultAsync(w => w.Id.Equals(id));
+    }
 }

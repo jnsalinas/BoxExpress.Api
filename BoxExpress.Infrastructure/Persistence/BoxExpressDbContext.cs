@@ -4,7 +4,7 @@ using BoxExpress.Domain.Entities;
 namespace BoxExpress.Infrastructure.Persistence
 {
     //Correr migrations: 
-    //dotnet ef migrations add WarehouseTransfersModel --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add WithdrawalRequestFixes --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
 
     public class BoxExpressDbContext : DbContext
@@ -33,7 +33,8 @@ namespace BoxExpress.Infrastructure.Persistence
         public DbSet<TimeSlot> TimeSlots { get; set; }
         public DbSet<WarehouseInventoryTransfer> WarehouseInventoryTransfers { get; set; }
         public DbSet<WarehouseInventoryTransferDetail> WarehouseInventoryTransferDetails { get; set; }
-
+        public DbSet<Bank> Banks { get; set; }
+        public DbSet<DocumentType> DocumentTypes { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Aplica DeleteBehavior.Restrict a todas las foreign keys
