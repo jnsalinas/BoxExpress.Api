@@ -31,7 +31,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             query = query.Where(w => w.CityId.Equals(filter.CityId));
         if (filter.CountryId.HasValue && filter.CountryId > 0)
             query = query.Where(w => w.CountryId.Equals(filter.CountryId));
-        if (filter.CategoryId.HasValue && filter.CategoryId > 1)
+        if (filter.CategoryId.HasValue && filter.CategoryId > 0)
             query = query.Where(w => w.OrderCategoryId.Equals(filter.CategoryId));
         if (filter.EndDate.HasValue)
             query = query.Where(w => w.CreatedAt <= filter.EndDate.Value);

@@ -1,8 +1,6 @@
-using BoxExpress.Application.Dtos.Common;
+namespace BoxExpress.Domain.Filters;
 
-namespace BoxExpress.Application.Dtos;
-
-public class StoreFilterDto : BaseFilterDto
+public class StoreFilter : BaseFilter
 {
     public string? Name { get; set; }
     public int? StoreId { get; set; }

@@ -9,7 +9,7 @@ public class OrderStatusHistoryExporter : IExcelExporter<OrderStatusHistoryDto>
     public byte[] ExportToExcel(List<OrderStatusHistoryDto> data)
     {
         using var workbook = new XLWorkbook();
-        var worksheet = workbook.Worksheets.Add("Warehouses");
+        var worksheet = workbook.Worksheets.Add("Historial");
 
         int row = 1;
         worksheet.Cell(1, row++).Value = "Id";

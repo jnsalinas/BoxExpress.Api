@@ -18,13 +18,22 @@ public class StoresController : ControllerBase
         _storeService = storeService;
     }
 
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var result = await _storeService.GetByIdAsync(id);
+        if (result.Equals(null)) return NotFound();
+        return Ok(result);
+    }
+    
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] StoreFilterDto filter)
     {
         var result = await _storeService.GetAllAsync(filter);
         return Ok(result);
     }
-    
+
     [Authorize(Roles = "Administrador")]
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateStoreDto createStoreDto)

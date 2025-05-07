@@ -14,4 +14,38 @@ public class StoreRepository : Repository<Store>, IStoreRepository
     {
         _context = context;
     }
+
+    public async Task<Store?> GetByIdWithDetailsAsync(int storeId)
+    {
+        return await _context.Stores.Include(x => x.Wallet)
+                        .FirstOrDefaultAsync(x => x.Id == storeId);
+
+    }
+    public async Task<(List<Store> Stores, int TotalCount)> GetFilteredAsync(StoreFilter filter)
+    {
+        var query = _context.Stores.AsQueryable();
+        var totalCount = await query.CountAsync();
+
+        var storesQuery = query
+       .Include(w => w.Wallet)
+       .Include(w => w.Country)
+       .Include(w => w.City)
+       .OrderByDescending(w => w.CreatedAt)
+       .AsQueryable();
+
+        if (!string.IsNullOrEmpty(filter.Name))
+        {
+            storesQuery = storesQuery.Where(x => x.Name.ToLower().Contains(filter.Name.ToLower()));
+        }
+
+        if (!filter.IsAll)
+        {
+            storesQuery = storesQuery
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize);
+        }
+
+        var stores = await storesQuery.ToListAsync();
+        return (stores, totalCount);
+    }
 }

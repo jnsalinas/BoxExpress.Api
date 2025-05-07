@@ -2,6 +2,7 @@ using AutoMapper;
 using BoxExpress.Application.Dtos;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Domain.Filters;
+using BoxExpress.Domain.Extensions; 
 
 namespace BoxExpress.Application.Mappings;
 
@@ -11,14 +12,19 @@ public class AutoMapperProfile : Profile
     {
         // Entity ➜ DTO para mostrar
         CreateMap<TimeSlot, TimeSlotDto>();
-        CreateMap<Store, StoreDto>();
         CreateMap<OrderStatus, OrderStatusDto>();
         CreateMap<OrderCategory, OrderCategoryDto>();
+
+        CreateMap<Store, StoreDto>()
+            .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name))
+            .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => src.Wallet.Balance))
+            .ForMember(dest => dest.PendingWithdrawals, opt => opt.MapFrom(src => src.Wallet.PendingWithdrawals))
+            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City.Name));
 
         CreateMap<WalletTransaction, WalletTransactionDto>()
             .ForMember(dest => dest.Store, opt => opt.MapFrom(src => src.Wallet.Store.Name))
             .ForMember(dest => dest.TransactionType, opt => opt.MapFrom(src => src.TransactionType.Name))
-            .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => src.OrderStatus.Name))
+            .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => src.OrderStatus != null ? src.OrderStatus.Name : string.Empty))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Creator.FirstName + " " + src.Creator.LastName));
 
         CreateMap<Warehouse, WarehouseDto>()
@@ -54,7 +60,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.Client.FullName))
             .ForMember(dest => dest.ClientDocument, opt => opt.MapFrom(src => src.Client.Document))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.Name))
-            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name))
+            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : string.Empty))
             .ForMember(dest => dest.ClientPhone, opt => opt.MapFrom(src => src.Client.Phone))
             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City.Name))
             .ForMember(dest => dest.ClientAddress, opt => opt.MapFrom(src => src.ClientAddress.Address))
@@ -94,6 +100,7 @@ public class AutoMapperProfile : Profile
         CreateMap<WarehouseInventoryTransferDetailDto, WarehouseInventoryTransferDetail>();
 
         CreateMap<WarehouseInventoryTransfer, WarehouseInventoryTransferDto>()
+            .ForMember(dest => dest.StatusName, opt => opt.MapFrom(src => src.Status.ToSpanish()))
             .ForMember(dest => dest.TransferDetails, opt => opt.MapFrom(src => src.TransferDetails))
             .ForMember(dest => dest.ToWarehouse, opt => opt.MapFrom(src => src.ToWarehouse.Name))
             .ForMember(dest => dest.Creator, opt => opt.MapFrom(src => src.Creator.FullName))
@@ -121,6 +128,8 @@ public class AutoMapperProfile : Profile
         CreateMap<WalletTransactionFilterDto, WalletTransactionFilter>();
         CreateMap<WarehouseInventoryTransferFilterDto, WarehouseInventoryTransferFilter>();
         CreateMap<WithdrawalRequestFilterDto, WithdrawalRequestFilter>();
+        CreateMap<StoreFilterDto, StoreFilter>();
+
 
         // DTOs de creación / actualización
         CreateMap<CreateStoreDto, Store>()

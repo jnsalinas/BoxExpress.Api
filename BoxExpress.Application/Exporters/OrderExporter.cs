@@ -9,7 +9,7 @@ public class OrderExporter : IExcelExporter<OrderDto>
     public byte[] ExportToExcel(List<OrderDto> data)
     {
         using var workbook = new XLWorkbook();
-        var worksheet = workbook.Worksheets.Add("Warehouses");
+        var worksheet = workbook.Worksheets.Add("Ordenes");
 
         int row = 1;
         worksheet.Cell(1, row++).Value = "Guía";

@@ -5,6 +5,7 @@ using BoxExpress.Domain.Filters;
 using AutoMapper;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Application.Dtos.Common;
+using BoxExpress.Domain.Enums;
 
 namespace BoxExpress.Application.Services;
 
@@ -70,6 +71,10 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
         {
             // Restar de origen
             var inventoryOrigin = await _warehouseInventoryRepository.GetByWarehouseAndProductVariant(transfer.FromWarehouseId, item.ProductVariantId);
+            if (inventoryOrigin == null)
+            {
+                return ApiResponse<bool>.Fail($"No se encontró inventario en el almacén de origen para el producto variante {item.ProductVariantId}.");
+            }
             inventoryOrigin.Quantity -= item.Quantity;
             await _unitOfWork.Inventories.UpdateAsync(inventoryOrigin);
 
@@ -92,7 +97,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
             }
         }
 
-        transfer.Status = TransferStatus.Accepted;
+        transfer.Status = InventoryTransferStatus.Accepted;
         transfer.AcceptedByUserId = userId;
         transfer.UpdatedAt = DateTime.UtcNow;
         await _unitOfWork.WarehouseInventoryTransfers.UpdateAsync(transfer);
@@ -107,7 +112,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
         if (transfer == null)
             return ApiResponse<bool>.Fail("La transferencia no existe.");
 
-        transfer.Status = TransferStatus.Rejected;
+        transfer.Status = InventoryTransferStatus.Rejected;
         transfer.AcceptedByUserId = userId;
         transfer.UpdatedAt = DateTime.UtcNow;
         transfer.RejectionReason = rejectionReason;

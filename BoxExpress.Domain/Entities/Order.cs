@@ -15,8 +15,8 @@ public class Order : BaseEntity
     public int OrderStatusId { get; set; }
     public OrderStatus Status { get; set; } = null!;
 
-    public int OrderCategoryId { get; set; }
-    public OrderCategory Category { get; set; } = null!;
+    public int? OrderCategoryId { get; set; }
+    public OrderCategory? Category { get; set; } = null!;
 
     public decimal DeliveryFee { get; set; }
 

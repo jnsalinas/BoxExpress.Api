@@ -5,6 +5,7 @@ using BoxExpress.Domain.Filters;
 using AutoMapper;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Application.Dtos.Common;
+using BoxExpress.Domain.Enums;
 
 namespace BoxExpress.Application.Services;
 
@@ -13,15 +14,18 @@ public class WithdrawalRequestService : IWithdrawalRequestService
     private readonly IWithdrawalRequestRepository _repository;
     private readonly IMapper _mapper;
     private readonly IWalletTransactionService _walletTransactionService;
+    private readonly IWalletRepository _walletRepository;
 
     public WithdrawalRequestService(
         IWithdrawalRequestRepository repository,
         IMapper mapper,
-        IWalletTransactionService walletTransactionService)
+        IWalletTransactionService walletTransactionService,
+        IWalletRepository walletRepository)
     {
         _walletTransactionService = walletTransactionService;
         _repository = repository;
         _mapper = mapper;
+        _walletRepository = walletRepository;
     }
 
     public async Task<ApiResponse<IEnumerable<WithdrawalRequestDto>>> GetAllAsync(WithdrawalRequestFilterDto filter)
@@ -32,11 +36,17 @@ public class WithdrawalRequestService : IWithdrawalRequestService
 
     public async Task<ApiResponse<bool>> AddAsync(WithdrawalRequestCreateDto dto)
     {
+        // TODO: agregar lógica para validar el monto permitido por la tienda con el wallet
+
+        //add retiros pendientes
+        Wallet wallet = await _walletRepository.GetByStoreIdAsync(dto.StoreId) ?? throw new InvalidOperationException("Wallet not found");
+        wallet.PendingWithdrawals += dto.Amount ?? 0;
+        await _walletRepository.UpdateAsync(wallet);
+
         WithdrawalRequest withdrawalRequest = _mapper.Map<WithdrawalRequest>(dto);
         withdrawalRequest.CreatorId = 2;//todo: poner id de usuario por token
         withdrawalRequest.CreatedAt = DateTime.UtcNow;
         await _repository.AddAsync(withdrawalRequest);
-        // TODO: agregar lógica para validar el monto permitido por la tienda
         return ApiResponse<bool>.Success(true);
     }
 
@@ -47,6 +57,7 @@ public class WithdrawalRequestService : IWithdrawalRequestService
             return ApiResponse<bool>.Fail("Not found");
 
         await _walletTransactionService.RegisterSuccessfulWithdrawalRequestAcceptedAsync(withdrawalRequest);
+        // // todo: agregar lógica para validar el monto permitido por la tienda
 
         withdrawalRequest.Status = WithdrawalRequestStatus.Accepted;
         withdrawalRequest.ProcessedAt = DateTime.UtcNow;
@@ -54,7 +65,6 @@ public class WithdrawalRequestService : IWithdrawalRequestService
         withdrawalRequest.ReviewedByUserId = userId; //todo: poner id de usuario por token
         withdrawalRequest.Reason = dto.Reason;
         await _repository.UpdateAsync(withdrawalRequest);
-        // // todo: agregar lógica para validar el monto permitido por la tienda
         return ApiResponse<bool>.Success(true);
     }
 
@@ -63,6 +73,12 @@ public class WithdrawalRequestService : IWithdrawalRequestService
         WithdrawalRequest? withdrawalRequest = await _repository.GetByIdWithDetailsAsync(withdrawalRequestCreateId);
         if (withdrawalRequest == null)
             return ApiResponse<bool>.Fail("Not found");
+
+        //todo: mirar si se pasa a wallet service 
+        Wallet? wallet = await _walletRepository.GetByStoreIdAsync(withdrawalRequest.StoreId) ?? throw new InvalidOperationException("Wallet not found");
+        wallet.PendingWithdrawals -= withdrawalRequest.Amount;
+        wallet.UpdatedAt = DateTime.UtcNow;
+        await _walletRepository.UpdateAsync(wallet);
 
         withdrawalRequest.ProcessedAt = DateTime.UtcNow;
         withdrawalRequest.Status = WithdrawalRequestStatus.Rejected;

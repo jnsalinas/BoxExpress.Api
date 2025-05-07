@@ -5,6 +5,7 @@ using BoxExpress.Domain.Filters;
 using AutoMapper;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Application.Dtos.Common;
+using BoxExpress.Domain.Enums;
 
 namespace BoxExpress.Application.Services;
 
@@ -91,7 +92,7 @@ public class WarehouseService : IWarehouseService
     {
         var newTransfer = _mapper.Map<WarehouseInventoryTransfer>(warehouseInventoryTransferDto);
         newTransfer.CreatedAt = DateTime.UtcNow;
-        newTransfer.Status = TransferStatus.Pending;
+        newTransfer.Status = InventoryTransferStatus.Pending;
         newTransfer.CreatorId = 2; //todo: poner usuario con la sesion
         var newWarehouseInventoryTransfer = await _warehouseInventoryTransferRepository.AddAsync(newTransfer);
         return ApiResponse<bool>.Success(newWarehouseInventoryTransfer.Id > 0, null, "Inventario creado exitosamente");

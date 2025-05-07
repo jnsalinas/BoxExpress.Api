@@ -11,10 +11,13 @@ namespace BoxExpress.Api.Controllers;
 public class WarehouseInventoryTransfersController : ControllerBase
 {
     private readonly IWarehouseInventoryTransferService _warehouseService;
+    private readonly IExcelExporter<WarehouseInventoryTransferDto> _excelExporter;
 
-    public WarehouseInventoryTransfersController(IWarehouseInventoryTransferService warehouseService)
+    public WarehouseInventoryTransfersController(IWarehouseInventoryTransferService warehouseService, IExcelExporter<WarehouseInventoryTransferDto> excelStatusExporter)
     {
         _warehouseService = warehouseService;
+        _excelExporter = excelStatusExporter;
+
     }
 
     [HttpPost("search")]
@@ -44,6 +47,24 @@ public class WarehouseInventoryTransfersController : ControllerBase
     {
         var result = await _warehouseService.RejectTransferAsync(transferId, 2, warehouseInventoryTransferRejectDto.Reason);
         return Ok(result);
+    }
+
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportToExcel([FromBody] WarehouseInventoryTransferFilterDto filter)
+    {
+        filter.IsAll = true;
+        var result = await _warehouseService.GetAllAsync(filter);
+        if (result.Data == null || !result.Data.Any())
+        {
+            return NotFound("No data found to export.");
+        }
+
+        var bytes = _excelExporter.ExportToExcel(result.Data.ToList());
+        return File(
+            bytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"InventoryTransfer_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
+        );
     }
 }
 

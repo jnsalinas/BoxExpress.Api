@@ -89,7 +89,7 @@ public class OrdersController : ControllerBase
         return File(
             bytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"WalletTransaction_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
+            $"Orders_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
         );
     }
 }

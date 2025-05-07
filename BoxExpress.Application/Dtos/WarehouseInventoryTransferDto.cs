@@ -10,6 +10,7 @@ public class WarehouseInventoryTransferDto : BaseDto
     public int ToWarehouseId { get; set; }
     public string? Creator { get; set; }
     public int? Status { get; set; }
+    public string? StatusName { get; set; }
     public string? AcceptedBy { get; set; }
     public string? RejectionReason { get; set; }
 

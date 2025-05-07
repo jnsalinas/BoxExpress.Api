@@ -14,10 +14,12 @@ public class WalletTransactionService : IWalletTransactionService
     private readonly IWalletTransactionRepository _repository;
     private readonly IMapper _mapper;
     private readonly ITransactionTypeRepository _transactionTypeRepository;
+    private readonly IWalletRepository _walletRepository;
 
-    public WalletTransactionService(IWalletTransactionRepository repository, ITransactionTypeRepository transactionTypeRepository, IMapper mapper)
+    public WalletTransactionService(IWalletTransactionRepository repository, ITransactionTypeRepository transactionTypeRepository, IMapper mapper, IWalletRepository walletRepository)
     {
         _transactionTypeRepository = transactionTypeRepository;
+        _walletRepository = walletRepository;
         _repository = repository;
         _mapper = mapper;
     }
@@ -30,7 +32,7 @@ public class WalletTransactionService : IWalletTransactionService
 
     public async Task RegisterSuccessfulDeliveryAsync(Order order, int orderStatusId)
     {
-        //todo organizar codigo, evitar repeticion
+        //todo: organizar codigo, evitar repeticion
         var types = await _transactionTypeRepository.GetAllAsync();
 
         var inbound = types.FirstOrDefault(x => x.Name == TransactionTypeConstants.Inbound);
@@ -40,6 +42,13 @@ public class WalletTransactionService : IWalletTransactionService
         {
             throw new InvalidOperationException("Transaction types not found");
         }
+
+        //move balance 
+        //todo: mirar si se pasa a wallet service 
+        Wallet? wallet = await _walletRepository.GetByStoreIdAsync(order.StoreId) ?? throw new InvalidOperationException("Wallet not found");
+        wallet.Balance += order.TotalAmount - order.DeliveryFee;
+        wallet.UpdatedAt = DateTime.UtcNow;
+        await _walletRepository.UpdateAsync(wallet);
 
         // Register the successful delivery transaction
         await _repository.AddAsync(new WalletTransaction
@@ -68,7 +77,7 @@ public class WalletTransactionService : IWalletTransactionService
 
     public async Task RegisterStatusCorrectionAsync(Order order, int orderStatusId)
     {
-        //todo organizar codigo, evitar repeticion
+        //todo: organizar codigo, evitar repeticion
         var types = await _transactionTypeRepository.GetAllAsync();
 
         var inbound = types.FirstOrDefault(x => x.Name == TransactionTypeConstants.Inbound);
@@ -78,6 +87,12 @@ public class WalletTransactionService : IWalletTransactionService
         {
             throw new InvalidOperationException("Transaction types not found");
         }
+
+        //todo: mirar si se pasa a wallet service 
+        Wallet? wallet = await _walletRepository.GetByStoreIdAsync(order.StoreId) ?? throw new InvalidOperationException("Wallet not found");
+        wallet.Balance -= order.TotalAmount - order.DeliveryFee;
+        wallet.UpdatedAt = DateTime.UtcNow;
+        await _walletRepository.UpdateAsync(wallet);
 
         // Register the status correction transaction
         await _repository.AddAsync(new WalletTransaction
@@ -115,6 +130,13 @@ public class WalletTransactionService : IWalletTransactionService
         {
             throw new InvalidOperationException("Transaction types not found");
         }
+
+        //todo: mirar si se pasa a wallet service 
+        Wallet? wallet = await _walletRepository.GetByStoreIdAsync(withdrawalRequest.StoreId) ?? throw new InvalidOperationException("Wallet not found");
+        wallet.Balance -= withdrawalRequest.Amount;
+        wallet.PendingWithdrawals -= withdrawalRequest.Amount;
+        wallet.UpdatedAt = DateTime.UtcNow;
+        await _walletRepository.UpdateAsync(wallet);
 
         // Register the successful delivery transaction
         await _repository.AddAsync(new WalletTransaction

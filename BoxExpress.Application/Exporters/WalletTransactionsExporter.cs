@@ -9,7 +9,7 @@ public class WalletTransactionsExporter : IExcelExporter<WalletTransactionDto>
     public byte[] ExportToExcel(List<WalletTransactionDto> data)
     {
         using var workbook = new XLWorkbook();
-        var worksheet = workbook.Worksheets.Add("Warehouses");
+        var worksheet = workbook.Worksheets.Add("Movimientos wallet");
 
         int row = 1;
         worksheet.Cell(1, row++).Value = "Id";

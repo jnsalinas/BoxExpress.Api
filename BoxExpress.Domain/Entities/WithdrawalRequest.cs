@@ -1,3 +1,5 @@
+using BoxExpress.Domain.Enums;
+
 namespace BoxExpress.Domain.Entities;
 
 public class WithdrawalRequest : BaseEntity
@@ -19,12 +21,4 @@ public class WithdrawalRequest : BaseEntity
     public int? ReviewedByUserId { get; set; }
     public User? ReviewedByUser { get; set; }
     public string? Reason { get; set; }
-}
-
-
-public enum WithdrawalRequestStatus //todo: pasar a otra carpeta
-{
-    Pending = 0,
-    Accepted = 1,
-    Rejected = 2
 }
