@@ -16,7 +16,6 @@ namespace BoxExpress.Application.Dtos
         public int CountryId { get; set; }
         public int CityId { get; set; }
         public string? PickupAddress { get; set; }
-        public string? CompanyName { get; set; }
         public string? LegalName { get; set; }
         public string? DocumentNumber { get; set; }
 
