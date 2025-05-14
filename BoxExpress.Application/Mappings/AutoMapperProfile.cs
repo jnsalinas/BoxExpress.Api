@@ -14,6 +14,7 @@ public class AutoMapperProfile : Profile
         CreateMap<TimeSlot, TimeSlotDto>();
         CreateMap<OrderStatus, OrderStatusDto>();
         CreateMap<OrderCategory, OrderCategoryDto>();
+        CreateMap<City, CityDto>();
 
         CreateMap<Store, StoreDto>()
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name))
