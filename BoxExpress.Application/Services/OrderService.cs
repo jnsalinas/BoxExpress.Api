@@ -73,6 +73,7 @@ public class OrderService : IOrderService
         }
         else
         {
+            //todo validar invenatrio si la bodega tiene stock
             newCategoryId = (await _orderCategoryRepository.GetByNameAsync(OrderCategoryConstants.Express))?.Id;
             order.WarehouseId = warehouseId;
         }

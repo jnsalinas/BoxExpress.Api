@@ -44,6 +44,8 @@ public class WarehouseService : IWarehouseService
     // ✅ Su objetivo es garantizar que todo se guarde o nada se guarde (atomicidad).
     public async Task<ApiResponse<bool>> AddInventoryToWarehouseAsync(int warehouseId, List<CreateProductWithVariantsDto> products)
     {
+        await _unitOfWork.BeginTransactionAsync();
+
         try
         {
             foreach (var productDto in products)
@@ -60,7 +62,7 @@ public class WarehouseService : IWarehouseService
 
                 foreach (var variantDto in productDto.Variants)
                 {
-                    ProductVariant variant = new()
+                    ProductVariant productVariant = new()
                     {
                         CreatedAt = DateTime.UtcNow,
                         Name = variantDto.Name,
@@ -68,35 +70,36 @@ public class WarehouseService : IWarehouseService
                         Product = product
                     };
 
-                    await _unitOfWork.Variants.AddAsync(variant);
+                    await _unitOfWork.Variants.AddAsync(productVariant);
 
-                    WarehouseInventory inventory = new()
+                    await _unitOfWork.Inventories.AddAsync(new()
                     {
                         CreatedAt = DateTime.UtcNow,
                         WarehouseId = warehouseId,
-                        ProductVariant = variant,
+                        ProductVariant = productVariant,
                         Quantity = variantDto.Quantity
-                    };
+                    });
 
-                    await _unitOfWork.Inventories.AddAsync(inventory);
                     await _unitOfWork.InventoryMovements.AddAsync(new InventoryMovement
                     {
                         CreatedAt = DateTime.UtcNow,
                         WarehouseId = warehouseId,
-                        ProductVariantId = variant.Id,
+                        ProductVariant = productVariant,
                         Quantity = variantDto.Quantity,
                         MovementType = InventoryMovementType.InitialStock,
                         Notes = "Inventario inicial",
-                        Reference = $"Initial-Stock-{product.Id}-{variant.Id}"
+                        Reference = $"Initial-Stock-{product.Name}-{productVariant.Name}"
                     });
                 }
             }
 
             await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
             return ApiResponse<bool>.Success(true, null, "Inventario creado exitosamente");
         }
         catch (Exception ex)
         {
+            await _unitOfWork.RollbackAsync();
             return ApiResponse<bool>.Fail("Error al guardar el inventario: " + ex.Message);
         }
     }

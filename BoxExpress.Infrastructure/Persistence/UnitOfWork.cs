@@ -7,7 +7,6 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly BoxExpressDbContext _context;
     private IDbContextTransaction? _transaction;
-
     public IProductRepository Products { get; }
     public IProductVariantRepository Variants { get; }
     public IWarehouseInventoryRepository Inventories { get; }
@@ -23,6 +22,7 @@ public class UnitOfWork : IUnitOfWork
         IProductVariantRepository variants,
         IWarehouseInventoryRepository inventories,
         IWarehouseInventoryTransferRepository transfers,
+        IInventoryMovementRepository movements,
         IWalletRepository wallets,
         IStoreRepository stores,
         IUserRepository users)
@@ -31,6 +31,7 @@ public class UnitOfWork : IUnitOfWork
         Products = products;
         Variants = variants;
         Inventories = inventories;
+        InventoryMovements = movements;
         WarehouseInventoryTransfers = transfers;
         Wallets = wallets;
         Stores = stores;
