@@ -22,6 +22,7 @@ public class OrderService : IOrderService
     private readonly IOrderCategoryHistoryRepository _orderCategoryHistoryRepository;
     private readonly IWalletTransactionService _walletTransactionService;
     private readonly IOrderItemRepository _orderItemRepository;
+    private readonly IInventoryMovementService _inventoryMovementService;
 
     public OrderService(
         IOrderRepository repository,
@@ -33,6 +34,7 @@ public class OrderService : IOrderService
         IOrderStatusHistoryRepository orderStatusHistoryRepository,
         IOrderCategoryHistoryRepository orderCategoryHistoryRepository,
         IWalletTransactionService walletTransactionService,
+        IInventoryMovementService inventoryMovementService,
         IOrderItemRepository orderItemRepository
         )
     {
@@ -40,6 +42,7 @@ public class OrderService : IOrderService
         _walletTransactionRepository = walletTransactionRepository;
         _orderStatusHistoryRepository = orderStatusHistoryRepository;
         _transactionTypeRepository = transactionTypeRepository;
+        _inventoryMovementService = inventoryMovementService;
         _walletTransactionService = walletTransactionService;
         _orderCategoryRepository = orderCategoryRepository;
         _orderStatusRepository = orderStatusRepository;
@@ -48,7 +51,7 @@ public class OrderService : IOrderService
         _mapper = mapper;
     }
 
-    public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter) 
+    public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter)
     {
         var (orders, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<OrderFilter>(filter));
         return ApiResponse<IEnumerable<OrderDto>>.Success(_mapper.Map<List<OrderDto>>(orders), new PaginationDto(totalCount, filter.PageSize, filter.Page));
@@ -120,11 +123,15 @@ public class OrderService : IOrderService
         switch (orderStatus.Name)
         {
             case OrderStatusConstants.Delivered:
+                await _inventoryMovementService.ProcessDeliveryAsync(order);
                 await _walletTransactionService.RegisterSuccessfulDeliveryAsync(order, statusId);
                 break;
             default:
                 if (order.Status.Name.Equals(OrderStatusConstants.Delivered))
+                {
+                    await _inventoryMovementService.RevertDeliveryAsync(order);
                     await _walletTransactionService.RegisterStatusCorrectionAsync(order, statusId);
+                }
                 break;
         }
 
@@ -134,7 +141,7 @@ public class OrderService : IOrderService
             OldStatusId = order.OrderStatusId,
             NewStatusId = statusId,
             CreatedAt = DateTime.UtcNow,
-            CreatorId = 2 //todo tomar del token
+            CreatorId = 2 //todo: tomar del token
         });
 
         order.OrderStatusId = statusId;

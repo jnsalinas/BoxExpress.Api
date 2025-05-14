@@ -15,14 +15,17 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
     private readonly IWarehouseInventoryTransferRepository _repository;
     private readonly IMapper _mapper;
     private readonly IWarehouseInventoryRepository _warehouseInventoryRepository;
+    private readonly IInventoryMovementRepository _inventoryMovementRepository;
 
     public WarehouseInventoryTransferService(
         IWarehouseInventoryRepository warehouseInventoryRepository,
+        IInventoryMovementRepository inventoryMovementRepository,
         IWarehouseInventoryTransferRepository repository,
         IMapper mapper,
         IUnitOfWork unitOfWork)
     {
         _warehouseInventoryRepository = warehouseInventoryRepository;
+        _inventoryMovementRepository = inventoryMovementRepository;
         _repository = repository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -75,7 +78,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
             {
                 return ApiResponse<bool>.Fail($"No se encontró inventario en el almacén de origen para el producto variante {item.ProductVariantId}.");
             }
-            
+
             inventoryOrigin.UpdatedAt = DateTime.UtcNow;
             inventoryOrigin.Quantity -= item.Quantity;
             await _unitOfWork.Inventories.UpdateAsync(inventoryOrigin);
@@ -98,13 +101,38 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
                 inventoryDestination.Quantity += item.Quantity;
                 await _unitOfWork.Inventories.UpdateAsync(inventoryDestination);
             }
-        }
 
+            #region Crear movimientos de inventario
+            await _unitOfWork.InventoryMovements.AddAsync(new InventoryMovement
+            {
+                WarehouseId = transfer.FromWarehouseId,
+                MovementType = InventoryMovementType.TransferSent,
+                TransferId = transfer.Id,
+                CreatedAt = DateTime.UtcNow,
+                Reference = transfer.Id.ToString(),
+                ProductVariantId = item.ProductVariantId,
+                Quantity = item.Quantity * -1,
+                Notes = "Transferencia enviada",
+            });
+
+            await _unitOfWork.InventoryMovements.AddAsync(new InventoryMovement
+            {
+                WarehouseId = transfer.ToWarehouseId,
+                MovementType = InventoryMovementType.TransferReceived,
+                TransferId = transfer.Id,
+                CreatedAt = DateTime.UtcNow,
+                Reference = transfer.Id.ToString(),
+                ProductVariantId = item.ProductVariantId,
+                Quantity = item.Quantity,
+                Notes = "Transferencia recibida",
+            });
+            #endregion
+        }
+        // Actualizar la transferencia
         transfer.Status = InventoryTransferStatus.Accepted;
         transfer.AcceptedByUserId = userId;
         transfer.UpdatedAt = DateTime.UtcNow;
         await _unitOfWork.WarehouseInventoryTransfers.UpdateAsync(transfer);
-
         await _unitOfWork.SaveChangesAsync();
         return ApiResponse<bool>.Success(true, null, "Transferencia aceptada correctamente.");
     }

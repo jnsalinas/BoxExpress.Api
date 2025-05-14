@@ -6,5 +6,6 @@ namespace BoxExpress.Application.Interfaces;
 
 public interface IInventoryMovementService
 {
-    Task<ApiResponse<bool>> AddAsync(InventoryMovementDTO inventoryMovementDTO);
+    Task<ApiResponse<bool>> ProcessDeliveryAsync(Order order);
+    Task<ApiResponse<bool>> RevertDeliveryAsync(Order order);
 }

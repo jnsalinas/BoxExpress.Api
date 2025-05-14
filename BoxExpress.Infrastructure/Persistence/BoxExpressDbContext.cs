@@ -4,7 +4,7 @@ using BoxExpress.Domain.Entities;
 namespace BoxExpress.Infrastructure.Persistence
 {
     //Correr migrations: 
-    //dotnet ef migrations add WalletFixex --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add InventoryMovements --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
 
     public class BoxExpressDbContext : DbContext

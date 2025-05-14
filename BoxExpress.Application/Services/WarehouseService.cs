@@ -16,16 +16,19 @@ public class WarehouseService : IWarehouseService
     private readonly IWarehouseRepository _repository;
     private readonly IMapper _mapper;
     private readonly IWarehouseInventoryRepository _warehouseInventoryRepository;
+    private readonly IInventoryMovementRepository _inventoryMovementRepository;
 
     public WarehouseService(
         IWarehouseInventoryTransferRepository warehouseInventoryTransferRepository,
         IWarehouseInventoryRepository warehouseInventoryRepository,
+        IInventoryMovementRepository inventoryMovementRepository,
         IWarehouseRepository repository,
         IMapper mapper,
         IUnitOfWork unitOfWork)
     {
         _warehouseInventoryTransferRepository = warehouseInventoryTransferRepository;
         _warehouseInventoryRepository = warehouseInventoryRepository;
+        _inventoryMovementRepository = inventoryMovementRepository;
         _repository = repository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -76,6 +79,16 @@ public class WarehouseService : IWarehouseService
                     };
 
                     await _unitOfWork.Inventories.AddAsync(inventory);
+                    await _unitOfWork.InventoryMovements.AddAsync(new InventoryMovement
+                    {
+                        CreatedAt = DateTime.UtcNow,
+                        WarehouseId = warehouseId,
+                        ProductVariantId = variant.Id,
+                        Quantity = variantDto.Quantity,
+                        MovementType = InventoryMovementType.InitialStock,
+                        Notes = "Inventario inicial",
+                        Reference = $"Initial-Stock-{product.Id}-{variant.Id}"
+                    });
                 }
             }
 

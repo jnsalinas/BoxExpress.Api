@@ -51,32 +51,6 @@ public class WalletTransactionService : IWalletTransactionService
             throw new InvalidOperationException("Transaction types not found");
         }
 
-        if (order.WarehouseId.HasValue)
-        {
-            foreach (OrderItem orderItem in order.OrderItems)
-            {
-                await _inventoryMovementService.AddAsync(new InventoryMovementDTO()
-                {
-                    WarehouseId = order.WarehouseId.Value,
-                    MovementType = InventoryMovementType.OrderDelivered,
-                    OrderId = order.Id,
-                    ProductVariantId = orderItem.ProductVariantId,
-                    Quantity = orderItem.Quantity,
-                    Notes = "OrderDelivered",
-                    Reference = order.Id.ToString() + orderItem.ProductVariantId.ToString(),
-                });
-            }
-
-            //      public int WarehouseId { get; set; }
-            // public int ProductVariantId { get; set; }
-            // public InventoryMovementType MovementType { get; set; }
-            // public int Quantity { get; set; }
-            // public int? OrderId { get; set; }
-            // public int? TransferId { get; set; }
-            // public string? Reference { get; set; }
-            // public string? Notes { get; set; }
-        }
-
         //move balance 
         //todo: mirar si se pasa a wallet service 
         Wallet? wallet = await _walletRepository.GetByStoreIdAsync(order.StoreId) ?? throw new InvalidOperationException("Wallet not found");

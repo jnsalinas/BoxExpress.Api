@@ -15,6 +15,7 @@ public class UnitOfWork : IUnitOfWork
     public IWalletRepository Wallets { get; }
     public IStoreRepository Stores { get; }
     public IUserRepository Users { get; }
+    public IInventoryMovementRepository InventoryMovements { get; }
 
     public UnitOfWork(
         BoxExpressDbContext context,

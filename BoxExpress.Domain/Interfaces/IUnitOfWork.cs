@@ -10,7 +10,6 @@ public interface IUnitOfWork
     IWalletRepository Wallets { get; }
     IStoreRepository Stores { get; }
     IUserRepository Users { get; }
-
     IInventoryMovementRepository InventoryMovements { get; }
 
     Task<int> SaveChangesAsync();
