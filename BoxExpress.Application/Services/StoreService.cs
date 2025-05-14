@@ -31,6 +31,14 @@ public class StoreService : IStoreService
     {
         try
         {
+            var existingStore = await _repository.GetFilteredAsync(new StoreFilter{
+                Name = createStoreDto.StoreName,
+            });
+
+
+            if (existingStore.Stores.Any())
+                return ApiResponse<bool>.Fail("Ya existe una tienda con ese nombre");
+
             await _unitOfWork.BeginTransactionAsync();
             var createdAt = DateTime.UtcNow;
             var wallet = await _unitOfWork.Wallets.AddAsync(new Wallet()

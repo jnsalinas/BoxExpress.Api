@@ -35,6 +35,8 @@ public static class DependencyInjection
         services.AddScoped<IWithdrawalRequestRepository, WithdrawalRequestRepository>();
         services.AddScoped<IBankRepository, BankRepository>();
         services.AddScoped<IDocumentTypeRepository, DocumentTypeRepository>();
+        services.AddScoped<ICityRepository, CityRepository>();
+
 
         return services;
     }

@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IWithdrawalRequestService, WithdrawalRequestService>();
         services.AddScoped<IBankService, BankService>();
         services.AddScoped<IDocumentTypeService, DocumentTypeService>();
+        services.AddScoped<ICityService, CityService>();
 
         services.AddAutoMapper(typeof(AutoMapperProfile));
         return services;
