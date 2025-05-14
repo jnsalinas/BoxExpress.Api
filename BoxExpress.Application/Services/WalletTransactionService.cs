@@ -6,6 +6,7 @@ using AutoMapper;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Domain.Constants;
+using BoxExpress.Domain.Enums;
 
 namespace BoxExpress.Application.Services;
 
@@ -15,10 +16,17 @@ public class WalletTransactionService : IWalletTransactionService
     private readonly IMapper _mapper;
     private readonly ITransactionTypeRepository _transactionTypeRepository;
     private readonly IWalletRepository _walletRepository;
+    private readonly IInventoryMovementService _inventoryMovementService;
 
-    public WalletTransactionService(IWalletTransactionRepository repository, ITransactionTypeRepository transactionTypeRepository, IMapper mapper, IWalletRepository walletRepository)
+    public WalletTransactionService(
+        IWalletTransactionRepository repository,
+        ITransactionTypeRepository transactionTypeRepository,
+        IInventoryMovementService inventoryMovementService,
+        IWalletRepository walletRepository,
+        IMapper mapper)
     {
         _transactionTypeRepository = transactionTypeRepository;
+        _inventoryMovementService = inventoryMovementService;
         _walletRepository = walletRepository;
         _repository = repository;
         _mapper = mapper;
@@ -41,6 +49,32 @@ public class WalletTransactionService : IWalletTransactionService
         if (inbound == null || outbound == null)
         {
             throw new InvalidOperationException("Transaction types not found");
+        }
+
+        if (order.WarehouseId.HasValue)
+        {
+            foreach (OrderItem orderItem in order.OrderItems)
+            {
+                await _inventoryMovementService.AddAsync(new InventoryMovementDTO()
+                {
+                    WarehouseId = order.WarehouseId.Value,
+                    MovementType = InventoryMovementType.OrderDelivered,
+                    OrderId = order.Id,
+                    ProductVariantId = orderItem.ProductVariantId,
+                    Quantity = orderItem.Quantity,
+                    Notes = "OrderDelivered",
+                    Reference = order.Id.ToString() + orderItem.ProductVariantId.ToString(),
+                });
+            }
+
+            //      public int WarehouseId { get; set; }
+            // public int ProductVariantId { get; set; }
+            // public InventoryMovementType MovementType { get; set; }
+            // public int Quantity { get; set; }
+            // public int? OrderId { get; set; }
+            // public int? TransferId { get; set; }
+            // public string? Reference { get; set; }
+            // public string? Notes { get; set; }
         }
 
         //move balance 

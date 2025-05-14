@@ -35,6 +35,7 @@ namespace BoxExpress.Infrastructure.Persistence
         public DbSet<WarehouseInventoryTransferDetail> WarehouseInventoryTransferDetails { get; set; }
         public DbSet<Bank> Banks { get; set; }
         public DbSet<DocumentType> DocumentTypes { get; set; }
+        public DbSet<InventoryMovement> InventoryMovements { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Aplica DeleteBehavior.Restrict a todas las foreign keys

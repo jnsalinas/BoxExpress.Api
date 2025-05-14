@@ -75,6 +75,8 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
             {
                 return ApiResponse<bool>.Fail($"No se encontró inventario en el almacén de origen para el producto variante {item.ProductVariantId}.");
             }
+            
+            inventoryOrigin.UpdatedAt = DateTime.UtcNow;
             inventoryOrigin.Quantity -= item.Quantity;
             await _unitOfWork.Inventories.UpdateAsync(inventoryOrigin);
 
@@ -86,7 +88,8 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
                 {
                     WarehouseId = transfer.ToWarehouseId,
                     ProductVariantId = item.ProductVariantId,
-                    Quantity = item.Quantity
+                    Quantity = item.Quantity,
+                    CreatedAt = DateTime.UtcNow
                 };
                 await _unitOfWork.Inventories.AddAsync(inventoryDestination);
             }

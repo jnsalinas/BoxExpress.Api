@@ -2,7 +2,7 @@ using AutoMapper;
 using BoxExpress.Application.Dtos;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Domain.Filters;
-using BoxExpress.Domain.Extensions; 
+using BoxExpress.Domain.Extensions;
 
 namespace BoxExpress.Application.Mappings;
 
@@ -119,7 +119,6 @@ public class AutoMapperProfile : Profile
         CreateMap<Bank, BankDto>();
         CreateMap<DocumentType, DocumentTypeDto>();
 
-
         // Filtros
         CreateMap<WarehouseFilterDto, WarehouseFilter>();
         CreateMap<OrderFilterDto, OrderFilter>();
@@ -130,12 +129,12 @@ public class AutoMapperProfile : Profile
         CreateMap<WithdrawalRequestFilterDto, WithdrawalRequestFilter>();
         CreateMap<StoreFilterDto, StoreFilter>();
 
-
         // DTOs de creación / actualización
         CreateMap<CreateStoreDto, Store>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.StoreName));
         CreateMap<CreateStoreDto, User>();
         CreateMap<WithdrawalRequestCreateDto, WithdrawalRequest>();
+        CreateMap<InventoryMovementDTO, InventoryMovement>();
         // CreateMap<WarehouseCreateDto, Warehouse>();
         // CreateMap<WarehouseUpdateDto, Warehouse>();
     }

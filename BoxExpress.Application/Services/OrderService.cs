@@ -107,14 +107,14 @@ public class OrderService : IOrderService
         if (orderStatus == null)
             return ApiResponse<OrderDto>.Fail("Status not found");
 
-        List<TransactionType>? transactionsType = await _transactionTypeRepository.GetAllAsync();
-        TransactionType? inboundTransactionType = transactionsType.FirstOrDefault(x => x.Name.Equals(TransactionTypeConstants.Inbound));
-        if (inboundTransactionType == null)
-            return ApiResponse<OrderDto>.Fail("Inbound Transaction type not found");
+        // List<TransactionType>? transactionsType = await _transactionTypeRepository.GetAllAsync();
+        // TransactionType? inboundTransactionType = transactionsType.FirstOrDefault(x => x.Name.Equals(TransactionTypeConstants.Inbound));
+        // if (inboundTransactionType == null)
+        //     return ApiResponse<OrderDto>.Fail("Inbound Transaction type not found");
 
-        TransactionType? outboundTransactionType = transactionsType.FirstOrDefault(x => x.Name.Equals(TransactionTypeConstants.Outbound));
-        if (outboundTransactionType == null)
-            return ApiResponse<OrderDto>.Fail("Outbound Transaction type not found");
+        // TransactionType? outboundTransactionType = transactionsType.FirstOrDefault(x => x.Name.Equals(TransactionTypeConstants.Outbound));
+        // if (outboundTransactionType == null)
+        //     return ApiResponse<OrderDto>.Fail("Outbound Transaction type not found");
         #endregion
 
         switch (orderStatus.Name)
