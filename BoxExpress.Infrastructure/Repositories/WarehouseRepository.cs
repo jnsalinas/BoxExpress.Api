@@ -34,6 +34,7 @@ public class WarehouseRepository : Repository<Warehouse>, IWarehouseRepository
         return await query.ToListAsync();
     }
 
+    //toodo mejor pasar que devuuelva los productvariants en otro lado para poder ordenar, filtrar y paginar 
     public async Task<Warehouse?> GetByIdWithDetailsAsync(int id)
     {
         return await _context.Set<Warehouse>()

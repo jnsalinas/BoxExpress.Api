@@ -37,7 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IDocumentTypeRepository, DocumentTypeRepository>();
         services.AddScoped<IInventoryMovementRepository, InventoryMovementRepository>();
         services.AddScoped<ICityRepository, CityRepository>();
-
+        services.AddScoped<IInventoryHoldRepository, InventoryHoldRepository>();
 
         return services;
     }

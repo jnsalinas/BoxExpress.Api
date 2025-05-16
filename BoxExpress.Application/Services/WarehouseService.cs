@@ -103,14 +103,4 @@ public class WarehouseService : IWarehouseService
             return ApiResponse<bool>.Fail("Error al guardar el inventario: " + ex.Message);
         }
     }
-
-    public async Task<ApiResponse<bool>> CreateTransferAsync(WarehouseInventoryTransferDto warehouseInventoryTransferDto)
-    {
-        var newTransfer = _mapper.Map<WarehouseInventoryTransfer>(warehouseInventoryTransferDto);
-        newTransfer.CreatedAt = DateTime.UtcNow;
-        newTransfer.Status = InventoryTransferStatus.Pending;
-        newTransfer.CreatorId = 2; //todo: poner usuario con la sesion
-        var newWarehouseInventoryTransfer = await _warehouseInventoryTransferRepository.AddAsync(newTransfer);
-        return ApiResponse<bool>.Success(newWarehouseInventoryTransfer.Id > 0, null, "Inventario creado exitosamente");
-    }
 }

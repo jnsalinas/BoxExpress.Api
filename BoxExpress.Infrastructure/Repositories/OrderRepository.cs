@@ -75,6 +75,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             .Include(w => w.Warehouse)
             .Include(w => w.Status)
             .Include(w => w.Category)
+            .Include(w => w.OrderItems)
             .Include(w => w.Store)
                 .ThenInclude(w => w.Wallet)
             .Include(w => w.Currency)

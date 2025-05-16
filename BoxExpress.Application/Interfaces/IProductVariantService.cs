@@ -6,5 +6,5 @@ namespace BoxExpress.Application.Interfaces;
 
 public interface IProductVariantService
 {
-    Task<ApiResponse<List<ProductVariantAutocompleteDto>>> GetVariantsAutocompleteAsync(string query, int WarehouseOriginId);
+    // Task<ApiResponse<List<ProductVariantAutocompleteDto>>> GetVariantsAutocompleteAsync(string query, int WarehouseOriginId);
 }

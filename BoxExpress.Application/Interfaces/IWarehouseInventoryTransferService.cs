@@ -4,10 +4,12 @@ using BoxExpress.Domain.Entities;
 
 namespace BoxExpress.Application.Interfaces;
 
-public interface IWarehouseInventoryTransferService
+public interface    IWarehouseInventoryTransferService
 {
     Task<ApiResponse<IEnumerable<WarehouseInventoryTransferDto>>> GetAllAsync(WarehouseInventoryTransferFilterDto filter);
     Task<ApiResponse<WarehouseInventoryTransferDto?>> GetByIdAsync(int id);
+    Task<ApiResponse<bool>> CreateTransferAsync(WarehouseInventoryTransferDto warehouseInventoryTransferDto);
     Task<ApiResponse<bool>> AcceptTransferAsync(int transferId, int userId);
     Task<ApiResponse<bool>> RejectTransferAsync(int transferId, int userId, string rejectionReason);
+    Task<ApiResponse<bool>> ReserveInventoryAsync(int warehouseId, List<OrderItem> orderItems);
 }

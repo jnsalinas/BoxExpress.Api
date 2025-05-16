@@ -14,15 +14,18 @@ public class InventoryMovementService : IInventoryMovementService
     private readonly IInventoryMovementRepository _inventoryMovementRepository;
     private readonly IWarehouseInventoryRepository _warehouseInventoryRepository;
     private readonly IMapper _mapper;
+    private readonly IInventoryHoldRepository _inventoryHoldRepository;
 
     public InventoryMovementService(
         IInventoryMovementRepository inventoryMovementRepository,
         IMapper mapper,
+        IInventoryHoldRepository inventoryHoldRepository,
         IWarehouseInventoryRepository warehouseInventoryRepository,
         IUnitOfWork unitOfWork)
     {
         _inventoryMovementRepository = inventoryMovementRepository;
         _warehouseInventoryRepository = warehouseInventoryRepository;
+        _inventoryHoldRepository = inventoryHoldRepository;
         _mapper = mapper;
         _unitOfWork = unitOfWork;
     }
@@ -31,19 +34,15 @@ public class InventoryMovementService : IInventoryMovementService
     {
         await _unitOfWork.BeginTransactionAsync();
 
-        foreach (OrderItem orderItem in order.OrderItems)
-        {
-            await AdjustInventoryAsync(new InventoryMovement()
-            {
-                WarehouseId = order.WarehouseId.Value,
-                MovementType = InventoryMovementType.OrderDelivered,
-                OrderId = order.Id,
-                ProductVariantId = orderItem.ProductVariantId,
-                Quantity = orderItem.Quantity * -1,
-                Notes = "OrderDelivered",
-                Reference = order.Id.ToString() + orderItem.ProductVariantId.ToString(),
-            });
-        }
+        await ApplyOrderInventoryAsync(
+            order,
+            fromHoldStatus: InventoryHoldStatus.Active,
+            toHoldStatus: InventoryHoldStatus.Consumed,
+            movementType: InventoryMovementType.OrderDelivered,
+            quantityMultiplier: -1,
+            movementNote: "Orden entregada",
+            movementReferencePrefix: "Delivered"
+        );
 
         await _unitOfWork.SaveChangesAsync();
         await _unitOfWork.CommitAsync();
@@ -54,45 +53,27 @@ public class InventoryMovementService : IInventoryMovementService
     {
         await _unitOfWork.BeginTransactionAsync();
 
-        foreach (var orderItem in order.OrderItems)
-        {
-            var movement = new InventoryMovement
-            {
-                WarehouseId = order.WarehouseId.Value,
-                ProductVariantId = orderItem.ProductVariantId,
-                Quantity = orderItem.Quantity,
-                MovementType = InventoryMovementType.OrderDeliveryReverted,
-                OrderId = order.Id,
-                Notes = "Reversión de entrega",
-                Reference = $"Revert-Order-{order.Id}-{orderItem.ProductVariantId}"
-            };
-
-            await AdjustInventoryAsync(movement);
-        }
+        await ApplyOrderInventoryAsync(
+            order,
+            fromHoldStatus: InventoryHoldStatus.Consumed,
+            toHoldStatus: InventoryHoldStatus.Active,
+            movementType: InventoryMovementType.OrderDeliveryReverted,
+            quantityMultiplier: 1,
+            movementNote: "Reversión de entrega",
+            movementReferencePrefix: "Revert"
+        );
 
         await _unitOfWork.SaveChangesAsync();
         await _unitOfWork.CommitAsync();
         return ApiResponse<bool>.Success(true);
     }
 
-
-    private async Task AdjustInventoryAsync(InventoryMovement movement)
+    public async Task AdjustInventoryAsync(InventoryMovement movement)
     {
         var inventory = await _unitOfWork.Inventories.GetByWarehouseAndProductVariant(movement.WarehouseId, movement.ProductVariantId);
         if (inventory == null)
         {
             throw new Exception($"No se encontró inventario en la bodega {movement.WarehouseId} para el producto {movement.ProductVariantId}");
-            // if (movement.Quantity < 0)
-            //     throw new Exception($"No se encontró inventario en la bodega {movement.WarehouseId} para el producto {movement.ProductVariantId}");
-
-            // inventory = new WarehouseInventory
-            // {
-            //     WarehouseId = movement.WarehouseId,
-            //     ProductVariantId = movement.ProductVariantId,
-            //     Quantity = 0,
-            //     CreatedAt = DateTime.UtcNow
-            // };
-            // await _unitOfWork.Inventories.AddAsync(inventory);
         }
 
         if (inventory.Quantity + movement.Quantity < 0)
@@ -100,9 +81,45 @@ public class InventoryMovementService : IInventoryMovementService
 
         inventory.Quantity += movement.Quantity;
         inventory.UpdatedAt = DateTime.UtcNow;
-        await _unitOfWork.Inventories.UpdateAsync(inventory);
-
-        movement.CreatedAt = DateTime.UtcNow; // si lo necesitas
+        inventory.ReservedQuantity += movement.Quantity;
         await _unitOfWork.InventoryMovements.AddAsync(movement);
+        await _unitOfWork.Inventories.UpdateAsync(inventory);
+    }
+
+    private async Task ApplyOrderInventoryAsync(
+            Order order,
+            InventoryHoldStatus fromHoldStatus,
+            InventoryHoldStatus toHoldStatus,
+            InventoryMovementType movementType,
+            int quantityMultiplier,
+            string movementNote,
+            string movementReferencePrefix
+        )
+    {
+        var orderItemIds = order.OrderItems.Select(x => x.Id).ToList();
+        var inventoryHolds = await _inventoryHoldRepository.GetByOrderItemIdsAndStatus(orderItemIds, fromHoldStatus);
+        var now = DateTime.UtcNow;
+
+        foreach (var orderItem in order.OrderItems)
+        {
+            var hold = inventoryHolds.FirstOrDefault(h => h.OrderItemId == orderItem.Id);
+            if (hold == null)
+                throw new Exception($"No se encontró un hold con estado {fromHoldStatus} para el OrderItem {orderItem.Id}");
+
+            hold.Status = toHoldStatus;
+            hold.UpdatedAt = now;
+            await _unitOfWork.InventoryHolds.UpdateAsync(hold);
+            await AdjustInventoryAsync(new InventoryMovement
+            {
+                WarehouseId = order.WarehouseId.Value,
+                ProductVariantId = orderItem.ProductVariantId,
+                Quantity = orderItem.Quantity * quantityMultiplier,
+                MovementType = movementType,
+                OrderId = order.Id,
+                Notes = movementNote,
+                Reference = $"{movementReferencePrefix}-{order.Id}-{orderItem.ProductVariantId}",
+                CreatedAt = now
+            });
+        }
     }
 }

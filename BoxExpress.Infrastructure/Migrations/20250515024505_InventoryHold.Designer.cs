@@ -4,6 +4,7 @@ using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoxExpress.Infrastructure.Migrations
 {
     [DbContext(typeof(BoxExpressDbContext))]
-    partial class BoxExpressDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250515024505_InventoryHold")]
+    partial class InventoryHold
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -224,54 +227,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DocumentTypes");
-                });
-
-            modelBuilder.Entity("BoxExpress.Domain.Entities.InventoryHold", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CreatorId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("OrderItemId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TransferId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("WarehouseInventoryId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatorId");
-
-                    b.HasIndex("OrderItemId");
-
-                    b.HasIndex("TransferId");
-
-                    b.HasIndex("WarehouseInventoryId");
-
-                    b.ToTable("InventoryHolds");
                 });
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.InventoryMovement", b =>
@@ -1178,39 +1133,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Navigation("City");
 
                     b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("BoxExpress.Domain.Entities.InventoryHold", b =>
-                {
-                    b.HasOne("BoxExpress.Domain.Entities.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BoxExpress.Domain.Entities.OrderItem", "OrderItem")
-                        .WithMany()
-                        .HasForeignKey("OrderItemId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("BoxExpress.Domain.Entities.WarehouseInventoryTransfer", "Transfer")
-                        .WithMany()
-                        .HasForeignKey("TransferId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("BoxExpress.Domain.Entities.WarehouseInventory", "WarehouseInventory")
-                        .WithMany()
-                        .HasForeignKey("WarehouseInventoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Creator");
-
-                    b.Navigation("OrderItem");
-
-                    b.Navigation("Transfer");
-
-                    b.Navigation("WarehouseInventory");
                 });
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.InventoryMovement", b =>

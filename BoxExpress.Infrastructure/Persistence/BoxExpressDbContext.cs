@@ -4,7 +4,7 @@ using BoxExpress.Domain.Entities;
 namespace BoxExpress.Infrastructure.Persistence
 {
     //Correr migrations: 
-    //dotnet ef migrations add InventoryMovements --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add AddInventoryHold --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
 
     public class BoxExpressDbContext : DbContext
@@ -36,6 +36,8 @@ namespace BoxExpress.Infrastructure.Persistence
         public DbSet<Bank> Banks { get; set; }
         public DbSet<DocumentType> DocumentTypes { get; set; }
         public DbSet<InventoryMovement> InventoryMovements { get; set; }
+        public DbSet<InventoryHold> InventoryHolds { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Aplica DeleteBehavior.Restrict a todas las foreign keys

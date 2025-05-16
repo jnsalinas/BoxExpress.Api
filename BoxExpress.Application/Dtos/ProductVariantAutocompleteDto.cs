@@ -7,4 +7,6 @@ public class ProductVariantAutocompleteDto
     public string? Sku { get; set; }
     public string? ProductName { get; set; }
     public int? AvailableUnits { get; set; }
+    public int ReservedQuantity { get; set; }
+    public int Quantity { get; set; }
 }

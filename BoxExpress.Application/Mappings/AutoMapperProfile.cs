@@ -53,6 +53,8 @@ public class AutoMapperProfile : Profile
                         Quantity = vi.Quantity,
                         Sku = vi.ProductVariant.Sku,
                         Price = vi.ProductVariant.Price,
+                        ReservedQuantity = vi.ReservedQuantity,
+                        AvailableQuantity = vi.AvailableQuantity
                     }).ToList()
                 }).ToList()
             ));
@@ -78,6 +80,12 @@ public class AutoMapperProfile : Profile
 
         CreateMap<ProductVariant, ProductVariantAutocompleteDto>()
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
+
+        CreateMap<WarehouseInventory, ProductVariantAutocompleteDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ProductVariant.Id))
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.ProductVariant.Name))
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductVariant.Product.Name))
+            .ForMember(dest => dest.AvailableUnits, opt => opt.MapFrom(src => src.AvailableQuantity));
 
         CreateMap<OrderStatusHistory, OrderStatusHistoryDto>()
             .ForMember(dest => dest.Creator, opt => opt.MapFrom(src => src.Creator.FirstName + " " + src.Creator.LastName))

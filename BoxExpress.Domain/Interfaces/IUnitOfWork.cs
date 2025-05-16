@@ -11,7 +11,8 @@ public interface IUnitOfWork
     IStoreRepository Stores { get; }
     IUserRepository Users { get; }
     IInventoryMovementRepository InventoryMovements { get; }
-
+    IInventoryHoldRepository InventoryHolds { get; }
+    
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();
     Task CommitAsync();

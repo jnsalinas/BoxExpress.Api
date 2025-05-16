@@ -15,6 +15,7 @@ public class UnitOfWork : IUnitOfWork
     public IStoreRepository Stores { get; }
     public IUserRepository Users { get; }
     public IInventoryMovementRepository InventoryMovements { get; }
+    public IInventoryHoldRepository InventoryHolds { get; }
 
     public UnitOfWork(
         BoxExpressDbContext context,
@@ -25,12 +26,14 @@ public class UnitOfWork : IUnitOfWork
         IInventoryMovementRepository movements,
         IWalletRepository wallets,
         IStoreRepository stores,
+        IInventoryHoldRepository holds,
         IUserRepository users)
     {
         _context = context;
         Products = products;
         Variants = variants;
         Inventories = inventories;
+        InventoryHolds = holds;
         InventoryMovements = movements;
         WarehouseInventoryTransfers = transfers;
         Wallets = wallets;

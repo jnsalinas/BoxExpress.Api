@@ -23,6 +23,7 @@ public class OrderService : IOrderService
     private readonly IWalletTransactionService _walletTransactionService;
     private readonly IOrderItemRepository _orderItemRepository;
     private readonly IInventoryMovementService _inventoryMovementService;
+    private readonly IWarehouseInventoryTransferService _warehouseInventoryTransferService;
 
     public OrderService(
         IOrderRepository repository,
@@ -35,9 +36,12 @@ public class OrderService : IOrderService
         IOrderCategoryHistoryRepository orderCategoryHistoryRepository,
         IWalletTransactionService walletTransactionService,
         IInventoryMovementService inventoryMovementService,
-        IOrderItemRepository orderItemRepository
+        IOrderItemRepository orderItemRepository,
+        IWarehouseInventoryRepository warehouseInventoryRepository,
+        IWarehouseInventoryTransferService warehouseInventoryTransferService
         )
     {
+        _warehouseInventoryTransferService = warehouseInventoryTransferService;
         _orderCategoryHistoryRepository = orderCategoryHistoryRepository;
         _walletTransactionRepository = walletTransactionRepository;
         _orderStatusHistoryRepository = orderStatusHistoryRepository;
@@ -62,7 +66,7 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<OrderDto>> UpdateWarehouseAsync(int orderId, int warehouseId)
     {
-        Order? order = await _repository.GetByIdAsync(orderId);
+        Order? order = await _repository.GetByIdWithDetailsAsync(orderId);
         if (order == null)
             return ApiResponse<OrderDto>.Fail("Order not found");
 
@@ -73,7 +77,10 @@ public class OrderService : IOrderService
         }
         else
         {
-            //todo validar invenatrio si la bodega tiene stock
+            var ReserveInventory = await _warehouseInventoryTransferService.ReserveInventoryAsync(warehouseId, order.OrderItems);
+            if (!ReserveInventory.IsSuccess)
+                return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
+
             newCategoryId = (await _orderCategoryRepository.GetByNameAsync(OrderCategoryConstants.Express))?.Id;
             order.WarehouseId = warehouseId;
         }
@@ -110,15 +117,6 @@ public class OrderService : IOrderService
         OrderStatus? orderStatus = await _orderStatusRepository.GetByIdAsync(statusId);
         if (orderStatus == null)
             return ApiResponse<OrderDto>.Fail("Status not found");
-
-        // List<TransactionType>? transactionsType = await _transactionTypeRepository.GetAllAsync();
-        // TransactionType? inboundTransactionType = transactionsType.FirstOrDefault(x => x.Name.Equals(TransactionTypeConstants.Inbound));
-        // if (inboundTransactionType == null)
-        //     return ApiResponse<OrderDto>.Fail("Inbound Transaction type not found");
-
-        // TransactionType? outboundTransactionType = transactionsType.FirstOrDefault(x => x.Name.Equals(TransactionTypeConstants.Outbound));
-        // if (outboundTransactionType == null)
-        //     return ApiResponse<OrderDto>.Fail("Outbound Transaction type not found");
         #endregion
 
         switch (orderStatus.Name)
@@ -149,7 +147,6 @@ public class OrderService : IOrderService
         await _repository.UpdateAsync(order);
         return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
     }
-
 
     public async Task<ApiResponse<OrderDto>> UpdateScheduleAsync(int orderId, OrderScheduleUpdateDto orderScheduleUpdateDto)
     {

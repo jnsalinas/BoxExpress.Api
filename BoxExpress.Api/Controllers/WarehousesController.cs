@@ -11,12 +11,18 @@ namespace BoxExpress.Api.Controllers;
 public class WarehousesController : ControllerBase
 {
     private readonly IWarehouseService _warehouseService;
+    private readonly IWarehouseInventoryTransferService _warehouseInventoryTransferService;
+
     private readonly IExcelExporter<WarehouseDto> _excelExporter;
 
-    public WarehousesController(IWarehouseService warehouseService, IExcelExporter<WarehouseDto> excelExporter)
+    public WarehousesController(
+        IWarehouseService warehouseService,
+        IExcelExporter<WarehouseDto> excelExporter,
+        IWarehouseInventoryTransferService warehouseInventoryTransferService)
     {
         _excelExporter = excelExporter;
         _warehouseService = warehouseService;
+        _warehouseInventoryTransferService = warehouseInventoryTransferService;
     }
 
     [HttpPost("search")]
@@ -46,7 +52,7 @@ public class WarehousesController : ControllerBase
     public async Task<IActionResult> CreateTransferAsync(int warehouseId, [FromBody] WarehouseInventoryTransferDto transferDto)
     {
         transferDto.FromWarehouseId = warehouseId;  // Asignar la bodega de origen
-        var result = await _warehouseService.CreateTransferAsync(transferDto);
+        var result = await _warehouseInventoryTransferService.CreateTransferAsync(transferDto);
         return Ok(result);
     }
 

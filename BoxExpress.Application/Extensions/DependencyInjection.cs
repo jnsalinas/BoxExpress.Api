@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<IDocumentTypeService, DocumentTypeService>();
         services.AddScoped<IInventoryMovementService, InventoryMovementService>();
         services.AddScoped<ICityService, CityService>();
+        services.AddScoped<IWarehouseInventoryService, WarehouseInventoryService>();
 
         services.AddAutoMapper(typeof(AutoMapperProfile));
         return services;

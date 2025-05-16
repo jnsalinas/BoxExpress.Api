@@ -8,4 +8,6 @@ public class ProductVariantDto
     public string? ShopifyId { get; internal set; }
     public decimal? Price { get; set; }
     public string? Sku { get; set; }
+    public int ReservedQuantity { get; set; }
+    public int AvailableQuantity { get; set; }
 }

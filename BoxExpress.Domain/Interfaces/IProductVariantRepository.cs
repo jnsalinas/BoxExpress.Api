@@ -5,5 +5,5 @@ using BoxExpress.Domain.Filters;
 namespace BoxExpress.Domain.Interfaces;
 public interface IProductVariantRepository : IRepository<ProductVariant>
 {
-    Task<List<ProductVariant>> GetVariantsAutocompleteAsync(string query, int warehouseOrigonId);
+    // Task<List<ProductVariant>> GetVariantsAutocompleteAsync(string query, int warehouseOrigonId);
 }
