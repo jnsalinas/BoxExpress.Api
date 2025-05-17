@@ -32,6 +32,36 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.Name))
             .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Country.Name));
 
+
+
+
+        //     public int Id { get; set; }
+        //     public string Name { get; set; } = string.Empty;
+        //     public string? ShopifyId { get; set; }
+        //     public decimal? Price { get; set; }
+        //     public string? Sku { get; set; }
+        //     public List<ProductVariantDto> Variants { get; set; } = new();
+        // public class ProductVariantDto
+        // {
+        //     public int Id { get; set; }
+        //     public string Name { get; set; } = string.Empty;
+        //     public int Quantity { get; set; }
+        //     public string? ShopifyId { get; internal set; }
+        //     public decimal? Price { get; set; }
+        //     public string? Sku { get; set; }
+        //     public int ReservedQuantity { get; set; }
+        //     public int AvailableQuantity { get; set; }
+        // }
+
+        // CreateMap<WarehouseInventory, ProductDto>()
+        //     .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.ProductVariant.Product.Name))
+        //     .ForMember(dest => dest.ShopifyId, opt => opt.MapFrom(src => src.ProductVariant.Product.ShopifyProductId))
+        //     .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.ProductVariant.Product.Price))
+        //     .ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.ProductVariant.Product.Sku))
+        //     .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.ProductVariant.Product.Name))
+        //     ;
+
+
         CreateMap<Warehouse, WarehouseDetailDto>()
             .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.Name))
             .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Country.Name))
@@ -77,6 +107,8 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : string.Empty))
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name))
             .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems));
+
+        CreateMap<ProductVariant, ProductVariantDto>();
 
         CreateMap<ProductVariant, ProductVariantAutocompleteDto>()
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
@@ -137,6 +169,8 @@ public class AutoMapperProfile : Profile
         CreateMap<WarehouseInventoryTransferFilterDto, WarehouseInventoryTransferFilter>();
         CreateMap<WithdrawalRequestFilterDto, WithdrawalRequestFilter>();
         CreateMap<StoreFilterDto, StoreFilter>();
+        CreateMap<WarehouseInventoryFilterDto, WarehouseInventoryFilter>();
+
 
         // DTOs de creación / actualización
         CreateMap<CreateStoreDto, Store>()

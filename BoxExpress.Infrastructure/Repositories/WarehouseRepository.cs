@@ -38,9 +38,9 @@ public class WarehouseRepository : Repository<Warehouse>, IWarehouseRepository
     public async Task<Warehouse?> GetByIdWithDetailsAsync(int id)
     {
         return await _context.Set<Warehouse>()
-            .Include(w => w.Inventories)
-                .ThenInclude(p => p.ProductVariant)
-                    .ThenInclude(p => p.Product)
+            // .Include(w => w.Inventories)
+            //     .ThenInclude(p => p.ProductVariant)
+            //         .ThenInclude(p => p.Product)
             .FirstOrDefaultAsync(w => w.Id.Equals(id));
     }
 }

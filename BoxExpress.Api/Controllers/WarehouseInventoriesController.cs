@@ -17,8 +17,15 @@ public class WarehouseInventoriesController : ControllerBase
         _service = service;
     }
 
+    [HttpPost("search")]
+    public async Task<IActionResult> Search([FromBody] WarehouseInventoryFilterDto filter)
+    {
+        var result = await _service.GetWarehouseProductSummaryAsync(filter);
+        return Ok(result);
+    }
+
     [HttpGet("autocomplete")]
-    public async Task<IActionResult> Search([FromQuery] string query, [FromQuery] int warehouseOriginId)
+    public async Task<IActionResult> Autocomplete([FromQuery] string query, [FromQuery] int warehouseOriginId)
 
     {
         if (string.IsNullOrWhiteSpace(query))

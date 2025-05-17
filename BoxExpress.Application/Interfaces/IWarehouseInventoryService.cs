@@ -6,5 +6,7 @@ namespace BoxExpress.Application.Interfaces;
 
 public interface IWarehouseInventoryService
 {
+    Task<ApiResponse<IEnumerable<ProductVariantDto>>> GetAllAsync(WarehouseInventoryFilterDto filter);
     Task<ApiResponse<List<ProductVariantAutocompleteDto>>> GetVariantsAutocompleteAsync(string query, int WarehouseOriginId);
+    Task<ApiResponse<IEnumerable<ProductDto>>> GetWarehouseProductSummaryAsync(WarehouseInventoryFilterDto filter);
 }

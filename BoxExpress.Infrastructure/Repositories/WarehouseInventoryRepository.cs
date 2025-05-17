@@ -52,4 +52,100 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
 
         return warehouseInventories;
     }
+
+    public async Task<(List<WarehouseInventory> WarehouseInventories, int TotalCount)> GetFilteredAsync(WarehouseInventoryFilter filter)
+    {
+        var query = _context.WarehouseInventories
+            .Where
+            (
+                x =>
+                    x.WarehouseId == filter.WarehouseId
+                    &&
+                    (
+                        filter.Query == null ||
+                        (
+                            !string.IsNullOrEmpty(filter.Query) &&
+                            !string.IsNullOrEmpty(x.ProductVariant.Name) && x.ProductVariant.Name.Contains(filter.Query)
+                            || (!string.IsNullOrEmpty(x.ProductVariant.Sku) && x.ProductVariant.Sku.Contains(filter.Query))
+                            || x.ProductVariant.Product.Name.Contains(filter.Query)
+                            || (!string.IsNullOrEmpty(x.ProductVariant.Product.Sku) && x.ProductVariant.Product.Sku.Contains(filter.Query))
+                        )
+                    )
+            )
+            .Include(x => x.ProductVariant)
+            .ThenInclude(x => x.Product).AsQueryable();
+
+        if (!filter.IsAll)
+        {
+            query = query
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize);
+        }
+
+        var totalCount = await query.CountAsync();
+        return (await query.ToListAsync(), totalCount);
+    }
+
+
+    public async Task<(List<Product> Products, int TotalCount)> GetFilteredGroupedByProductAsync(WarehouseInventoryFilter filter)
+    {
+        var query = _context.WarehouseInventories
+            .Where(x =>
+                x.WarehouseId == filter.WarehouseId &&
+                (
+                    filter.Query == null ||
+                    (
+                        !string.IsNullOrEmpty(x.ProductVariant.Name) && x.ProductVariant.Name.Contains(filter.Query)
+                        || (!string.IsNullOrEmpty(x.ProductVariant.Sku) && x.ProductVariant.Sku.Contains(filter.Query))
+                        || x.ProductVariant.Product.Name.Contains(filter.Query)
+                        || (!string.IsNullOrEmpty(x.ProductVariant.Product.Sku) && x.ProductVariant.Product.Sku.Contains(filter.Query))
+                    )
+                )
+            )
+            .Include(x => x.ProductVariant)
+            .ThenInclude(x => x.Product);
+
+        var totalCount = await query
+            .Select(x => x.ProductVariant.Product.Id)
+            .Distinct()
+            .CountAsync();
+
+        var productIds = await query
+                      .Select(x => x.ProductVariant.Product)
+                      .Distinct().ToListAsync();
+
+        if (!filter.IsAll)
+        {
+            // OBTENER SOLO LOS PRODUCTOS DEL RANGO
+            productIds = await query
+                .Select(x => x.ProductVariant.Product)
+                .Distinct()
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+        }
+
+        return (productIds, totalCount);
+    }
+
+
+    public async Task<List<WarehouseInventory>> GetByWarehouseAndProductsId(int? warehouseId, List<int> productIds, WarehouseInventoryFilter? filter)
+    {
+        var query = _context.WarehouseInventories
+            .Where(x => x.WarehouseId == warehouseId && productIds.Contains(x.ProductVariant.ProductId));
+
+        if (filter != null)
+        {
+            query = query.Where(x =>
+                filter.Query == null ||
+                    (
+                        !string.IsNullOrEmpty(x.ProductVariant.Name) && x.ProductVariant.Name.Contains(filter.Query)
+                        || (!string.IsNullOrEmpty(x.ProductVariant.Sku) && x.ProductVariant.Sku.Contains(filter.Query))
+                        | (!string.IsNullOrEmpty(x.ProductVariant.ShopifyVariantId) && x.ProductVariant.ShopifyVariantId.Contains(filter.Query))
+                    )
+            ).AsQueryable();
+        }
+
+        return await query.Include(x => x.ProductVariant).ToListAsync();
+    }
 }
