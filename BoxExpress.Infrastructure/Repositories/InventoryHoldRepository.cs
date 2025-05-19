@@ -16,6 +16,30 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
         _context = context;
     }
 
+    public async Task<(List<InventoryHold> InventoryHolds, int TotalCount)> GetFilteredAsync(InventoryHoldFilter filter)
+    {
+        var query = _context.InventoryHolds
+            .Include(w => w.Creator)
+            .Include(w => w.OrderItem)
+            .Where(x => x.Status == InventoryHoldStatus.Active)
+            .AsQueryable();
+
+        if (filter.WarehouseInventoryId.HasValue)
+        {
+            query = query.Where(w => w.WarehouseInventoryId == filter.WarehouseInventoryId.Value);
+        }
+        
+        var total = query.Count();
+        if (!filter.IsAll)
+        {
+            query = query
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize);
+        }
+
+        return (await query.ToListAsync(), total);
+    }
+
     public async Task<List<InventoryHold>> GetByOrderItemIdsAndStatus(List<int> listOrderItemIds, InventoryHoldStatus? status)
     {
         return await _context.InventoryHolds

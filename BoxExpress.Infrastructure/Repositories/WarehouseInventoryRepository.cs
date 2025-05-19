@@ -148,4 +148,13 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
 
         return await query.Include(x => x.ProductVariant).ToListAsync();
     }
+
+    public async Task<WarehouseInventory?> GetByIdWithDetailsAsync(int id)
+    {
+        return await _context.WarehouseInventories
+            .Include(wi => wi.ProductVariant)
+            .ThenInclude(pv => pv.Product)
+            .Include(wi => wi.Warehouse)
+            .FirstOrDefaultAsync(wi => wi.Id == id);
+    }
 }

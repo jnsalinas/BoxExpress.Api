@@ -159,6 +159,10 @@ public class AutoMapperProfile : Profile
 
         CreateMap<Bank, BankDto>();
         CreateMap<DocumentType, DocumentTypeDto>();
+        CreateMap<InventoryMovement, InventoryMovementDto>();
+        CreateMap<WarehouseInventory, WarehouseInventoryDto>();
+        CreateMap<Product, ProductDto>();
+        CreateMap<InventoryHold, InventoryHoldDto>();
 
         // Filtros
         CreateMap<WarehouseFilterDto, WarehouseFilter>();
@@ -170,14 +174,15 @@ public class AutoMapperProfile : Profile
         CreateMap<WithdrawalRequestFilterDto, WithdrawalRequestFilter>();
         CreateMap<StoreFilterDto, StoreFilter>();
         CreateMap<WarehouseInventoryFilterDto, WarehouseInventoryFilter>();
-
+        CreateMap<InventoryMovementFilterDto, InventoryMovementFilter>();
+        CreateMap<InventoryHoldFilterDto, InventoryHoldFilter>();
 
         // DTOs de creación / actualización
         CreateMap<CreateStoreDto, Store>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.StoreName));
         CreateMap<CreateStoreDto, User>();
         CreateMap<WithdrawalRequestCreateDto, WithdrawalRequest>();
-        CreateMap<InventoryMovementDTO, InventoryMovement>();
+        CreateMap<InventoryMovementDto, InventoryMovement>();
         // CreateMap<WarehouseCreateDto, Warehouse>();
         // CreateMap<WarehouseUpdateDto, Warehouse>();
     }

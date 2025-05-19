@@ -46,6 +46,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                     ReservedQuantity = wi.ReservedQuantity,
                     AvailableQuantity = wi.AvailableQuantity,
                     Id = wi.ProductVariant.Id,
+                    WarehouseInventoryId = wi.Id,
                     Price = wi.ProductVariant.Price,
                     Quantity = wi.Quantity
                 }).ToList()
@@ -54,13 +55,9 @@ public class WarehouseInventoryService : IWarehouseInventoryService
         return ApiResponse<IEnumerable<ProductDto>>.Success(groupedProducts, new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }
 
-
-
-
-
-
-
-
     public async Task<ApiResponse<List<ProductVariantAutocompleteDto>>> GetVariantsAutocompleteAsync(string query, int WarehouseOriginId) =>
          ApiResponse<List<ProductVariantAutocompleteDto>>.Success(_mapper.Map<List<ProductVariantAutocompleteDto>>(await _repository.GetVariantsAutocompleteAsync(query, WarehouseOriginId)));
+
+    public async Task<ApiResponse<WarehouseInventoryDto?>> GetByIdAsync(int id) =>
+           ApiResponse<WarehouseInventoryDto?>.Success(_mapper.Map<WarehouseInventoryDto>(await _repository.GetByIdWithDetailsAsync(id)));
 }

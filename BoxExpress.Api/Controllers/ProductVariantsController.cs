@@ -17,6 +17,15 @@ public class ProductVariantsController : ControllerBase
         _productVariantService = productVariantService;
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var result = await _productVariantService.GetByIdAsync(id);
+        if (result.Equals(null)) return NotFound();
+        return Ok(result);
+    }
+
+
     // [HttpGet("autocomplete")]
     // public async Task<IActionResult> Search([FromQuery] string query, [FromQuery] int warehouseOriginId)
 

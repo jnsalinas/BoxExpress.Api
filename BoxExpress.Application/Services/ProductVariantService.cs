@@ -19,6 +19,6 @@ public class ProductVariantService : IProductVariantService
         _mapper = mapper;
     }
 
-    // public async Task<ApiResponse<List<ProductVariantAutocompleteDto>>> GetVariantsAutocompleteAsync(string query, int WarehouseOriginId) =>
-    //      ApiResponse<List<ProductVariantAutocompleteDto>>.Success(_mapper.Map<List<ProductVariantAutocompleteDto>>(await _repository.GetVariantsAutocompleteAsync(query, WarehouseOriginId)));
+     public async Task<ApiResponse<ProductVariantDto?>> GetByIdAsync(int id) =>
+        ApiResponse<ProductVariantDto?>.Success(_mapper.Map<ProductVariantDto>(await _repository.GetByIdWithDetailsAsync(id)));
 }

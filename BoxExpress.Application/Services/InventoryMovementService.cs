@@ -4,6 +4,7 @@ using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Application.Interfaces;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Domain.Enums;
+using BoxExpress.Domain.Filters;
 using BoxExpress.Domain.Interfaces;
 
 namespace BoxExpress.Application.Services;
@@ -28,6 +29,12 @@ public class InventoryMovementService : IInventoryMovementService
         _inventoryHoldRepository = inventoryHoldRepository;
         _mapper = mapper;
         _unitOfWork = unitOfWork;
+    }
+
+    public async Task<ApiResponse<IEnumerable<InventoryMovementDto>>> GetAllAsync(InventoryMovementFilterDto filter)
+    {
+        var (transactions, totalCount) = await _inventoryMovementRepository.GetFilteredAsync(_mapper.Map<InventoryMovementFilter>(filter));
+        return ApiResponse<IEnumerable<InventoryMovementDto>>.Success(_mapper.Map<List<InventoryMovementDto>>(transactions), new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }
 
     public async Task<ApiResponse<bool>> ProcessDeliveryAsync(Order order)

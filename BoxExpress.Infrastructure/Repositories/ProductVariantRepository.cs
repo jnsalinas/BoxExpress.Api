@@ -15,6 +15,18 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
         _context = context;
     }
 
+    public async Task<ProductVariant?> GetByIdWithDetailsAsync(int id)
+    {
+        return await _context.ProductVariants
+            .Include(w => w.InventoryMovements)
+                .ThenInclude(w => w.Warehouse)
+            .Include(w => w.InventoryMovements)
+                .ThenInclude(w => w.Order)
+            .Include(w => w.InventoryMovements)
+                .ThenInclude(w => w.Transfer)
+            .FirstOrDefaultAsync(w => w.Id.Equals(id));
+    }
+
     // public async Task<List<ProductVariant>> GetVariantsAutocompleteAsync(string query, int warehouseOrigonId)
     // {
     //     List<ProductVariant> productVariants = await _context.ProductVariants

@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Domain.Enums;
 
 namespace BoxExpress.Application.Dtos
 {
-    public class InventoryMovementDTO
+    public class InventoryMovementDto: BaseDto
     {
+        public WarehouseDto Warehouse { get; set; }
         public int WarehouseId { get; set; }
         public int ProductVariantId { get; set; }
         public InventoryMovementType MovementType { get; set; }
