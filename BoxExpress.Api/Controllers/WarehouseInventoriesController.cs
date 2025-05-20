@@ -24,6 +24,14 @@ public class WarehouseInventoriesController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateWarehouseInventoryDto dto)
+    {
+        var result = await _service.UpdateAsync(id, dto);
+        return Ok(result);
+    }
+
+
     [HttpGet("autocomplete")]
     public async Task<IActionResult> Autocomplete([FromQuery] string query, [FromQuery] int warehouseOriginId)
 

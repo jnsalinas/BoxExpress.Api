@@ -5,16 +5,22 @@ using BoxExpress.Domain.Filters;
 using AutoMapper;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Application.Dtos.Common;
+using BoxExpress.Domain.Enums;
 
 namespace BoxExpress.Application.Services;
 
 public class WarehouseInventoryService : IWarehouseInventoryService
 {
     private readonly IWarehouseInventoryRepository _repository;
+    private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IMapper _mapper;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public WarehouseInventoryService(IWarehouseInventoryRepository repository, IMapper mapper)
+
+    public WarehouseInventoryService(IWarehouseInventoryRepository repository, IMapper mapper, IInventoryMovementService inventoryMovementService, IUnitOfWork unitOfWork)
     {
+        _unitOfWork = unitOfWork;
+        _inventoryMovementService = inventoryMovementService;
         _repository = repository;
         _mapper = mapper;
     }
@@ -33,7 +39,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
         var groupedProducts = products.Select(product => new ProductDto
         {
             Name = product.Name,
-            ShopifyId = product.ShopifyProductId,
+            ShopifyProductId = product.ShopifyProductId,
             Price = product.Price,
             Sku = product.Sku,
             Variants = variants
@@ -41,7 +47,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                 .Select(wi => new ProductVariantDto
                 {
                     Name = wi.ProductVariant.Name ?? "",
-                    ShopifyId = wi.ProductVariant.ShopifyVariantId,
+                    ShopifyVariantId = wi.ProductVariant.ShopifyVariantId,
                     Sku = wi.ProductVariant.Sku,
                     ReservedQuantity = wi.ReservedQuantity,
                     AvailableQuantity = wi.AvailableQuantity,
@@ -60,4 +66,51 @@ public class WarehouseInventoryService : IWarehouseInventoryService
 
     public async Task<ApiResponse<WarehouseInventoryDto?>> GetByIdAsync(int id) =>
            ApiResponse<WarehouseInventoryDto?>.Success(_mapper.Map<WarehouseInventoryDto>(await _repository.GetByIdWithDetailsAsync(id)));
+
+    public async Task<ApiResponse<WarehouseInventoryDto?>> UpdateAsync(int id, UpdateWarehouseInventoryDto dto)
+    {
+        var warehouseInventory = await _repository.GetByIdWithDetailsAsync(id);
+        if (warehouseInventory == null)
+            return ApiResponse<WarehouseInventoryDto?>.Fail("Warehouse inventory not found.");
+
+        await _unitOfWork.BeginTransactionAsync();
+
+        //register inventory movement
+        if (warehouseInventory.Quantity != dto.Quantity)
+        {
+            int quantityDifference = dto.Quantity - warehouseInventory.Quantity;
+            await _inventoryMovementService.AdjustInventoryAsync(new InventoryMovement
+            {
+                WarehouseId = warehouseInventory.WarehouseId,
+                ProductVariantId = warehouseInventory.ProductVariantId,
+                Quantity = quantityDifference,
+                MovementType = InventoryMovementType.ManualAdjustment,
+                Notes = dto.Notes,
+                Reference = "Adjustment"
+            }, false); //todo mirar si es necesario el moveReserved o hacer otra funcion
+        }
+
+        if (dto.ProductName != null)
+            warehouseInventory.ProductVariant.Product.Name = dto.ProductName;
+
+        if (dto.ProductSku != null)
+            warehouseInventory.ProductVariant.Product.Sku = dto.ProductSku;
+
+        if (dto.ShopifyProductId != null)
+            warehouseInventory.ProductVariant.Product.ShopifyProductId = dto.ShopifyProductId;
+
+        if (dto.VariantSku != null)
+            warehouseInventory.ProductVariant.Sku = dto.VariantSku;
+
+        if (dto.VariantName != null)
+            warehouseInventory.ProductVariant.Name = dto.VariantName;
+
+        if (dto.ShopifyVariantId != null)
+            warehouseInventory.ProductVariant.ShopifyVariantId = dto.ShopifyVariantId;
+
+        await _unitOfWork.Inventories.UpdateAsync(warehouseInventory);
+        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.CommitAsync();
+        return ApiResponse<WarehouseInventoryDto?>.Success(_mapper.Map<WarehouseInventoryDto>(warehouseInventory));
+    }
 }

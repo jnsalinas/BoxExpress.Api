@@ -70,14 +70,14 @@ public class AutoMapperProfile : Profile
                 .GroupBy(wi => wi.ProductVariant.Product)
                 .Select(g => new ProductDto
                 {
-                    ShopifyId = g.Key.ShopifyProductId,
+                    ShopifyProductId = g.Key.ShopifyProductId,
                     Id = g.Key.Id,
                     Name = g.Key.Name,
                     Sku = g.Key.Sku,
                     Price = g.Key.Price,
                     Variants = g.Select(vi => new ProductVariantDto
                     {
-                        ShopifyId = vi.ProductVariant.ShopifyVariantId,
+                        ShopifyVariantId = vi.ProductVariant.ShopifyVariantId,
                         Id = vi.ProductVariant.Id,
                         Name = !string.IsNullOrEmpty(vi.ProductVariant.Name) ? vi.ProductVariant.Name : string.Empty,
                         Quantity = vi.Quantity,

@@ -75,7 +75,7 @@ public class InventoryMovementService : IInventoryMovementService
         return ApiResponse<bool>.Success(true);
     }
 
-    public async Task AdjustInventoryAsync(InventoryMovement movement)
+    public async Task AdjustInventoryAsync(InventoryMovement movement, bool moveReserved = true)
     {
         var inventory = await _unitOfWork.Inventories.GetByWarehouseAndProductVariant(movement.WarehouseId, movement.ProductVariantId);
         if (inventory == null)
@@ -88,7 +88,8 @@ public class InventoryMovementService : IInventoryMovementService
 
         inventory.Quantity += movement.Quantity;
         inventory.UpdatedAt = DateTime.UtcNow;
-        inventory.ReservedQuantity += movement.Quantity;
+        if (moveReserved)
+            inventory.ReservedQuantity += movement.Quantity;
         await _unitOfWork.InventoryMovements.AddAsync(movement);
         await _unitOfWork.Inventories.UpdateAsync(inventory);
     }

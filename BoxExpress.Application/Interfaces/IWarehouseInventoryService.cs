@@ -10,4 +10,5 @@ public interface IWarehouseInventoryService
     Task<ApiResponse<List<ProductVariantAutocompleteDto>>> GetVariantsAutocompleteAsync(string query, int WarehouseOriginId);
     Task<ApiResponse<IEnumerable<ProductDto>>> GetWarehouseProductSummaryAsync(WarehouseInventoryFilterDto filter);
     Task<ApiResponse<WarehouseInventoryDto?>> GetByIdAsync(int id);
+    Task<ApiResponse<WarehouseInventoryDto?>> UpdateAsync(int id, UpdateWarehouseInventoryDto dto);
 }

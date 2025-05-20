@@ -8,6 +8,6 @@ public interface IInventoryMovementService
 {
     Task<ApiResponse<bool>> ProcessDeliveryAsync(Order order);
     Task<ApiResponse<bool>> RevertDeliveryAsync(Order order);
-    Task AdjustInventoryAsync(InventoryMovement movement);
+     Task AdjustInventoryAsync(InventoryMovement movement, bool moveReserved = true);
     Task<ApiResponse<IEnumerable<InventoryMovementDto>>> GetAllAsync(InventoryMovementFilterDto filter);
 }
