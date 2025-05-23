@@ -36,6 +36,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
         var (products, totalCount) = await _repository.GetFilteredGroupedByProductAsync(_mapper.Map<WarehouseInventoryFilter>(filter));
         var variants = await _repository.GetByWarehouseAndProductsId(filter.WarehouseId, products.Select(p => p.Id).ToList());
 
+        //todo mirar si se puede pasar a automapper 
         var groupedProducts = products.Select(product => new ProductDto
         {
             Name = product.Name,
@@ -54,7 +55,8 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                     Id = wi.ProductVariant.Id,
                     WarehouseInventoryId = wi.Id,
                     Price = wi.ProductVariant.Price,
-                    Quantity = wi.Quantity
+                    Quantity = wi.Quantity,
+                    PendingReturnQuantity = wi.PendingReturnQuantity,
                 }).ToList()
         }).ToList();
 

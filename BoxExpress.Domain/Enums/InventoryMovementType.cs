@@ -1,4 +1,5 @@
 namespace BoxExpress.Domain.Enums;
+
 public enum InventoryMovementType
 {
     OrderDelivered = 1,
@@ -9,6 +10,7 @@ public enum InventoryMovementType
     InitialLoad = 6,
     OrderDeliveryReverted = 7,
     InitialStock = 8,
+    LostOnCancellation = 9
 }
 
 

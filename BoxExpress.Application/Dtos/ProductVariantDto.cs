@@ -13,6 +13,5 @@ public class ProductVariantDto
     public int? WarehouseInventoryId { get; set; }
     public List<InventoryMovementDto> InventoryMovements { get; set; } = new();
     public ProductDto? Product { get; set; }
-
-
+    public int PendingReturnQuantity { get; set; }
 }

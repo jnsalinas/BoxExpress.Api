@@ -84,7 +84,8 @@ public class AutoMapperProfile : Profile
                         Sku = vi.ProductVariant.Sku,
                         Price = vi.ProductVariant.Price,
                         ReservedQuantity = vi.ReservedQuantity,
-                        AvailableQuantity = vi.AvailableQuantity
+                        AvailableQuantity = vi.AvailableQuantity,
+                        PendingReturnQuantity = vi.PendingReturnQuantity
                     }).ToList()
                 }).ToList()
             ));

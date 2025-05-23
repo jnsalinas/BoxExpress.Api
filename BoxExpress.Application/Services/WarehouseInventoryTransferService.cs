@@ -18,6 +18,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
     private readonly IInventoryHoldRepository _inventoryHoldRepository;
     private readonly IWarehouseInventoryTransferRepository _warehouseInventoryTransferRepository;
     private readonly IInventoryMovementService _inventoryMovementService;
+    private readonly IInventoryHoldService _inventoryHoldService;
 
     public WarehouseInventoryTransferService(
         IWarehouseInventoryRepository warehouseInventoryRepository,
@@ -26,12 +27,14 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
         IMapper mapper,
         IUnitOfWork unitOfWork,
         IInventoryMovementService inventoryMovementService,
-        IWarehouseInventoryTransferRepository warehouseInventoryTransferRepository)
+        IWarehouseInventoryTransferRepository warehouseInventoryTransferRepository,
+        IInventoryHoldService inventoryHoldService)
     {
         _warehouseInventoryTransferRepository = warehouseInventoryTransferRepository;
         _warehouseInventoryRepository = warehouseInventoryRepository;
         _inventoryHoldRepository = inventoryHoldRepository;
         _inventoryMovementService = inventoryMovementService;
+        _inventoryHoldService = inventoryHoldService;
         _repository = repository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -191,34 +194,6 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
         return ApiResponse<bool>.Success(true, null, "Transferencia rechazada correctamente.");
     }
 
-    public async Task<ApiResponse<bool>> ReserveInventoryAsync(int warehouseId, List<OrderItem> orderItems)
-    {
-        var warehouseInventories = await _warehouseInventoryRepository
-          .GetByWarehouseAndProductVariants(warehouseId, orderItems.Select(x => x.ProductVariantId).ToList());
-
-        if (warehouseInventories == null || !warehouseInventories.Any())
-            return ApiResponse<bool>.Fail("No se encontró inventario en la bodega.");
-
-        await _unitOfWork.BeginTransactionAsync();
-        foreach (var item in orderItems)
-        {
-            var holdResult = await CreateInventoryHoldAndReserveAsync(
-                    warehouseInventories,
-                    item.ProductVariantId,
-                    item.Quantity,
-                    InventoryHoldType.Order,
-                    item.Id
-                );
-
-            if (!holdResult.IsSuccess)
-                return ApiResponse<bool>.Fail(holdResult.Message ?? "Error al reservar el inventario");
-        }
-
-        await _unitOfWork.SaveChangesAsync();
-        await _unitOfWork.CommitAsync();
-        return ApiResponse<bool>.Success(true);
-    }
-
     public async Task<ApiResponse<bool>> CreateTransferAsync(WarehouseInventoryTransferDto warehouseInventoryTransferDto)
     {
         var newTransfer = _mapper.Map<WarehouseInventoryTransfer>(warehouseInventoryTransferDto);
@@ -241,11 +216,11 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
         //crear el hold de los productos
         foreach (var item in newTransfer.TransferDetails)
         {
-            var holdResult = await CreateInventoryHoldAndReserveAsync(
-                    warehouseInventories,
-                    item.ProductVariantId,
+            var holdResult = await _inventoryHoldService.CreateInventoryHoldAsync(
+                    warehouseInventories.First(x => x.ProductVariantId == item.ProductVariantId),
                     item.Quantity,
                     InventoryHoldType.Transfer,
+                    InventoryHoldStatus.Active,
                     null,
                     newTransfer
             );
@@ -255,39 +230,5 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
 
         await _unitOfWork.CommitAsync();
         return ApiResponse<bool>.Success(newTransfer.Id > 0, null, "Inventario creado exitosamente");
-    }
-
-    private async Task<ApiResponse<bool>> CreateInventoryHoldAndReserveAsync(
-    IEnumerable<WarehouseInventory> warehouseInventories,
-    int productVariantId,
-    int quantity,
-    InventoryHoldType holdType,
-    int? orderItemId = null,
-    WarehouseInventoryTransfer? transfer = null)
-    {
-        var inventory = warehouseInventories.FirstOrDefault(x => x.ProductVariantId == productVariantId);
-        if (inventory == null || inventory.AvailableQuantity < quantity)
-        {
-            var variant = inventory?.ProductVariant?.Name ?? productVariantId.ToString();
-            return ApiResponse<bool>.Fail($"Inventario insuficiente para el producto variante {variant}.");
-        }
-
-        inventory.ReservedQuantity += quantity;
-        await _unitOfWork.Inventories.UpdateAsync(inventory);
-
-        var hold = new InventoryHold
-        {
-            WarehouseInventoryId = inventory.Id,
-            Quantity = quantity,
-            CreatedAt = DateTime.UtcNow,
-            OrderItemId = orderItemId,
-            TransferId = transfer != null ? transfer.Id : null,
-            Type = holdType,
-            Status = InventoryHoldStatus.Active,
-            CreatorId = 2 // TODO: tomar del token
-        };
-
-        await _unitOfWork.InventoryHolds.AddAsync(hold);
-        return ApiResponse<bool>.Success(true);
     }
 }

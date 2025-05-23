@@ -24,6 +24,8 @@ public class OrderService : IOrderService
     private readonly IOrderItemRepository _orderItemRepository;
     private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IWarehouseInventoryTransferService _warehouseInventoryTransferService;
+    private readonly IInventoryHoldService _inventoryHoldService;
+
 
     public OrderService(
         IOrderRepository repository,
@@ -37,8 +39,8 @@ public class OrderService : IOrderService
         IWalletTransactionService walletTransactionService,
         IInventoryMovementService inventoryMovementService,
         IOrderItemRepository orderItemRepository,
-        IWarehouseInventoryRepository warehouseInventoryRepository,
-        IWarehouseInventoryTransferService warehouseInventoryTransferService
+        IWarehouseInventoryTransferService warehouseInventoryTransferService,
+        IInventoryHoldService inventoryHoldService
         )
     {
         _warehouseInventoryTransferService = warehouseInventoryTransferService;
@@ -46,6 +48,7 @@ public class OrderService : IOrderService
         _walletTransactionRepository = walletTransactionRepository;
         _orderStatusHistoryRepository = orderStatusHistoryRepository;
         _transactionTypeRepository = transactionTypeRepository;
+        _inventoryHoldService = inventoryHoldService;
         _inventoryMovementService = inventoryMovementService;
         _walletTransactionService = walletTransactionService;
         _orderCategoryRepository = orderCategoryRepository;
@@ -77,10 +80,6 @@ public class OrderService : IOrderService
         }
         else
         {
-            var ReserveInventory = await _warehouseInventoryTransferService.ReserveInventoryAsync(warehouseId, order.OrderItems);
-            if (!ReserveInventory.IsSuccess)
-                return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
-
             newCategoryId = (await _orderCategoryRepository.GetByNameAsync(OrderCategoryConstants.Express))?.Id;
             order.WarehouseId = warehouseId;
         }
@@ -131,6 +130,22 @@ public class OrderService : IOrderService
                     await _inventoryMovementService.RevertDeliveryAsync(order);
                     await _walletTransactionService.RegisterStatusCorrectionAsync(order, statusId);
                 }
+
+                if (orderStatus.Name.Equals(OrderStatusConstants.Scheduled))
+                {
+                    var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
+                    if (!ReserveInventory.IsSuccess)
+                        return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
+                }
+
+                //si la orden es cancelada y tiene bodega asignada, se reserva el hold en PendingReturn el inventario
+                if (orderStatus.Name.Equals(OrderStatusConstants.Cancelled) && order.WarehouseId.HasValue)
+                {
+                    var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.PendingReturn);
+                    if (!ReserveInventory.IsSuccess)
+                        return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
+                }
+
                 break;
         }
 

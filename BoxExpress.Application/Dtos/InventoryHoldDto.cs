@@ -11,7 +11,7 @@ namespace BoxExpress.Application.Dtos
     public class InventoryHoldDto : BaseDto
     {
         public int WarehouseInventoryId { get; set; }
-        // public WarehouseInventory WarehouseInventory { get; set; } = null!;
+        public WarehouseInventoryDto WarehouseInventory { get; set; } = null!;
         public int Quantity { get; set; }
         public int? OrderItemId { get; set; }
         public OrderItemDto? OrderItem { get; set; }

@@ -23,4 +23,18 @@ public class InventoryHoldsController : ControllerBase
         var result = await _inventoryHoldservice.GetAllAsync(filter);
         return Ok(result);
     }
+
+    [HttpPost("acceptreturn")]
+    public async Task<IActionResult> AcceptReturn([FromBody] InventoryHoldResolutionDto dto)
+    {
+        var result = await _inventoryHoldservice.AcceptReturnAsync(dto);
+        return Ok(result);
+    }
+
+    [HttpPost("rejectreturn")]
+    public async Task<IActionResult> RejectReturn([FromBody] InventoryHoldResolutionDto dto)
+    {
+        var result = await _inventoryHoldservice.RejectReturnAsync(dto);
+        return Ok(result);
+    }
 }

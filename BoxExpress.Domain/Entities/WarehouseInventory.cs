@@ -8,5 +8,6 @@ public class WarehouseInventory : BaseEntity
     public ProductVariant ProductVariant { get; set; } = null!;
     public int Quantity { get; set; }
     public int ReservedQuantity { get; set; }
-    public int AvailableQuantity => Quantity - ReservedQuantity;
+    public int PendingReturnQuantity { get; set; }
+    public int AvailableQuantity => Quantity - ReservedQuantity - PendingReturnQuantity;
 }
