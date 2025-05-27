@@ -10,5 +10,6 @@ public class InventoryHoldFilter : BaseFilter
     public List<InventoryHoldStatus>? Statuses { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    public int? OrderId { get; set; }
 
 }

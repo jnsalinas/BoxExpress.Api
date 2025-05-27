@@ -5,6 +5,7 @@ namespace BoxExpress.Application.Dtos;
 
 public class InventoryHoldFilterDto : BaseFilterDto
 {
+    public int? OrderId { get; set; }
     public int? ProductVariantId { get; set; }
     public int? WarehouseInventoryId { get; set; }
     public InventoryHoldStatus? Status { get; set; }

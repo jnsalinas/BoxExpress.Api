@@ -41,19 +41,27 @@ public class InventoryMovementService : IInventoryMovementService
     {
         await _unitOfWork.BeginTransactionAsync();
 
-        await ApplyOrderInventoryAsync(
-            order,
-            fromHoldStatus: InventoryHoldStatus.Active,
-            toHoldStatus: InventoryHoldStatus.Consumed,
-            movementType: InventoryMovementType.OrderDelivered,
-            quantityMultiplier: -1,
-            movementNote: "Orden entregada",
-            movementReferencePrefix: "Delivered"
-        );
+        try
+        {
+            await ApplyOrderInventoryAsync(
+                order,
+                fromHoldStatus: InventoryHoldStatus.Active,
+                toHoldStatus: InventoryHoldStatus.Consumed,
+                movementType: InventoryMovementType.OrderDelivered,
+                quantityMultiplier: -1,
+                movementNote: "Orden entregada",
+                movementReferencePrefix: "Delivered"
+            );
 
-        await _unitOfWork.SaveChangesAsync();
-        await _unitOfWork.CommitAsync();
-        return ApiResponse<bool>.Success(true);
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
+            return ApiResponse<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollbackAsync();
+            return ApiResponse<bool>.Fail(ex.Message);
+        }
     }
 
     public async Task<ApiResponse<bool>> RevertDeliveryAsync(Order order)
@@ -115,7 +123,7 @@ public class InventoryMovementService : IInventoryMovementService
         {
             var hold = inventoryHolds.FirstOrDefault(h => h.OrderItemId == orderItem.Id);
             if (hold == null)
-                throw new Exception($"No se encontró un hold con estado {fromHoldStatus} para el OrderItem {orderItem.Id}");
+                throw new Exception($"No se encontró un bloqueo de inventario con estado {fromHoldStatus} para el OrderItem {orderItem.Id}");
 
             hold.Status = toHoldStatus;
             hold.UpdatedAt = now;

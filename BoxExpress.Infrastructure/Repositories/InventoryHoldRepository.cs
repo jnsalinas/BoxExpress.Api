@@ -23,7 +23,7 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
             .Include(x => x.OrderItem)
             .Where(w => w.Id == id)
             .FirstOrDefaultAsync();
-}
+    }
 
     public async Task<List<InventoryHold>> GetByWarehouseInventoryAndStatus(int warehouseinvetoryId, InventoryHoldStatus? status)
     {
@@ -68,6 +68,11 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
         if (filter.StartDate.HasValue)
         {
             query = query.Where(w => w.ResolvedAt >= filter.StartDate.Value);
+        }
+
+        if (filter.OrderId.HasValue)
+        {
+            query = query.Where(w => w.OrderItem != null && w.OrderItem.OrderId == filter.OrderId.Value);
         }
 
         var total = query.Count();

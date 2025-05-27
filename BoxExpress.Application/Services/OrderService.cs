@@ -116,6 +116,18 @@ public class OrderService : IOrderService
         OrderStatus? orderStatus = await _orderStatusRepository.GetByIdAsync(statusId);
         if (orderStatus == null)
             return ApiResponse<OrderDto>.Fail("Status not found");
+
+        var pendingHolds = await _inventoryHoldService.GetAllAsync(new InventoryHoldFilterDto
+        {
+            OrderId = orderId,
+            Status = Domain.Enums.InventoryHoldStatus.PendingReturn
+        });
+
+        if (pendingHolds.Data != null && pendingHolds.Data.Any())
+        {
+            return ApiResponse<OrderDto>.Fail("El pedido tiene retenciones de inventario pendientes, resuélvalas antes de cambiar el estado.");
+        }
+
         #endregion
 
         switch (orderStatus.Name)
@@ -139,7 +151,7 @@ public class OrderService : IOrderService
                 }
 
                 //si la orden es cancelada y tiene bodega asignada, se reserva el hold en PendingReturn el inventario
-                if (orderStatus.Name.Equals(OrderStatusConstants.Cancelled) && order.WarehouseId.HasValue)
+                if (orderStatus.Name.Equals(OrderStatusConstants.Cancelled) || orderStatus.Name.Equals(OrderStatusConstants.CancelledAlt) && order.WarehouseId.HasValue)
                 {
                     var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.PendingReturn);
                     if (!ReserveInventory.IsSuccess)
