@@ -12,10 +12,12 @@ namespace BoxExpress.Api.Controllers;
 public class StoresController : ControllerBase
 {
     private readonly IStoreService _storeService;
+    private readonly IExcelExporter<StoreDto> _excelExporter;
 
-    public StoresController(IStoreService storeService)
+    public StoresController(IStoreService storeService, IExcelExporter<StoreDto> excelStatusExporter)
     {
         _storeService = storeService;
+        _excelExporter = excelStatusExporter;
     }
 
 
@@ -26,7 +28,7 @@ public class StoresController : ControllerBase
         if (result.Equals(null)) return NotFound();
         return Ok(result);
     }
-    
+
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] StoreFilterDto filter)
     {
@@ -40,5 +42,23 @@ public class StoresController : ControllerBase
     {
         var result = await _storeService.AddStoreAsync(createStoreDto);
         return Ok(result);
+    }
+
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportToExcel([FromBody] StoreFilterDto filter)
+    {
+        filter.IsAll = true;
+        var result = await _storeService.GetAllAsync(filter);
+        if (result.Data == null || !result.Data.Any())
+        {
+            return NotFound("No data found to export.");
+        }
+
+        var bytes = _excelExporter.ExportToExcel(result.Data.ToList());
+        return File(
+            bytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"Orders_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
+        );
     }
 }

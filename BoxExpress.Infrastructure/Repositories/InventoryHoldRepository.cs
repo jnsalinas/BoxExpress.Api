@@ -38,6 +38,8 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
         var query = _context.InventoryHolds
             .Include(w => w.Creator)
             .Include(w => w.OrderItem)
+                .ThenInclude(w => w.Order)
+                    .ThenInclude(w => w.Client)
             .Include(w => w.WarehouseInventory)
                 .ThenInclude(wi => wi.ProductVariant)
                     .ThenInclude(pv => pv.Product)

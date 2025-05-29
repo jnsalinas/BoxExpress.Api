@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<IProductVariantService, ProductVariantService>();
         services.AddScoped<IExcelExporter<WarehouseDto>, WarehouseExcelExporter>();
         services.AddScoped<IExcelExporter<WalletTransactionDto>, WalletTransactionsExporter>();
+        services.AddScoped<IExcelExporter<StoreDto>, StoreExcelExporter>();
         services.AddScoped<IExcelExporter<OrderDto>, OrderExporter>();
         services.AddScoped<IExcelExporter<WarehouseInventoryTransferDto>, WarehouseInventoryTransferExporter>();
         services.AddScoped<IStoreService, StoreService>();

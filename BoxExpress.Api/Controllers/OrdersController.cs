@@ -27,6 +27,14 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
+
+    [HttpPost("summary")]
+    public async Task<IActionResult> Summary([FromBody] OrderFilterDto filter)
+    {
+        var result = await _orderService.GetSummaryAsync(filter);
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {

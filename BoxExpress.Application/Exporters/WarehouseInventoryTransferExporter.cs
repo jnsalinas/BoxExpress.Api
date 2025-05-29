@@ -25,18 +25,18 @@ public class WarehouseInventoryTransferExporter : IExcelExporter<WarehouseInvent
         worksheet.Cell(1, row++).Value = "Productos";
         worksheet.Cell(1, row++).Value = "Fecha de actualizacion";
 
-        int rowAux;
+        int columnAux;
         for (int i = 0; i < data?.Count; i++)
         {
-            rowAux = 1;
-            worksheet.Cell(i + 2, rowAux++).Value = data[i].Id;
-            worksheet.Cell(i + 2, rowAux++).Value = data[i].FromWarehouse;
-            worksheet.Cell(i + 2, rowAux++).Value = data[i].ToWarehouse;
-            worksheet.Cell(i + 2, rowAux++).Value = data[i].Creator;
-            worksheet.Cell(i + 2, rowAux++).Value = TimeZoneInfo.ConvertTimeFromUtc(data[i].CreatedAt.Value.ToUniversalTime(), colombiaTimeZone);
-            worksheet.Cell(i + 2, rowAux++).Value = data[i].StatusName;
-            worksheet.Cell(i + 2, rowAux++).Value = data[i].AcceptedBy;
-            worksheet.Cell(i + 2, rowAux++).Value = data[i].RejectionReason;
+            columnAux = 1;
+            worksheet.Cell(i + 2, columnAux++).Value = data[i].Id;
+            worksheet.Cell(i + 2, columnAux++).Value = data[i].FromWarehouse;
+            worksheet.Cell(i + 2, columnAux++).Value = data[i].ToWarehouse;
+            worksheet.Cell(i + 2, columnAux++).Value = data[i].Creator;
+            worksheet.Cell(i + 2, columnAux++).Value = TimeZoneInfo.ConvertTimeFromUtc(data[i].CreatedAt.Value.ToUniversalTime(), colombiaTimeZone);
+            worksheet.Cell(i + 2, columnAux++).Value = data[i].StatusName;
+            worksheet.Cell(i + 2, columnAux++).Value = data[i].AcceptedBy;
+            worksheet.Cell(i + 2, columnAux++).Value = data[i].RejectionReason;
 
             string contains = string.Empty;
             if (data[i].TransferDetails?.Any() ?? false)
@@ -54,13 +54,13 @@ public class WarehouseInventoryTransferExporter : IExcelExporter<WarehouseInvent
                 }
 
             }
-            worksheet.Cell(i + 2, rowAux++).Value = contains;
+            worksheet.Cell(i + 2, columnAux++).Value = contains;
             string updateDatedAt = string.Empty;
             if (data != null && data[i].UpdatedAt != null)
             {
                 updateDatedAt = TimeZoneInfo.ConvertTimeFromUtc(data[i].UpdatedAt.Value.ToUniversalTime(), colombiaTimeZone).ToString();
             }
-            worksheet.Cell(i + 2, rowAux++).Value = updateDatedAt;
+            worksheet.Cell(i + 2, columnAux++).Value = updateDatedAt;
         }
 
         using var stream = new MemoryStream();

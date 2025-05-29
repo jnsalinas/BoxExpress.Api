@@ -14,4 +14,5 @@ public interface IOrderService
     Task<ApiResponse<List<OrderStatusHistoryDto>>> GetStatusHistoryAsync(int orderId);
     Task<ApiResponse<List<OrderCategoryHistoryDto>>> GetCategoryHistoryAsync(int orderId);
     Task<ApiResponse<List<OrderItemDto>>> GetProductsAsync(int orderId);
+    Task<ApiResponse<IEnumerable<OrderSummaryDto>>> GetSummaryAsync(OrderFilterDto filter);
 }

@@ -21,6 +21,7 @@ namespace BoxExpress.Application.Dtos
         public InventoryHoldType Type { get; set; }
         public InventoryHoldStatus Status { get; set; }
         public int CreatorId { get; set; }
+        public string? ClientFullName { get; set; }
         // public User Creator { get; set; } = null!;
     }
 }

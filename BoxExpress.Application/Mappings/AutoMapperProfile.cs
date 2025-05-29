@@ -109,6 +109,8 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name))
             .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems));
 
+        CreateMap<OrderSummary, OrderSummaryDto>();
+
         CreateMap<ProductVariant, ProductVariantDto>();
 
         CreateMap<ProductVariant, ProductVariantAutocompleteDto>()
@@ -163,7 +165,8 @@ public class AutoMapperProfile : Profile
         CreateMap<InventoryMovement, InventoryMovementDto>();
         CreateMap<WarehouseInventory, WarehouseInventoryDto>();
         CreateMap<Product, ProductDto>();
-        CreateMap<InventoryHold, InventoryHoldDto>();
+        CreateMap<InventoryHold, InventoryHoldDto>()
+            .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.OrderItem != null ? src.OrderItem.Order.Client.FullName : string.Empty));
 
         // Filtros
         CreateMap<WarehouseFilterDto, WarehouseFilter>();

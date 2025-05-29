@@ -64,6 +64,12 @@ public class OrderService : IOrderService
         return ApiResponse<IEnumerable<OrderDto>>.Success(_mapper.Map<List<OrderDto>>(orders), new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }
 
+    public async Task<ApiResponse<IEnumerable<OrderSummaryDto>>> GetSummaryAsync(OrderFilterDto filter)
+    {
+        var summary = await _repository.GetSummaryAsync(_mapper.Map<OrderFilter>(filter));
+        return ApiResponse<IEnumerable<OrderSummaryDto>>.Success(_mapper.Map<List<OrderSummaryDto>>(summary));
+    }
+
     public async Task<ApiResponse<OrderDto?>> GetByIdAsync(int id) =>
         ApiResponse<OrderDto?>.Success(_mapper.Map<OrderDto>(await _repository.GetByIdWithDetailsAsync(id)));
 

@@ -15,7 +15,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         _context = context;
     }
 
-    public async Task<(List<Order> Transactions, int TotalCount)> GetFilteredAsync(OrderFilter filter)
+    public async Task<(List<Order> Orders, int TotalCount)> GetFilteredAsync(OrderFilter filter)
     {
         var query = _context.Orders
             .Include(w => w.City)
@@ -27,20 +27,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
                 .ThenInclude(w => w.Product)
             .AsQueryable();
 
-        if (filter.CityId.HasValue && filter.CityId > 0)
-            query = query.Where(w => w.CityId.Equals(filter.CityId));
-        if (filter.CountryId.HasValue && filter.CountryId > 0)
-            query = query.Where(w => w.CountryId.Equals(filter.CountryId));
-        if (filter.CategoryId.HasValue && filter.CategoryId > 0)
-            query = query.Where(w => w.OrderCategoryId.Equals(filter.CategoryId));
-        if (filter.EndDate.HasValue)
-            query = query.Where(w => w.CreatedAt <= filter.EndDate.Value);
-        if (filter.StartDate.HasValue)
-            query = query.Where(w => w.CreatedAt >= filter.StartDate.Value);
-        if (filter.StoreId.HasValue && filter.StoreId > 0)
-            query = query.Where(w => w.StoreId.Equals(filter.StoreId));
-        if (filter.OrderId.HasValue && filter.OrderId > 0)
-            query = query.Where(w => w.Id.Equals(filter.OrderId));
+        query = GetQueryFiltered(filter, query);
 
         var totalCount = await query.CountAsync();
 
@@ -65,6 +52,25 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         return (await orderQuery.ToListAsync(), totalCount);
     }
 
+    private static IQueryable<Order> GetQueryFiltered(OrderFilter filter, IQueryable<Order> query)
+    {
+        if (filter.CityId.HasValue && filter.CityId > 0)
+            query = query.Where(w => w.CityId.Equals(filter.CityId));
+        if (filter.CountryId.HasValue && filter.CountryId > 0)
+            query = query.Where(w => w.CountryId.Equals(filter.CountryId));
+        if (filter.CategoryId.HasValue && filter.CategoryId > 0)
+            query = query.Where(w => w.OrderCategoryId.Equals(filter.CategoryId));
+        if (filter.EndDate.HasValue)
+            query = query.Where(w => w.CreatedAt <= filter.EndDate.Value);
+        if (filter.StartDate.HasValue)
+            query = query.Where(w => w.CreatedAt >= filter.StartDate.Value);
+        if (filter.StoreId.HasValue && filter.StoreId > 0)
+            query = query.Where(w => w.StoreId.Equals(filter.StoreId));
+        if (filter.OrderId.HasValue && filter.OrderId > 0)
+            query = query.Where(w => w.Id.Equals(filter.OrderId));
+        return query;
+    }
+
     public async Task<Order?> GetByIdWithDetailsAsync(int id)
     {
         return await _context.Set<Order>()
@@ -80,5 +86,24 @@ public class OrderRepository : Repository<Order>, IOrderRepository
                 .ThenInclude(w => w.Wallet)
             .Include(w => w.Currency)
             .FirstOrDefaultAsync(w => w.Id.Equals(id));
+    }
+
+    public async Task<List<OrderSummary>> GetSummaryAsync(OrderFilter filter)
+    {
+        var query = _context.Orders
+           .Include(w => w.Status)
+           .AsQueryable();
+    
+        query = GetQueryFiltered(filter, query);
+    
+        return await query
+        .GroupBy(o => new { o.OrderStatusId, o.Status.Name })
+        .Select(g => new OrderSummary
+        {
+            StatusId = g.Key.OrderStatusId,
+            StatusName = g.Key.Name,
+            Count = g.Count()
+        })
+        .ToListAsync();
     }
 }
