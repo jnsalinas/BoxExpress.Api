@@ -40,7 +40,8 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         .Include(x => x.Warehouse)
         .Include(x => x.TimeSlot)
         .Include(x => x.Currency)
-        .OrderByDescending(x => x.UpdatedAt).AsQueryable();
+        .OrderByDescending(x => x.CreatedAt)
+        .ThenByDescending(x => x.UpdatedAt).AsQueryable();
 
         if (!filter.IsAll)
         {

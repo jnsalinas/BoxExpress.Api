@@ -58,7 +58,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                     Quantity = wi.Quantity,
                     PendingReturnQuantity = wi.PendingReturnQuantity,
                 }).ToList()
-        }).ToList();
+        }).OrderBy(x => x.Name).ToList();
 
         return ApiResponse<IEnumerable<ProductDto>>.Success(groupedProducts, new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }
