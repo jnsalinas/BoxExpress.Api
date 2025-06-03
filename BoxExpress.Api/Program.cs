@@ -1,4 +1,3 @@
-
 using BoxExpress.Domain.Interfaces;
 using BoxExpress.Infrastructure.Repositories;
 using BoxExpress.Application.Services;
@@ -17,6 +16,7 @@ using BoxExpress.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -27,27 +27,28 @@ builder.Services.AddCors(options =>
     });
 });
 
+// DbContext
 builder.Services.AddDbContext<BoxExpressDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Agrega soporte para controladores
+// Controllers
 builder.Services.AddControllers();
 
-// Agrega soporte para validar jwt
+// JWT Auth
 builder.Services.AddJwtAuthentication(builder.Configuration);
-
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+
+// Application & Infrastructure
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration.GetConnectionString("DefaultConnection")!);
 
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-
-app.UseCors("AllowAll");
-
+// Swagger (solo para dev/prod)
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
@@ -57,20 +58,25 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     });
 }
 
+// Middleware orden correcto
+app.UseCors("AllowAll");
+
 app.UseHttpsRedirection();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Mapea los controladores
 app.MapControllers();
 
-app.Run();
-
+// Redirigir raíz a Swagger
 app.MapGet("/", context =>
 {
     context.Response.Redirect("/swagger");
     return Task.CompletedTask;
 });
+
+app.Run();
+
 
 // 💡 Principios básicos:
 // Domain: solo conoce entidades y lógica de negocio pura.
