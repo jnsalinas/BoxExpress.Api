@@ -21,8 +21,11 @@ namespace BoxExpress.Api.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             var result = await _authService.AuthenticateAsync(loginDto);
-           
+
             return Ok(result);
         }
+
+        [HttpGet]
+        public IActionResult Test() => Ok(new { message = "Hola desde Render" });
     }
 }
