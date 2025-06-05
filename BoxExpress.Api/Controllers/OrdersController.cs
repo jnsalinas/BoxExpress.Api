@@ -1,7 +1,9 @@
 // BoxExpress.Api/Controllers/OrdersController.cs
 using BoxExpress.Application.Dtos;
 using BoxExpress.Application.Interfaces;
+using BoxExpress.Application.Services;
 using BoxExpress.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BoxExpress.Api.Controllers;
@@ -99,5 +101,13 @@ public class OrdersController : ControllerBase
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             $"Orders_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
         );
+    }
+
+    [Authorize(Roles = "Administrador")]
+    [HttpPost("create")]
+    public async Task<IActionResult> Create([FromBody] CreateOrderDto createOrderDto)
+    {
+        var result = await _orderService.AddOrderAsync(createOrderDto);
+        return Ok(result);
     }
 }

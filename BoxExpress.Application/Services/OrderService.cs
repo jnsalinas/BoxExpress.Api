@@ -1,3 +1,4 @@
+using System.Net.WebSockets;
 using AutoMapper;
 using BoxExpress.Application.Dtos;
 using BoxExpress.Application.Dtos.Common;
@@ -6,6 +7,7 @@ using BoxExpress.Domain.Constants;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Domain.Filters;
 using BoxExpress.Domain.Interfaces;
+using BoxExpress.Utilities;
 
 namespace BoxExpress.Application.Services;
 
@@ -25,6 +27,7 @@ public class OrderService : IOrderService
     private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IWarehouseInventoryTransferService _warehouseInventoryTransferService;
     private readonly IInventoryHoldService _inventoryHoldService;
+    private readonly IUnitOfWork _unitOfWork;
 
 
     public OrderService(
@@ -40,7 +43,8 @@ public class OrderService : IOrderService
         IInventoryMovementService inventoryMovementService,
         IOrderItemRepository orderItemRepository,
         IWarehouseInventoryTransferService warehouseInventoryTransferService,
-        IInventoryHoldService inventoryHoldService
+        IInventoryHoldService inventoryHoldService,
+        IUnitOfWork unitOfWork
         )
     {
         _warehouseInventoryTransferService = warehouseInventoryTransferService;
@@ -56,6 +60,7 @@ public class OrderService : IOrderService
         _orderItemRepository = orderItemRepository;
         _repository = repository;
         _mapper = mapper;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter)
@@ -216,5 +221,68 @@ public class OrderService : IOrderService
     {
         var listOrederItems = _mapper.Map<List<OrderItemDto>>(await _orderItemRepository.GetByOrderIdAsync(orderId));
         return ApiResponse<List<OrderItemDto>>.Success(listOrederItems);
+    }
+
+    public async Task<ApiResponse<bool>> AddOrderAsync(CreateOrderDto createOrderDto)
+    {
+        try
+        {
+            var createdAt = DateTime.UtcNow;
+            var order = _mapper.Map<Order>(createOrderDto);
+            order.CreatedAt = createdAt;
+            await _unitOfWork.Orders.AddAsync(order);
+
+            //crear items de la orden
+            foreach (var orderItemDto in createOrderDto.OrderItems)
+            {
+                var oderItem = _mapper.Map<OrderItem>(orderItemDto);
+                oderItem.OrderId = order.Id;
+                oderItem.CreatedAt = createdAt;
+                await _unitOfWork.OrderItems.AddAsync(oderItem);
+            }
+
+            //crear status history order
+            var OrderStatusHistory = new OrderStatusHistory
+            {
+                CreatedAt = createdAt,
+                OrderId = order.Id,
+                CreatorId = createOrderDto.CreatorId,
+                NewStatusId = createOrderDto.OrderStatusId,
+            };
+
+            await _unitOfWork.OrderStatusHistories.AddAsync(OrderStatusHistory);
+
+            //crear category history order
+            var categoryOrderHistory = new OrderCategoryHistory
+            {
+                CreatedAt = createdAt,
+                OrderId= order.Id,
+                CreatorId= createOrderDto.CreatorId,
+                NewCategoryId = createOrderDto.CategoryId,
+            };
+
+            await _unitOfWork.OrderCategoryHistories.AddAsync(categoryOrderHistory);
+
+            // crear walletTransaction
+            var wallet = new WalletTransaction
+            {
+                CreatedAt = createdAt,
+                Amount = order.TotalAmount,
+                TransactionTypeId = 2, //Todo llegara por el request o ser siempre 2  
+                WalletId = createOrderDto.WalletId,
+                CreatorId = createOrderDto.CreatorId,
+                OrderStatusId = order.OrderStatusId,
+            };
+
+            await _unitOfWork.WalletTransactions.AddAsync(wallet);
+
+            return ApiResponse<bool>.Success(true, null, "Orden creada exitosamente");
+
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollbackAsync();
+            return ApiResponse<bool>.Fail("Error al crear Orden: " + ex.Message);
+        }
     }
 }

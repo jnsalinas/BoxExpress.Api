@@ -16,6 +16,11 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users { get; }
     public IInventoryMovementRepository InventoryMovements { get; }
     public IInventoryHoldRepository InventoryHolds { get; }
+    public IOrderRepository Orders { get; }
+    public IOrderItemRepository OrderItems { get; }
+    public IOrderCategoryHistoryRepository OrderCategoryHistories { get; }
+    public IOrderStatusHistoryRepository OrderStatusHistories { get; }
+    public IWalletTransactionRepository WalletTransactions { get; }
 
     public UnitOfWork(
         BoxExpressDbContext context,
@@ -27,7 +32,12 @@ public class UnitOfWork : IUnitOfWork
         IWalletRepository wallets,
         IStoreRepository stores,
         IInventoryHoldRepository holds,
-        IUserRepository users)
+        IUserRepository users,
+        IOrderRepository orders,
+        IOrderItemRepository orderItems,
+        IOrderCategoryHistoryRepository orderCategoryHistories,
+        IOrderStatusHistoryRepository orderStatusHistories,
+        IWalletTransactionRepository walletTransactions)
     {
         _context = context;
         Products = products;
@@ -39,6 +49,11 @@ public class UnitOfWork : IUnitOfWork
         Wallets = wallets;
         Stores = stores;
         Users = users;
+        Orders = orders;
+        OrderItems = orderItems;
+        OrderCategoryHistories = orderCategoryHistories;
+        OrderStatusHistories = orderStatusHistories;
+        WalletTransactions = walletTransactions;
     }
 
     public async Task BeginTransactionAsync()
