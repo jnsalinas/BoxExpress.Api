@@ -17,7 +17,7 @@ namespace BoxExpress.Application.Dtos
         public int CategoryId { get; set; }
         public decimal? DeliveryFee { get; set; }
         public int CurrencyId { get; set; }
-        public int? WarehouseId { get; set; }
+        public int WarehouseId { get; set; }
         public int ClientId { get; set; }
         public int ClientAddressId { get; set; }
         public int CityId { get; set; }
