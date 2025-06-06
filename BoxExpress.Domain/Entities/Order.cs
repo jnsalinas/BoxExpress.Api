@@ -46,4 +46,6 @@ public class Order : BaseEntity
     public DateTime? ScheduledDate { get; set; } // Fecha elegida para entrega
     public string? Notes { get; set; }
     public List<OrderItem> OrderItems { get; set; } = new();
+
+    public string? ExternalId { get; set; }
 }
