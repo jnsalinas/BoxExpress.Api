@@ -5,7 +5,7 @@ namespace BoxExpress.Domain.Entities;
 public class Order : BaseEntity
 {
     public int? TimeSlotId { get; set; } // Franja horaria elegida
-    public TimeSlot TimeSlot { get; set; } = null!;
+    public TimeSlot? TimeSlot { get; set; }
     public int StoreId { get; set; }
     public Store Store { get; set; } = null!;
 
@@ -46,6 +46,6 @@ public class Order : BaseEntity
     public DateTime? ScheduledDate { get; set; } // Fecha elegida para entrega
     public string? Notes { get; set; }
     public List<OrderItem> OrderItems { get; set; } = new();
-
     public string? ExternalId { get; set; }
+    public bool? IsEnabled { get; set; }
 }

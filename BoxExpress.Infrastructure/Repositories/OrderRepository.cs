@@ -69,6 +69,12 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             query = query.Where(w => w.StoreId.Equals(filter.StoreId));
         if (filter.OrderId.HasValue && filter.OrderId > 0)
             query = query.Where(w => w.Id.Equals(filter.OrderId));
+        if (filter.ScheduledDate.HasValue)
+            query = query.Where(w => w.ScheduledDate.HasValue && w.ScheduledDate.Value.Date == filter.ScheduledDate.Value);
+
+        //todo quitar, es por pruebas
+        query = query.Where(w => w.IsEnabled.HasValue && w.IsEnabled.Value);
+
         return query;
     }
 
@@ -94,9 +100,9 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         var query = _context.Orders
            .Include(w => w.Status)
            .AsQueryable();
-    
+
         query = GetQueryFiltered(filter, query);
-    
+
         return await query
         .GroupBy(o => new { o.OrderStatusId, o.Status.Name })
         .Select(g => new OrderSummary

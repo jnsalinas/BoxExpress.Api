@@ -15,13 +15,13 @@ namespace BoxExpress.Application.Dtos
         public int Quantity { get; set; }
         public int? OrderItemId { get; set; }
         public OrderItemDto? OrderItem { get; set; }
-        // public OrderItem? OrderItem { get; set; }
         public int? TransferId { get; set; }
         // public WarehouseInventoryTransfer? Transfer { get; set; } = null!;
         public InventoryHoldType Type { get; set; }
         public InventoryHoldStatus Status { get; set; }
         public int CreatorId { get; set; }
         public string? ClientFullName { get; set; }
+        public string? WarehouseName { get; set; }
         // public User Creator { get; set; } = null!;
     }
 }

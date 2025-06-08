@@ -129,16 +129,18 @@ public class OrderService : IOrderService
             Status = Domain.Enums.InventoryHoldStatus.PendingReturn
         });
 
-        if (pendingHolds.Data != null && pendingHolds.Data.Any())
-        {
-            return ApiResponse<OrderDto>.Fail("El pedido tiene retenciones de inventario pendientes, resuélvalas antes de cambiar el estado.");
-        }
+        //ahora puede tener varios en hold ya que la orden puede volver a ser programada
+        // if (pendingHolds.Data != null && pendingHolds.Data.Any())
+        // {
+        //     return ApiResponse<OrderDto>.Fail("El pedido tiene retenciones de inventario pendientes, resuélvalas antes de cambiar el estado.");
+        // }
 
         #endregion
 
         switch (orderStatus.Name)
         {
             case OrderStatusConstants.Delivered:
+                //todo: validar si la orden estaba devuelta y tiene items por devolucion que tome el ultimo y lo revierta supongo
                 await _inventoryMovementService.ProcessDeliveryAsync(order);
                 await _walletTransactionService.RegisterSuccessfulDeliveryAsync(order, statusId);
                 break;
@@ -149,7 +151,13 @@ public class OrderService : IOrderService
                     await _walletTransactionService.RegisterStatusCorrectionAsync(order, statusId);
                 }
 
+                //si la orden es progrmaada debe pasar al modulo de gestion para que la puedan poner en ruta 
                 if (orderStatus.Name.Equals(OrderStatusConstants.Scheduled))
+                {
+
+                }
+
+                if (orderStatus.Name.Equals(OrderStatusConstants.OnTheWay))
                 {
                     var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
                     if (!ReserveInventory.IsSuccess)
@@ -159,9 +167,9 @@ public class OrderService : IOrderService
                 //si la orden es cancelada y tiene bodega asignada, se reserva el hold en PendingReturn el inventario
                 if (orderStatus.Name.Equals(OrderStatusConstants.Cancelled) || orderStatus.Name.Equals(OrderStatusConstants.CancelledAlt) && order.WarehouseId.HasValue)
                 {
-                    var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.PendingReturn);
-                    if (!ReserveInventory.IsSuccess)
-                        return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
+                    var reserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.PendingReturn);
+                    if (!reserveInventory.IsSuccess)
+                        return ApiResponse<OrderDto>.Fail(reserveInventory.Message ?? "Inventory not available");
                 }
 
                 break;

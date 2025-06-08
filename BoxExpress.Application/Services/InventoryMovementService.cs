@@ -119,6 +119,16 @@ public class InventoryMovementService : IInventoryMovementService
         var inventoryHolds = await _inventoryHoldRepository.GetByOrderItemIdsAndStatus(orderItemIds, fromHoldStatus);
         var now = DateTime.UtcNow;
 
+        //todo: mirar donde se pone esto queda muy junto a mi parecer solo que tome el ultimo 
+        //cuando la orden esta cancelada tiene uno pending devolucion si se pone entregada de nuevo que quite solo el ultimo si encuentra
+        if (movementType == InventoryMovementType.OrderDelivered)
+        {
+            //todo PendingReturnQuantity debe restar en este caso 
+            var inventoryHoldPendingReturn = (await _inventoryHoldRepository.GetByOrderItemIdsAndStatus(orderItemIds, InventoryHoldStatus.PendingReturn)).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+            if (inventoryHoldPendingReturn != null)
+                inventoryHolds.Add(inventoryHoldPendingReturn);
+        }
+
         foreach (var orderItem in order.OrderItems)
         {
             var hold = inventoryHolds.FirstOrDefault(h => h.OrderItemId == orderItem.Id);
