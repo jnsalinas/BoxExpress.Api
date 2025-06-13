@@ -1,4 +1,5 @@
 ﻿using BoxExpress.Application.Dtos;
+using BoxExpress.Application.Integrations.Shopify;
 using BoxExpress.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
@@ -18,7 +19,7 @@ namespace BoxExpress.Api.Controllers
         // }
 
         [HttpPost()]
-        public async Task<IActionResult> Create([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> Create([FromBody] ShopifyOrderDto orderDto)
         {
             // var result = await _ShopifyService.ShopifyenticateAsync(loginDto);
             return Ok();

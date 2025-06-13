@@ -19,6 +19,8 @@ public class User : BaseEntity
     public string? CompanyName { get; set; }
     public string? LegalName { get; set; }
     public string? DocumentNumber { get; set; }
+    public int? WarehouseId { get; set; }
+    public Warehouse? Warehouse { get; set; }
 
     public string? FullName
     {

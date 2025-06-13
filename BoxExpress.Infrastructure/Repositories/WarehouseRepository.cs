@@ -22,6 +22,9 @@ public class WarehouseRepository : Repository<Warehouse>, IWarehouseRepository
             .Include(w => w.Country)
             .AsQueryable();
 
+        if (filter.Id.HasValue)
+            query = query.Where(w => w.Id.Equals(filter.Id.Value));
+
         if (!string.IsNullOrEmpty(filter.Name))
             query = query.Where(w => w.Name.Contains(filter.Name));
 

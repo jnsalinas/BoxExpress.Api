@@ -31,15 +31,18 @@ namespace BoxExpress.Application.Services
             if (user == null)
                 return ApiResponse<AuthResponseDto>.Fail("User not found");
 
-            var hash = BcryptHelper.Hash(loginDto.Password);
-
             if (!BcryptHelper.Verify(loginDto.Password, user.PasswordHash))
                 return ApiResponse<AuthResponseDto>.Fail("Invalid credentials");
 
-            var claimsExtras = new[]
+            var claimsExtras = new List<Claim>
             {
                 new Claim(ClaimTypes.Role, user.Role.Name),
             };
+
+            if (user.WarehouseId.HasValue)
+            {
+                claimsExtras.Add(new Claim("WarehouseId", user.WarehouseId.Value.ToString()));
+            }
 
             var authResponseDto = _tokens.CreateToken(user.Id.ToString(), user.Email, claimsExtras);
             return ApiResponse<AuthResponseDto>.Success(authResponseDto);

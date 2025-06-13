@@ -71,7 +71,7 @@ public class InventoryMovementService : IInventoryMovementService
         await ApplyOrderInventoryAsync(
             order,
             fromHoldStatus: InventoryHoldStatus.Consumed,
-            toHoldStatus: InventoryHoldStatus.Active,
+            toHoldStatus: InventoryHoldStatus.Reverted,
             movementType: InventoryMovementType.OrderDeliveryReverted,
             quantityMultiplier: 1,
             movementNote: "Reversión de entrega",
@@ -135,9 +135,6 @@ public class InventoryMovementService : IInventoryMovementService
             if (hold == null)
                 throw new Exception($"No se encontró un bloqueo de inventario con estado {fromHoldStatus} para el OrderItem {orderItem.Id}");
 
-            hold.Status = toHoldStatus;
-            hold.UpdatedAt = now;
-            await _unitOfWork.InventoryHolds.UpdateAsync(hold);
             await AdjustInventoryAsync(new InventoryMovement
             {
                 WarehouseId = order.WarehouseId.Value,
@@ -148,7 +145,13 @@ public class InventoryMovementService : IInventoryMovementService
                 Notes = movementNote,
                 Reference = $"{movementReferencePrefix}-{order.Id}-{orderItem.ProductVariantId}",
                 CreatedAt = now
-            });
+            }
+            , (movementType == InventoryMovementType.OrderDelivered) && hold.Status != InventoryHoldStatus.PendingReturn
+            , hold.Status == InventoryHoldStatus.PendingReturn);
+            
+            hold.Status = toHoldStatus;
+            hold.UpdatedAt = now;
+            await _unitOfWork.InventoryHolds.UpdateAsync(hold);
         }
     }
 }
