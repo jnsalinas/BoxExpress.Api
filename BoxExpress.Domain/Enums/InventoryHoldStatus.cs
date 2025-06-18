@@ -1,4 +1,5 @@
 namespace BoxExpress.Domain.Enums;
+
 public enum InventoryHoldStatus
 {
     Active = 1,       // Retención activa: inventario reservado
@@ -6,5 +7,6 @@ public enum InventoryHoldStatus
     Consumed = 3,     // Ya se consumió (ej: se envió producto)
     PendingReturn = 4, // Esperando confirmación de devolución (nuevo)
     Returned = 5,     // Producto volvió a bodega
-    NotReturned = 6   // Producto NO volvió (se pierde o daña)
+    NotReturned = 6,   // Producto NO volvió (se pierde o daña)
+    Reverted = 7 
 }

@@ -2,7 +2,7 @@ using BoxExpress.Domain.Filters;
 
 namespace BoxExpress.Application.Dtos;
 
-public class OrderFilterDto: BaseFilter
+public class OrderFilterDto : BaseFilter
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -13,4 +13,5 @@ public class OrderFilterDto: BaseFilter
     public int? StoreId { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    public DateTime? ScheduledDate { get; set; }
 }

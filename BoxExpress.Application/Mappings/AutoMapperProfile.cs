@@ -3,6 +3,8 @@ using BoxExpress.Application.Dtos;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Domain.Filters;
 using BoxExpress.Domain.Extensions;
+using BoxExpress.Application.Integrations.Shopify;
+using BoxExpress.Utilities.Utils;
 
 namespace BoxExpress.Application.Mappings;
 
@@ -101,8 +103,8 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.StoreId, opt => opt.MapFrom(src => src.StoreId))
             .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.Store.Name))
             .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.OrderCategoryId))
-            .ForMember(dest => dest.TimeSlotStartTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.StartTime : TimeSpan.Zero))
-            .ForMember(dest => dest.TimeSlotEndTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.EndTime : TimeSpan.Zero))
+            .ForMember(dest => dest.TimeSlotStartTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.StartTime : (TimeSpan?)null))
+            .ForMember(dest => dest.TimeSlotEndTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.EndTime : (TimeSpan?)null))
             .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.Status.Id))
             .ForMember(dest => dest.CurrencyCode, opt => opt.MapFrom(src => src.Currency.Code))
             .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : string.Empty))
@@ -170,7 +172,8 @@ public class AutoMapperProfile : Profile
         CreateMap<WarehouseInventory, WarehouseInventoryDto>();
         CreateMap<Product, ProductDto>();
         CreateMap<InventoryHold, InventoryHoldDto>()
-            .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.OrderItem != null ? src.OrderItem.Order.Client.FullName : string.Empty));
+            .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.OrderItem != null ? src.OrderItem.Order.Client.FullName : string.Empty))
+            .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.WarehouseInventory != null && src.WarehouseInventory.Warehouse != null ? src.WarehouseInventory.Warehouse.Name : string.Empty)); ;
 
         // Filtros
         CreateMap<WarehouseFilterDto, WarehouseFilter>();
@@ -193,6 +196,62 @@ public class AutoMapperProfile : Profile
         CreateMap<InventoryMovementDto, InventoryMovement>();
         // CreateMap<WarehouseCreateDto, Warehouse>();
         // CreateMap<WarehouseUpdateDto, Warehouse>();
+
+
+        // Orden principal
+        CreateMap<ShopifyOrderDto, Order>()
+            .ForMember(dest => dest.ExternalId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Parse(src.Created_At)))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Financial_Status))
+            .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => decimal.Parse(src.Total_Price)))
+            .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency))
+            // .ForMember(dest => dest.TrackingUrl, opt => opt.MapFrom(src => src.Order_Status_Url))
+            // .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags))
+            .ForMember(dest => dest.Notes, opt => opt.MapFrom(src => src.Note))
+            .ForMember(dest => dest.Client, opt => opt.MapFrom(src => src.Customer))
+            .ForMember(dest => dest.ClientAddress, opt => opt.MapFrom(src => src.Shipping_Address))
+            .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.Line_Items))
+            // .ForMember(dest => dest.NoteAttributes, opt => opt.MapFrom(src => src.Note_Attributes))
+            ;
+
+        // Cliente
+        CreateMap<ShopifyCustomerDto, Client>()
+            .ForMember(dest => dest.ExternalId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.First_Name))
+            .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.Last_Name))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+            .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone));
+
+        // Dirección de envío
+        CreateMap<ShopifyShippingAddressDto, ClientAddress>()
+            // .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.First_Name))
+            // .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.Last_Name))
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address1))
+            .ForMember(dest => dest.Address2, opt => opt.MapFrom(src => src.Address2))
+            // .ForMember(dest => dest.Province, opt => opt.MapFrom(src => src.Province))
+            .ForMember(dest => dest.Zip, opt => opt.MapFrom(src => src.Zip))
+            .ForMember(dest => dest.Latitude, opt => opt.MapFrom(src => src.Latitude))
+            .ForMember(dest => dest.Longitude, opt => opt.MapFrom(src => src.Longitude))
+            // .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
+            ;
+
+        // Items de la orden
+        CreateMap<ShopifyLineItemDto, OrderItem>()
+            .ForMember(dest => dest.ExternalId, opt => opt.MapFrom(src => src.Id))
+            // .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
+            .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+            // .ForMember(dest => dest.Price, opt => opt.MapFrom(src => decimal.Parse(src.Price)))
+            // .ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.Sku))
+            // .ForMember(dest => dest.Variant, opt => opt.MapFrom(src => src.Variant_Title))
+            // .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => decimal.Parse(src.Total_Discount ?? "0")))
+            ;
+
+        // Note attributes
+        // CreateMap<ShopifyNoteAttributeDto, OrderNoteAttribute>()
+        //     .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+        //     .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.Value))
+        //     .ForAllOtherMembers(opt => opt.Ignore());
     }
 
 }

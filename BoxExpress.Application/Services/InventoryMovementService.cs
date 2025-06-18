@@ -71,7 +71,7 @@ public class InventoryMovementService : IInventoryMovementService
         await ApplyOrderInventoryAsync(
             order,
             fromHoldStatus: InventoryHoldStatus.Consumed,
-            toHoldStatus: InventoryHoldStatus.Active,
+            toHoldStatus: InventoryHoldStatus.Reverted,
             movementType: InventoryMovementType.OrderDeliveryReverted,
             quantityMultiplier: 1,
             movementNote: "Reversión de entrega",
@@ -119,15 +119,22 @@ public class InventoryMovementService : IInventoryMovementService
         var inventoryHolds = await _inventoryHoldRepository.GetByOrderItemIdsAndStatus(orderItemIds, fromHoldStatus);
         var now = DateTime.UtcNow;
 
+        //todo: mirar donde se pone esto queda muy junto a mi parecer solo que tome el ultimo 
+        //cuando la orden esta cancelada tiene uno pending devolucion si se pone entregada de nuevo que quite solo el ultimo si encuentra
+        if (movementType == InventoryMovementType.OrderDelivered)
+        {
+            //todo PendingReturnQuantity debe restar en este caso 
+            var inventoryHoldPendingReturn = (await _inventoryHoldRepository.GetByOrderItemIdsAndStatus(orderItemIds, InventoryHoldStatus.PendingReturn)).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+            if (inventoryHoldPendingReturn != null)
+                inventoryHolds.Add(inventoryHoldPendingReturn);
+        }
+
         foreach (var orderItem in order.OrderItems)
         {
             var hold = inventoryHolds.FirstOrDefault(h => h.OrderItemId == orderItem.Id);
             if (hold == null)
                 throw new Exception($"No se encontró un bloqueo de inventario con estado {fromHoldStatus} para el OrderItem {orderItem.Id}");
 
-            hold.Status = toHoldStatus;
-            hold.UpdatedAt = now;
-            await _unitOfWork.InventoryHolds.UpdateAsync(hold);
             await AdjustInventoryAsync(new InventoryMovement
             {
                 WarehouseId = order.WarehouseId.Value,
@@ -138,7 +145,13 @@ public class InventoryMovementService : IInventoryMovementService
                 Notes = movementNote,
                 Reference = $"{movementReferencePrefix}-{order.Id}-{orderItem.ProductVariantId}",
                 CreatedAt = now
-            });
+            }
+            , (movementType == InventoryMovementType.OrderDelivered) && hold.Status != InventoryHoldStatus.PendingReturn
+            , hold.Status == InventoryHoldStatus.PendingReturn);
+            
+            hold.Status = toHoldStatus;
+            hold.UpdatedAt = now;
+            await _unitOfWork.InventoryHolds.UpdateAsync(hold);
         }
     }
 }

@@ -4,6 +4,7 @@ using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoxExpress.Infrastructure.Migrations
 {
     [DbContext(typeof(BoxExpressDbContext))]
-    partial class BoxExpressDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250607231250_AddShopifyIntegration")]
+    partial class AddShopifyIntegration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -399,9 +402,6 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     b.Property<string>("ExternalId")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("IsEnabled")
-                        .HasColumnType("bit");
 
                     b.Property<decimal?>("Latitude")
                         .HasColumnType("decimal(18,2)");
@@ -869,9 +869,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("WarehouseId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");
@@ -881,8 +878,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.HasIndex("RoleId");
 
                     b.HasIndex("StoreId");
-
-                    b.HasIndex("WarehouseId");
 
                     b.ToTable("Users");
                 });
@@ -1534,11 +1529,6 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("BoxExpress.Domain.Entities.Warehouse", "Warehouse")
-                        .WithMany()
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("City");
 
                     b.Navigation("Country");
@@ -1546,8 +1536,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("Store");
-
-                    b.Navigation("Warehouse");
                 });
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.WalletTransaction", b =>
