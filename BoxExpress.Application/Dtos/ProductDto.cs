@@ -7,5 +7,5 @@ public class ProductDto
     public string? ShopifyProductId { get; set; }
     public decimal? Price { get; set; }
     public string? Sku { get; set; }
-    public List<ProductVariantDto> Variants { get; set; } = new();
+    public List<ProductVariantDto> Variants { get; set; } = new List<ProductVariantDto>();
 }

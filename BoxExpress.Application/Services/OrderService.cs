@@ -293,19 +293,6 @@ public class OrderService : IOrderService
 
             await _unitOfWork.OrderCategoryHistories.AddAsync(categoryOrderHistory);
 
-            // crear walletTransaction pendiente definir 
-            var wallet = new WalletTransaction
-            {
-                CreatedAt = createdAt,
-                Amount = order.TotalAmount,
-                TransactionTypeId = 2, //Todo llegara por el request o ser siempre 2  
-                WalletId = createOrderDto.WalletId,
-                CreatorId = createOrderDto.CreatorId,
-                OrderStatusId = order.OrderStatusId,
-            };
-
-            await _unitOfWork.WalletTransactions.AddAsync(wallet);
-
             return ApiResponse<bool>.Success(true, null, "Orden creada exitosamente");
 
         }
