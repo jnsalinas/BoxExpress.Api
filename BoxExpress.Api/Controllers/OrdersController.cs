@@ -1,4 +1,5 @@
 // BoxExpress.Api/Controllers/OrdersController.cs
+using System.Security.Claims;
 using BoxExpress.Application.Dtos;
 using BoxExpress.Application.Interfaces;
 using BoxExpress.Application.Services;
@@ -107,6 +108,10 @@ public class OrdersController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateOrderDto createOrderDto)
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        createOrderDto.CreatorId = userId != null ? int.Parse(userId) : 0;
+
         var result = await _orderService.AddOrderAsync(createOrderDto);
         return Ok(result);
     }
