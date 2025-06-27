@@ -28,6 +28,7 @@ public class OrderService : IOrderService
     private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IWarehouseInventoryTransferService _warehouseInventoryTransferService;
     private readonly IInventoryHoldService _inventoryHoldService;
+    private readonly IClientAddresRepository _clientAddresRepository;
     private readonly IUnitOfWork _unitOfWork;
 
 
@@ -46,6 +47,7 @@ public class OrderService : IOrderService
         IOrderItemRepository orderItemRepository,
         IWarehouseInventoryTransferService warehouseInventoryTransferService,
         IInventoryHoldService inventoryHoldService,
+        IClientAddresRepository clientAddresRepository,
         IUnitOfWork unitOfWork
         )
     {
@@ -63,6 +65,7 @@ public class OrderService : IOrderService
         _orderItemRepository = orderItemRepository;
         _repository = repository;
         _mapper = mapper;
+        _clientAddresRepository = clientAddresRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -247,9 +250,22 @@ public class OrderService : IOrderService
     {
         try
         {
+
+            // consultar address para obtener la ciudad y pais
+            var clientAddress = await _clientAddresRepository.GetByIdAsync(createOrderDto.ClientAddressId);
+            if (clientAddress == null)
+            {
+                return ApiResponse<bool>.Fail("Dirección del cliente no encontrada");
+            }
+
             var createdAt = DateTime.UtcNow;
             var order = _mapper.Map<Order>(createOrderDto);
+            order.CityId = clientAddress.CityId;
+            order.CountryId = clientAddress.City.CountryId;
+            order.Latitude = clientAddress.Latitude;
+            order.Longitude = clientAddress.Longitude;
             order.CreatedAt = createdAt;
+
             await _unitOfWork.Orders.AddAsync(order);
 
             var inventories = await _warehouseInventoryRepository.GetByWarehouseAndProductVariants(createOrderDto.WarehouseId, createOrderDto.OrderItems.Select(p => p.ProductVariantId).ToList());

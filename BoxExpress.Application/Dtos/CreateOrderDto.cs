@@ -27,14 +27,10 @@ namespace BoxExpress.Application.Dtos
 
         public string? Country { get; set; }
         public string? City { get; set; }
-        public TimeSpan? TimeSlotStartTime { get; set; }
-        public TimeSpan? TimeSlotEndTime { get; set; }
         public string? Code { get; set; }
         public string? Contains { get; set; }
         public string? SecondManagement { get; set; }
         public string? CourierComment { get; set; }
-        public string? Latitude { get; set; }
-        public string? Longitude { get; set; }
         public decimal TotalAmount { get; set; }
         public DateTime? ScheduledDate { get; set; }
         public DateTime? CreatedAt { get; set; }

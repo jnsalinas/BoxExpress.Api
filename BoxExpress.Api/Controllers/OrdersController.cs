@@ -104,7 +104,7 @@ public class OrdersController : ControllerBase
         );
     }
 
-    [Authorize(Roles = "Administrador")]
+    [Authorize(Roles = "Admin")]
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateOrderDto createOrderDto)
     {
