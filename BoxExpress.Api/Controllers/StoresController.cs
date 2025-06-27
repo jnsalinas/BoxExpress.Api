@@ -36,7 +36,7 @@ public class StoresController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = "Administrador")]
+    [Authorize(Roles = "Admin")]
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateStoreDto createStoreDto)
     {
