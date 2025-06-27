@@ -14,4 +14,11 @@ public class ProductRepository : Repository<Product>, IProductRepository
     {
         _context = context;
     }
+
+    public new async Task<List<Product>> GetAllAsync()
+    {
+        return await _context.Set<Product>()
+            .Include(p => p.Variants)
+            .ToListAsync();
+    }
 }

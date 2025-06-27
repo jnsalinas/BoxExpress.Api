@@ -17,6 +17,8 @@ public class AutoMapperProfile : Profile
         CreateMap<OrderStatus, OrderStatusDto>();
         CreateMap<OrderCategory, OrderCategoryDto>();
         CreateMap<City, CityDto>();
+        CreateMap<ClientAddress, ClientAddressDto>();
+        CreateMap<Client, ClientDto>();
 
         CreateMap<Store, StoreDto>()
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name))
@@ -111,7 +113,13 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name))
             .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems));
 
+
+        CreateMap<CreateOrderDto, Order>();
+        CreateMap<OrderItemDto, OrderItem>();
+
         CreateMap<OrderSummary, OrderSummaryDto>();
+
+        CreateMap<Product, ProductDto>();
 
         CreateMap<ProductVariant, ProductVariantDto>();
 

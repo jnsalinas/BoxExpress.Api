@@ -1,3 +1,4 @@
+using System.Net.WebSockets;
 using AutoMapper;
 using BoxExpress.Application.Dtos;
 using BoxExpress.Application.Dtos.Common;
@@ -6,6 +7,7 @@ using BoxExpress.Domain.Constants;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Domain.Filters;
 using BoxExpress.Domain.Interfaces;
+using BoxExpress.Utilities;
 
 namespace BoxExpress.Application.Services;
 
@@ -20,11 +22,14 @@ public class OrderService : IOrderService
     private readonly IWalletTransactionRepository _walletTransactionRepository;
     private readonly IOrderStatusHistoryRepository _orderStatusHistoryRepository;
     private readonly IOrderCategoryHistoryRepository _orderCategoryHistoryRepository;
+    private readonly IWarehouseInventoryRepository _warehouseInventoryRepository;
     private readonly IWalletTransactionService _walletTransactionService;
     private readonly IOrderItemRepository _orderItemRepository;
     private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IWarehouseInventoryTransferService _warehouseInventoryTransferService;
     private readonly IInventoryHoldService _inventoryHoldService;
+    private readonly IClientAddresRepository _clientAddresRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
 
     public OrderService(
@@ -36,11 +41,14 @@ public class OrderService : IOrderService
         ITransactionTypeRepository transactionTypeRepository,
         IOrderStatusHistoryRepository orderStatusHistoryRepository,
         IOrderCategoryHistoryRepository orderCategoryHistoryRepository,
+        IWarehouseInventoryRepository warehouseInventoryRepository,
         IWalletTransactionService walletTransactionService,
         IInventoryMovementService inventoryMovementService,
         IOrderItemRepository orderItemRepository,
         IWarehouseInventoryTransferService warehouseInventoryTransferService,
-        IInventoryHoldService inventoryHoldService
+        IInventoryHoldService inventoryHoldService,
+        IClientAddresRepository clientAddresRepository,
+        IUnitOfWork unitOfWork
         )
     {
         _warehouseInventoryTransferService = warehouseInventoryTransferService;
@@ -48,6 +56,7 @@ public class OrderService : IOrderService
         _walletTransactionRepository = walletTransactionRepository;
         _orderStatusHistoryRepository = orderStatusHistoryRepository;
         _transactionTypeRepository = transactionTypeRepository;
+        _warehouseInventoryRepository = warehouseInventoryRepository;
         _inventoryHoldService = inventoryHoldService;
         _inventoryMovementService = inventoryMovementService;
         _walletTransactionService = walletTransactionService;
@@ -56,6 +65,8 @@ public class OrderService : IOrderService
         _orderItemRepository = orderItemRepository;
         _repository = repository;
         _mapper = mapper;
+        _clientAddresRepository = clientAddresRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter)
@@ -233,5 +244,78 @@ public class OrderService : IOrderService
     {
         var listOrederItems = _mapper.Map<List<OrderItemDto>>(await _orderItemRepository.GetByOrderIdAsync(orderId));
         return ApiResponse<List<OrderItemDto>>.Success(listOrederItems);
+    }
+
+    public async Task<ApiResponse<bool>> AddOrderAsync(CreateOrderDto createOrderDto)
+    {
+        try
+        {
+
+            // consultar address para obtener la ciudad y pais
+            var clientAddress = await _clientAddresRepository.GetByIdAsync(createOrderDto.ClientAddressId);
+            if (clientAddress == null)
+            {
+                return ApiResponse<bool>.Fail("Dirección del cliente no encontrada");
+            }
+
+            var createdAt = DateTime.UtcNow;
+            var order = _mapper.Map<Order>(createOrderDto);
+            order.CityId = clientAddress.CityId;
+            order.CountryId = clientAddress.City.CountryId;
+            order.Latitude = clientAddress.Latitude;
+            order.Longitude = clientAddress.Longitude;
+            order.CreatedAt = createdAt;
+
+            await _unitOfWork.Orders.AddAsync(order);
+
+            var inventories = await _warehouseInventoryRepository.GetByWarehouseAndProductVariants(createOrderDto.WarehouseId, createOrderDto.OrderItems.Select(p => p.ProductVariantId).ToList());
+
+
+            //crear items de la orden
+            foreach (var orderItemDto in createOrderDto.OrderItems)
+            {
+                var inventory = inventories.Where(i=> i.Id.Equals(orderItemDto.ProductVariantId)).FirstOrDefault();
+                if (inventory == null || inventory.Quantity< orderItemDto.Quantity) 
+                {
+                    throw new Exception($"El item: {orderItemDto.ProductVariantName} no tiene suficiente inventario");
+
+                }
+
+                var oderItem = _mapper.Map<OrderItem>(orderItemDto);
+                oderItem.OrderId = order.Id;
+                oderItem.CreatedAt = createdAt;
+                await _unitOfWork.OrderItems.AddAsync(oderItem);
+            }
+
+            //crear status history order
+            var OrderStatusHistory = new OrderStatusHistory
+            {
+                CreatedAt = createdAt,
+                OrderId = order.Id,
+                CreatorId = createOrderDto.CreatorId,
+                NewStatusId = createOrderDto.OrderStatusId,
+            };
+
+            await _unitOfWork.OrderStatusHistories.AddAsync(OrderStatusHistory);
+
+            //crear category history order
+            var categoryOrderHistory = new OrderCategoryHistory
+            {
+                CreatedAt = createdAt,
+                OrderId= order.Id,
+                CreatorId= createOrderDto.CreatorId,
+                NewCategoryId = createOrderDto.CategoryId,
+            };
+
+            await _unitOfWork.OrderCategoryHistories.AddAsync(categoryOrderHistory);
+
+            return ApiResponse<bool>.Success(true, null, "Orden creada exitosamente");
+
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollbackAsync();
+            return ApiResponse<bool>.Fail("Error al crear Orden: " + ex.Message);
+        }
     }
 }

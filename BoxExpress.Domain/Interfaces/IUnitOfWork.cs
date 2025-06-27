@@ -12,7 +12,12 @@ public interface IUnitOfWork
     IUserRepository Users { get; }
     IInventoryMovementRepository InventoryMovements { get; }
     IInventoryHoldRepository InventoryHolds { get; }
-    
+    IOrderRepository Orders { get; }
+    IOrderItemRepository OrderItems { get; }
+    IOrderCategoryHistoryRepository OrderCategoryHistories { get; }
+    IOrderStatusHistoryRepository OrderStatusHistories { get; }
+    IWalletTransactionRepository WalletTransactions { get; }
+
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();
     Task CommitAsync();
