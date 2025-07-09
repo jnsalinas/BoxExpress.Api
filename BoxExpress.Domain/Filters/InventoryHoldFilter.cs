@@ -11,5 +11,7 @@ public class InventoryHoldFilter : BaseFilter
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public int? OrderId { get; set; }
+    public int? WarehouseId { get; set; }
+
 
 }

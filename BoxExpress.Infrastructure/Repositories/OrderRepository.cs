@@ -71,6 +71,8 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             query = query.Where(w => w.Id.Equals(filter.OrderId));
         if (filter.ScheduledDate.HasValue)
             query = query.Where(w => w.ScheduledDate.HasValue && w.ScheduledDate.Value.Date == filter.ScheduledDate.Value);
+        if (filter.WarehouseId.HasValue)
+            query = query.Where(w => w.WarehouseId.HasValue && w.WarehouseId.Value == filter.WarehouseId.Value);
 
         //todo quitar, es por pruebas
         query = query.Where(w => w.IsEnabled.HasValue && w.IsEnabled.Value);

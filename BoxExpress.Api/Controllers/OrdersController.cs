@@ -3,6 +3,7 @@ using System.Security.Claims;
 using BoxExpress.Application.Dtos;
 using BoxExpress.Application.Interfaces;
 using BoxExpress.Application.Services;
+using BoxExpress.Domain.Constants;
 using BoxExpress.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,22 @@ public class OrdersController : ControllerBase
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] OrderFilterDto filter)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Warehose)
+        {
+            filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0"); 
+        }
+        else if (role?.ToLower() == RolConstants.Store)
+        {
+            var storeId = User.FindFirst("StoreId")?.Value;
+            if (storeId == null)
+            {
+                return BadRequest("StoreId is required for store role.");
+            }
+
+            filter.StoreId = int.Parse(storeId); 
+        }
+
         var result = await _orderService.GetAllAsync(filter);
         return Ok(result);
     }
@@ -34,6 +51,22 @@ public class OrdersController : ControllerBase
     [HttpPost("summary")]
     public async Task<IActionResult> Summary([FromBody] OrderFilterDto filter)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Warehose)
+        {
+            filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0"); 
+        }
+        else if (role?.ToLower() == RolConstants.Store)
+        {
+            var storeId = User.FindFirst("StoreId")?.Value;
+            if (storeId == null)
+            {
+                return BadRequest("StoreId is required for store role.");
+            }
+            
+            filter.StoreId = int.Parse(storeId); 
+        }
+
         var result = await _orderService.GetSummaryAsync(filter);
         return Ok(result);
     }
@@ -90,12 +123,23 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> ExportToExcel([FromBody] OrderFilterDto filter)
     {
         filter.IsAll = true;
-        var result = await _orderService.GetAllAsync(filter);
-        if (result.Data == null || !result.Data.Any())
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Warehose)
         {
-            return NotFound("No data found to export.");
+            filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0"); 
+        }
+        else if (role?.ToLower() == RolConstants.Store)
+        {
+            var storeId = User.FindFirst("StoreId")?.Value;
+            if (storeId == null)
+            {
+                return BadRequest("StoreId is required for store role.");
+            }
+
+            filter.StoreId = int.Parse(storeId); 
         }
 
+        var result = await _orderService.GetAllAsync(filter);
         var bytes = _excelExporter.ExportToExcel(result.Data.ToList());
         return File(
             bytes,

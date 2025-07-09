@@ -21,6 +21,7 @@ public class StoreRepository : Repository<Store>, IStoreRepository
                         .FirstOrDefaultAsync(x => x.Id == storeId);
 
     }
+
     public async Task<(List<Store> Stores, int TotalCount)> GetFilteredAsync(StoreFilter filter)
     {
         var query = _context.Stores.AsQueryable();
@@ -47,5 +48,29 @@ public class StoreRepository : Repository<Store>, IStoreRepository
 
         var stores = await storesQuery.ToListAsync();
         return (stores, totalCount);
+    }
+
+    public async Task<Store?> GetBalanceSummary()
+    {
+        var walletSummary = await _context.Wallets
+            .GroupBy(w => 1) // Agrupar todo en un solo grupo
+            .Select(g => new
+            {
+                TotalBalance = g.Sum(w => w.Balance),
+                TotalPending = g.Sum(w => w.PendingWithdrawals),
+            })
+            .FirstOrDefaultAsync();
+
+        return new Store
+        {
+            Id = 0,
+            Name = "Resumen Global",
+            Wallet = new Wallet
+            {
+                Balance = walletSummary?.TotalBalance ?? 0,
+                PendingWithdrawals = walletSummary?.TotalPending ?? 0,
+            }
+        };
+
     }
 }

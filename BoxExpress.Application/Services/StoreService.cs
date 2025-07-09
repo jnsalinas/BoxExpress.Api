@@ -31,7 +31,8 @@ public class StoreService : IStoreService
     {
         try
         {
-            var existingStore = await _repository.GetFilteredAsync(new StoreFilter{
+            var existingStore = await _repository.GetFilteredAsync(new StoreFilter
+            {
                 Name = createStoreDto.StoreName,
             });
 
@@ -77,5 +78,10 @@ public class StoreService : IStoreService
     {
         var (stores, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<StoreFilter>(filter));
         return ApiResponse<IEnumerable<StoreDto>>.Success(_mapper.Map<List<StoreDto>>(stores), new PaginationDto(totalCount, filter.PageSize, filter.Page));
+    }
+
+    public async Task<ApiResponse<StoreDto?>> GetBalanceSummary()
+    {
+        return ApiResponse<StoreDto?>.Success(_mapper.Map<StoreDto?>(await _repository.GetBalanceSummary()));
     }
 }

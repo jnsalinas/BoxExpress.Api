@@ -32,8 +32,24 @@ public class InventoryHoldService : IInventoryHoldService
 
     public async Task<ApiResponse<IEnumerable<InventoryHoldDto>>> GetAllAsync(InventoryHoldFilterDto filter)
     {
-        var (InventoryHolds, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<InventoryHoldFilter>(filter));
-        return ApiResponse<IEnumerable<InventoryHoldDto>>.Success(_mapper.Map<List<InventoryHoldDto>>(InventoryHolds), new PaginationDto(totalCount, filter.PageSize, filter.Page));
+        var (inventoryHolds, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<InventoryHoldFilter>(filter));
+        var mapped = _mapper.Map<List<InventoryHoldDto>>(inventoryHolds);
+
+        var grouped = mapped.Where(x => x.OrderItemId.HasValue).GroupBy(x => x.OrderItemId);
+
+        foreach (var group in grouped)
+        {
+            if (group.Count() > 1)
+            {
+                int index = 1;
+                foreach (var item in group)
+                {
+                    item.ItemIndex = index++;
+                }
+            }
+        }
+
+        return ApiResponse<IEnumerable<InventoryHoldDto>>.Success(mapped, new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }
 
     public async Task<ApiResponse<bool>> HoldInventoryForOrderAsync(int warehouseId, List<OrderItem> orderItems, InventoryHoldStatus status)

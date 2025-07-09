@@ -11,5 +11,6 @@ namespace BoxExpress.Application.Dtos
         public string Token { get; set; } = string.Empty;
         public DateTime Expiration { get; set; }
         public string? Role { get; set; }
+        public string? StoreId { get; set; }
     }
 }

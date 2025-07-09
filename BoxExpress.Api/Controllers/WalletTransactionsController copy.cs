@@ -3,6 +3,8 @@ using BoxExpress.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using BoxExpress.Application.Dtos;
 using System.Linq;
+using System.Security.Claims;
+using BoxExpress.Domain.Constants;
 
 namespace BoxExpress.Api.Controllers;
 
@@ -22,6 +24,18 @@ public class WalletTransactionsController : ControllerBase
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] WalletTransactionFilterDto filter)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Store)
+        {
+            var storeIdvalue = User.FindFirst("StoreId")?.Value;
+            if (storeIdvalue == null)
+            {
+                return BadRequest("StoreId is required for warehouse role.");
+            }
+
+            filter.StoreId = int.Parse(storeIdvalue);
+        }
+
         var result = await _walletTransactionService.GetAllAsync(filter);
         return Ok(result);
     }
@@ -29,12 +43,24 @@ public class WalletTransactionsController : ControllerBase
     [HttpPost("export")]
     public async Task<IActionResult> ExportToExcel([FromBody] WalletTransactionFilterDto filter)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Store)
+        {
+            var storeIdvalue = User.FindFirst("StoreId")?.Value;
+            if (storeIdvalue == null)
+            {
+                return BadRequest("StoreId is required for warehouse role.");
+            }
+
+            filter.StoreId = int.Parse(storeIdvalue);
+        }
+
         filter.IsAll = true;
         var result = await _walletTransactionService.GetAllAsync(filter);
-        if (result.Data == null || !result.Data.Any())
-        {
-            return NotFound("No data found to export.");
-        }
+        // if (result.Data == null || !result.Data.Any())
+        // {
+        //     return NotFound("No data found to export.");
+        // }
 
         var bytes = _excelExporter.ExportToExcel(result.Data.ToList());
         return File(

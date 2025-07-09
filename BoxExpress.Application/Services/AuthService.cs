@@ -36,12 +36,17 @@ namespace BoxExpress.Application.Services
 
             var claimsExtras = new List<Claim>
             {
-                new Claim(ClaimTypes.Role, user.Role.Name),
+                new Claim(ClaimTypes.Role, user.Role.Name.ToLower()),
             };
 
             if (user.WarehouseId.HasValue)
             {
                 claimsExtras.Add(new Claim("WarehouseId", user.WarehouseId.Value.ToString()));
+            }
+
+             if (user.StoreId.HasValue)
+            {
+                claimsExtras.Add(new Claim("StoreId", user.StoreId.Value.ToString()));
             }
 
             var authResponseDto = _tokens.CreateToken(user.Id.ToString(), user.Email, claimsExtras);

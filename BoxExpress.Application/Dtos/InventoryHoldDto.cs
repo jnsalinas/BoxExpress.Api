@@ -22,7 +22,8 @@ namespace BoxExpress.Application.Dtos
         public int CreatorId { get; set; }
         public string? ClientFullName { get; set; }
         public string? WarehouseName { get; set; }
-        // public User Creator { get; set; } = null!;
+        public int? ItemIndex { get; set; }
+
     }
 }
 

@@ -77,6 +77,12 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
             query = query.Where(w => w.OrderItem != null && w.OrderItem.OrderId == filter.OrderId.Value);
         }
 
+        if (filter.WarehouseId.HasValue)
+        {
+            query = query.Where(w => w.WarehouseInventory != null && w.WarehouseInventory.WarehouseId == filter.WarehouseId.Value);
+        }
+
+
         var total = query.Count();
         if (!filter.IsAll)
         {

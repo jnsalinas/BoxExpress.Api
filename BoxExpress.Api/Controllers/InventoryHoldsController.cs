@@ -3,6 +3,8 @@ using BoxExpress.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using BoxExpress.Application.Dtos;
 using System.Linq;
+using System.Security.Claims;
+using BoxExpress.Domain.Constants;
 
 namespace BoxExpress.Api.Controllers;
 
@@ -20,6 +22,12 @@ public class InventoryHoldsController : ControllerBase
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] InventoryHoldFilterDto filter)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Warehose)
+        {
+            filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0");
+        }
+
         var result = await _inventoryHoldservice.GetAllAsync(filter);
         return Ok(result);
     }

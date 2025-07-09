@@ -11,5 +11,5 @@ public class OrderFilter : BaseFilter
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public DateTime? ScheduledDate { get; set; }
-
+    public int? WarehouseId { get; set; }
 }

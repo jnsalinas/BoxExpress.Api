@@ -36,11 +36,21 @@ public class WithdrawalRequestService : IWithdrawalRequestService
 
     public async Task<ApiResponse<bool>> AddAsync(WithdrawalRequestCreateDto dto)
     {
-        // TODO: agregar lógica para validar el monto permitido por la tienda con el wallet
+        if (!dto.StoreId.HasValue)
+        {
+            return ApiResponse<bool>.Fail("Tienda es requerida");
+        }
+        if (dto.Amount <= 0)
+        {
+            return ApiResponse<bool>.Fail("Monto debe ser mayor a 0");
+        }
 
         //add retiros pendientes
-        Wallet wallet = await _walletRepository.GetByStoreIdAsync(dto.StoreId) ?? throw new InvalidOperationException("Wallet not found");
-        wallet.PendingWithdrawals += dto.Amount ?? 0;
+        Wallet wallet = await _walletRepository.GetByStoreIdAsync(dto.StoreId.Value) ?? throw new InvalidOperationException("Wallet not found");
+        if (wallet.Balance < dto.Amount)
+            return ApiResponse<bool>.Fail("Balance insuficiente para realizar el retiro");
+
+        wallet.PendingWithdrawals += dto.Amount;
         await _walletRepository.UpdateAsync(wallet);
 
         WithdrawalRequest withdrawalRequest = _mapper.Map<WithdrawalRequest>(dto);

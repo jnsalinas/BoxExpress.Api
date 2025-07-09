@@ -5,6 +5,7 @@ using BoxExpress.Application.Dtos;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using BoxExpress.Domain.Constants;
 
 namespace BoxExpress.Api.Controllers;
 
@@ -32,7 +33,7 @@ public class WarehousesController : ControllerBase
     public async Task<IActionResult> Search([FromBody] WarehouseFilterDto filter)
     {
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
-        if (role?.ToLower() == "bodega")
+        if (role?.ToLower() == RolConstants.Warehose)
         {
             filter.Id = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0"); 
         }

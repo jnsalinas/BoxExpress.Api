@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using BoxExpress.Application.Dtos;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using BoxExpress.Domain.Constants;
 
 namespace BoxExpress.Api.Controllers;
 
@@ -24,6 +26,18 @@ public class StoresController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Store)
+        {
+            var storeValue = User.FindFirst("StoreId")?.Value;
+            if (string.IsNullOrEmpty(storeValue))
+            {
+                return BadRequest("StoreId is required for store users");
+            }
+
+            id = int.Parse(storeValue); 
+        }
+
         var result = await _storeService.GetByIdAsync(id);
         if (result.Equals(null)) return NotFound();
         return Ok(result);
