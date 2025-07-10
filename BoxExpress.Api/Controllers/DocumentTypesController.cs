@@ -1,4 +1,3 @@
-// BoxExpress.Api/Controllers/OrdersController.cs
 using BoxExpress.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using BoxExpress.Application.Dtos;

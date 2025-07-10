@@ -19,6 +19,7 @@ public class AutoMapperProfile : Profile
         CreateMap<City, CityDto>();
         CreateMap<ClientAddress, ClientAddressDto>();
         CreateMap<Client, ClientDto>();
+        CreateMap<Currency, CurrencyDto>();
 
         CreateMap<Store, StoreDto>()
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name))

@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IInventoryHoldService, InventoryHoldService>();
         services.AddScoped<IClientService, ClientService>();
         services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<ICurrencyService, CurrencyService>();
         services.AddAutoMapper(typeof(AutoMapperProfile));
         return services;
     }
