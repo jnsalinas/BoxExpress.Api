@@ -54,8 +54,8 @@ public class WarehouseService : IWarehouseService
                 {
                     CreatedAt = DateTime.UtcNow,
                     Name = productDto.Name,
-                    ShopifyProductId = productDto.ShopifyProductId,
-                    StoreId = 1 // todo: revisar si cada producto tiene una tienda asociada
+                    Sku = productDto.Sku,
+                    Price = productDto.Price
                 };
 
                 await _unitOfWork.Products.AddAsync(product);
@@ -66,8 +66,10 @@ public class WarehouseService : IWarehouseService
                     {
                         CreatedAt = DateTime.UtcNow,
                         Name = variantDto.Name,
-                        ShopifyVariantId = variantDto.ShopifyVariantId,
-                        Product = product
+                        ShopifyVariantId = variantDto.ShopifyId,
+                        Product = product,
+                        Sku = variantDto.Sku,
+                        Price = variantDto.Price
                     };
 
                     await _unitOfWork.Variants.AddAsync(productVariant);
@@ -77,7 +79,8 @@ public class WarehouseService : IWarehouseService
                         CreatedAt = DateTime.UtcNow,
                         WarehouseId = warehouseId,
                         ProductVariant = productVariant,
-                        Quantity = variantDto.Quantity
+                        Quantity = variantDto.Quantity,
+                        StoreId = variantDto.StoreId
                     });
 
                     await _unitOfWork.InventoryMovements.AddAsync(new InventoryMovement

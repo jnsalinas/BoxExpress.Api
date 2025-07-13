@@ -13,4 +13,9 @@ public class ProductVariantDto
     public int? WarehouseInventoryId { get; set; }
     public List<InventoryMovementDto> InventoryMovements { get; set; } = new();
     public int PendingReturnQuantity { get; set; }
+    public int? StoreId { get; set; }
+    public StoreDto? Store { get; set; }
+    public string? ProductName { get; set; }
+    public string? ProductSku { get; set; }
+    public decimal? ProductPrice { get; set; }
 }

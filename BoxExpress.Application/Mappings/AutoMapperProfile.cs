@@ -122,7 +122,10 @@ public class AutoMapperProfile : Profile
 
         CreateMap<Product, ProductDto>();
 
-        CreateMap<ProductVariant, ProductVariantDto>();
+        CreateMap<ProductVariant, ProductVariantDto>()
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+            .ForMember(dest => dest.ProductSku, opt => opt.MapFrom(src => src.Product.Sku))
+            .ForMember(dest => dest.ProductPrice, opt => opt.MapFrom(src => src.Product.Price));
 
         CreateMap<ProductVariant, ProductVariantAutocompleteDto>()
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));

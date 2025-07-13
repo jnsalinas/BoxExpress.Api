@@ -6,6 +6,7 @@ public class WarehouseInventoryFilterDto : BaseFilterDto
 {
     public int? Id { get; set; }
     public int? WarehouseId { get; set; }
+    public int? StoreId { get; set; }
     public int? ProductVariantId { get; set; }
     public string? ProductVariantName { get; set; }
     public string? ProductVariantSku { get; set; }

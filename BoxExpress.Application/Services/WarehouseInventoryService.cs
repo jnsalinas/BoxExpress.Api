@@ -16,7 +16,6 @@ public class WarehouseInventoryService : IWarehouseInventoryService
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
 
-
     public WarehouseInventoryService(IWarehouseInventoryRepository repository, IMapper mapper, IInventoryMovementService inventoryMovementService, IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
@@ -57,6 +56,8 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                     Price = wi.ProductVariant.Price,
                     Quantity = wi.Quantity,
                     PendingReturnQuantity = wi.PendingReturnQuantity,
+                    StoreId = wi.StoreId,
+                    Store = wi.Store != null ? new StoreDto { Id = wi.Store.Id, Name = wi.Store.Name } : null
                 }).ToList()
         }).OrderBy(x => x.Name).ToList();
 
@@ -109,6 +110,12 @@ public class WarehouseInventoryService : IWarehouseInventoryService
 
         if (dto.ShopifyVariantId != null)
             warehouseInventory.ProductVariant.ShopifyVariantId = dto.ShopifyVariantId;
+
+        if (dto.StoreId.HasValue)
+            warehouseInventory.StoreId = dto.StoreId;
+
+        if (dto.Price != null)
+            warehouseInventory.ProductVariant.Price = dto.Price;
 
         await _unitOfWork.Inventories.UpdateAsync(warehouseInventory);
         await _unitOfWork.SaveChangesAsync();

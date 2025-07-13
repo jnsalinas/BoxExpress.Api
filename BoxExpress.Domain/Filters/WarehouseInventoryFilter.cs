@@ -4,6 +4,7 @@ public class WarehouseInventoryFilter : BaseFilter
 {
 
     public int WarehouseId { get; set; }
+    public int? StoreId { get; set; }
     public int ProductVariantId { get; set; }
     public int Quantity { get; set; }
     public int ReservedQuantity { get; set; }

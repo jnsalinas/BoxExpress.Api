@@ -20,6 +20,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
         return await _context.WarehouseInventories
             .Include(wi => wi.ProductVariant)
             .ThenInclude(pv => pv.Product)
+            .Include(wi => wi.Store)
             .FirstOrDefaultAsync(wi => wi.WarehouseId == warehouseId && wi.ProductVariantId == productVariantId);
     }
 
@@ -28,6 +29,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
         return await _context.WarehouseInventories
             .Include(wi => wi.ProductVariant)
             .ThenInclude(pv => pv.Product)
+            .Include(wi => wi.Store)
             .Where(wi => wi.WarehouseId == warehouseId && productVariantsId.Contains(wi.ProductVariantId)).ToListAsync();
     }
 
@@ -48,6 +50,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
             )
             .Include(x => x.ProductVariant)
             .ThenInclude(x => x.Product)
+            .Include(x => x.Store)
             .ToListAsync();
 
         return warehouseInventories;
@@ -60,6 +63,8 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
             (
                 x =>
                     x.WarehouseId == filter.WarehouseId
+                    &&
+                    (filter.StoreId == null || x.StoreId == filter.StoreId)
                     &&
                     (
                         filter.Query == null ||
@@ -74,6 +79,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
             )
             .Include(x => x.ProductVariant)
             .ThenInclude(x => x.Product)
+            .Include(x => x.Store)
             .AsQueryable();
 
         if (!filter.IsAll)
@@ -93,6 +99,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
         var query = _context.WarehouseInventories
             .Where(x =>
                 x.WarehouseId == filter.WarehouseId &&
+                (filter.StoreId == null || x.StoreId == filter.StoreId) &&
                 (
                     filter.Query == null ||
                     (
@@ -147,7 +154,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
             ).AsQueryable();
         }
 
-        return await query.Include(x => x.ProductVariant).ToListAsync();
+        return await query.Include(x => x.ProductVariant).Include(x => x.Store).ToListAsync();
     }
 
     public async Task<WarehouseInventory?> GetByIdWithDetailsAsync(int id)
@@ -156,6 +163,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
             .Include(wi => wi.ProductVariant)
             .ThenInclude(pv => pv.Product)
             .Include(wi => wi.Warehouse)
+            .Include(wi => wi.Store)
             .FirstOrDefaultAsync(wi => wi.Id == id);
     }
 }

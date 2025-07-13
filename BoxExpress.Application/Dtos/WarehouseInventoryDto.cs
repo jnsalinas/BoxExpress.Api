@@ -6,6 +6,7 @@ public class WarehouseInventoryDto : BaseFilterDto
 {
     public int? Id { get; set; }
     public int? WarehouseId { get; set; }
+    public int? StoreId { get; set; }
     public int? Quantity { get; set; }
     public int? Status { get; set; }
     public string? Query { get; set; }
@@ -14,5 +15,5 @@ public class WarehouseInventoryDto : BaseFilterDto
     public int AvailableQuantity { get; set; }
     public ProductVariantDto? ProductVariant { get; set; }
     public WarehouseDto? Warehouse { get; set; }
-
+    public StoreDto? Store { get; set; }
 }
