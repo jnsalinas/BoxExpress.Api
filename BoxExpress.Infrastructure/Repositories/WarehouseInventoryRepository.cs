@@ -98,7 +98,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
     {
         var query = _context.WarehouseInventories
             .Where(x =>
-                x.WarehouseId == filter.WarehouseId &&
+                (filter.WarehouseId == null || x.WarehouseId == filter.WarehouseId) &&
                 (filter.StoreId == null || x.StoreId == filter.StoreId) &&
                 (
                     filter.Query == null ||
@@ -140,7 +140,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
     public async Task<List<WarehouseInventory>> GetByWarehouseAndProductsId(int? warehouseId, List<int> productIds, WarehouseInventoryFilter? filter)
     {
         var query = _context.WarehouseInventories
-            .Where(x => x.WarehouseId == warehouseId && productIds.Contains(x.ProductVariant.ProductId));
+            .Where(x => (warehouseId == null || x.WarehouseId == warehouseId) && productIds.Contains(x.ProductVariant.ProductId));
 
         if (filter != null)
         {

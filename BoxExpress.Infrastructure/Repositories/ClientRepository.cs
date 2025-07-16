@@ -25,6 +25,11 @@ namespace BoxExpress.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<Client?> GetByDocumentAsync(string document)
+        {
+            return await _context.Set<Client>()
+                .Include(c => c.Addresses)
+                .FirstOrDefaultAsync(c => c.Document == document);
+        }
     }
-
 }

@@ -7,7 +7,7 @@ using BoxExpress.Domain.Entities;
 
 namespace BoxExpress.Domain.Interfaces
 {
-    public interface IClientAddresRepository : IRepository<ClientAddress>
+    public interface IClientAddressRepository : IRepository<ClientAddress>
     {
     }
 }

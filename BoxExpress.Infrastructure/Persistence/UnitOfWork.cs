@@ -21,6 +21,8 @@ public class UnitOfWork : IUnitOfWork
     public IOrderCategoryHistoryRepository OrderCategoryHistories { get; }
     public IOrderStatusHistoryRepository OrderStatusHistories { get; }
     public IWalletTransactionRepository WalletTransactions { get; }
+    public IClientRepository Clients { get; }
+    public IClientAddressRepository ClientAddresses { get; }
 
     public UnitOfWork(
         BoxExpressDbContext context,

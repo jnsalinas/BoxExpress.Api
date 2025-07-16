@@ -28,7 +28,9 @@ public class OrderService : IOrderService
     private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IWarehouseInventoryTransferService _warehouseInventoryTransferService;
     private readonly IInventoryHoldService _inventoryHoldService;
-    private readonly IClientAddresRepository _clientAddresRepository;
+    private readonly IClientAddressRepository _clientAddressRepository;
+    private readonly IClientRepository _clientRepository;
+    private readonly IDocumentTypeRepository _documentTypeRepository;
     private readonly IUnitOfWork _unitOfWork;
 
 
@@ -47,7 +49,9 @@ public class OrderService : IOrderService
         IOrderItemRepository orderItemRepository,
         IWarehouseInventoryTransferService warehouseInventoryTransferService,
         IInventoryHoldService inventoryHoldService,
-        IClientAddresRepository clientAddresRepository,
+        IClientAddressRepository clientAddressRepository,
+        IClientRepository clientRepository,
+        IDocumentTypeRepository documentTypeRepository,
         IUnitOfWork unitOfWork
         )
     {
@@ -65,7 +69,9 @@ public class OrderService : IOrderService
         _orderItemRepository = orderItemRepository;
         _repository = repository;
         _mapper = mapper;
-        _clientAddresRepository = clientAddresRepository;
+        _clientAddressRepository = clientAddressRepository;
+        _clientRepository = clientRepository;
+        _documentTypeRepository = documentTypeRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -250,67 +256,131 @@ public class OrderService : IOrderService
     {
         try
         {
+            var createdAt = DateTime.UtcNow;
 
-            // consultar address para obtener la ciudad y pais
-            var clientAddress = await _clientAddresRepository.GetByIdAsync(createOrderDto.ClientAddressId);
-            if (clientAddress == null)
+            // Validate document type
+            var documentType = await _documentTypeRepository.GetByIdAsync(createOrderDto.ClientDocumentTypeId);
+            if (documentType == null)
             {
-                return ApiResponse<bool>.Fail("Dirección del cliente no encontrada");
+                return ApiResponse<bool>.Fail("Tipo de documento no encontrado");
             }
 
-            var createdAt = DateTime.UtcNow;
-            var order = _mapper.Map<Order>(createOrderDto);
-            order.CityId = clientAddress.CityId;
-            order.CountryId = clientAddress.City.CountryId;
-            order.Latitude = clientAddress.Latitude;
-            order.Longitude = clientAddress.Longitude;
-            order.CreatedAt = createdAt;
+            // Find or create client
+            var existingClient = await _clientRepository.GetByDocumentAsync(createOrderDto.ClientDocument);
+            Client client;
+            
+            if (existingClient == null)
+            {
+                // Create new client
+                client = new Client
+                {
+                    FirstName = createOrderDto.ClientFirstName,
+                    LastName = createOrderDto.ClientLastName,
+                    Document = createOrderDto.ClientDocument,
+                    Email = createOrderDto.ClientEmail,
+                    ExternalId = createOrderDto.ClientExternalId,
+                    CreatedAt = createdAt
+                };
+                await _unitOfWork.Clients.AddAsync(client);
+            }
+            else
+            {
+                // Update existing client information
+                client = existingClient;
+                client.FirstName = createOrderDto.ClientFirstName;
+                client.LastName = createOrderDto.ClientLastName;
+                client.Email = createOrderDto.ClientEmail;
+                client.ExternalId = createOrderDto.ClientExternalId;
+                client.UpdatedAt = createdAt;
+                await _unitOfWork.Clients.UpdateAsync(client);
+            }
+
+            // Create client address
+            var clientAddress = new ClientAddress
+            {
+                ClientId = client.Id,
+                Address = createOrderDto.ClientAddress,
+                Complement = createOrderDto.ClientAddressComplement,
+                Address2 = createOrderDto.ClientAddress2,
+                CityId = createOrderDto.CityId,
+                Latitude = !string.IsNullOrEmpty(createOrderDto.Latitude) ? decimal.Parse(createOrderDto.Latitude) : null,
+                Longitude = !string.IsNullOrEmpty(createOrderDto.Longitude) ? decimal.Parse(createOrderDto.Longitude) : null,
+                IsDefault = true,
+                CreatedAt = createdAt
+            };
+            await _unitOfWork.ClientAddresses.AddAsync(clientAddress);
+
+            // Get default order status and category
+            var defaultOrderStatus = await _orderStatusRepository.GetByNameAsync(OrderStatusConstants.Unscheduled);
+            //var defaultOrderCategory = await _orderCategoryRepository.GetByNameAsync(OrderCategoryConstants.Traditional);
+            
+            if (defaultOrderStatus == null)
+            {
+                return ApiResponse<bool>.Fail("Estado de orden por defecto no encontrado");
+            }
+            
+            // if (defaultOrderCategory == null)
+            // {
+            //     return ApiResponse<bool>.Fail("Categoría de orden por defecto no encontrada");
+            // }
+
+            // Create order
+            var order = new Order
+            {
+                StoreId = createOrderDto.StoreId,
+                OrderStatusId = defaultOrderStatus.Id,
+                // OrderCategoryId = defaultOrderCategory.Id,
+                DeliveryFee = createOrderDto.DeliveryFee ?? 0,
+                CurrencyId = createOrderDto.CurrencyId,
+                ClientId = client.Id,
+                ClientAddressId = clientAddress.Id,
+                CityId = createOrderDto.CityId,
+                Code = createOrderDto.Code,
+                Contains = createOrderDto.Contains,
+                TotalAmount = createOrderDto.TotalAmount,
+                Notes = createOrderDto.Notes,
+                ExternalId = createOrderDto.ExternalId,
+                CreatedAt = createdAt,
+                CreatorId = createOrderDto.CreatorId ?? 0
+            };
 
             await _unitOfWork.Orders.AddAsync(order);
 
-            var inventories = await _warehouseInventoryRepository.GetByWarehouseAndProductVariants(createOrderDto.WarehouseId, createOrderDto.OrderItems.Select(p => p.ProductVariantId).ToList());
-
-
-            //crear items de la orden
+            // Validate and create order items
             foreach (var orderItemDto in createOrderDto.OrderItems)
             {
-                var inventory = inventories.Where(i=> i.Id.Equals(orderItemDto.ProductVariantId)).FirstOrDefault();
-                if (inventory == null || inventory.Quantity< orderItemDto.Quantity) 
+                var orderItem = new OrderItem
                 {
-                    throw new Exception($"El item: {orderItemDto.ProductVariantName} no tiene suficiente inventario");
-
-                }
-
-                var oderItem = _mapper.Map<OrderItem>(orderItemDto);
-                oderItem.OrderId = order.Id;
-                oderItem.CreatedAt = createdAt;
-                await _unitOfWork.OrderItems.AddAsync(oderItem);
+                    OrderId = order.Id,
+                    ProductVariantId = orderItemDto.ProductVariantId,
+                    Quantity = orderItemDto.Quantity ?? 0,
+                    CreatedAt = createdAt
+                };
+                await _unitOfWork.OrderItems.AddAsync(orderItem);
             }
 
-            //crear status history order
-            var OrderStatusHistory = new OrderStatusHistory
+            // Create order status history
+            var orderStatusHistory = new OrderStatusHistory
             {
                 CreatedAt = createdAt,
                 OrderId = order.Id,
-                CreatorId = createOrderDto.CreatorId,
-                NewStatusId = createOrderDto.OrderStatusId,
+                CreatorId = createOrderDto.CreatorId ?? 0,
+                NewStatusId = defaultOrderStatus.Id
             };
+            await _unitOfWork.OrderStatusHistories.AddAsync(orderStatusHistory);
 
-            await _unitOfWork.OrderStatusHistories.AddAsync(OrderStatusHistory);
+            // Create order category history
+            // var orderCategoryHistory = new OrderCategoryHistory
+            // {
+            //     CreatedAt = createdAt,
+            //     OrderId = order.Id,
+            //     CreatorId = createOrderDto.CreatorId ?? 0,
+            //     NewCategoryId = defaultOrderCategory.Id
+            // };
+            // await _unitOfWork.OrderCategoryHistories.AddAsync(orderCategoryHistory);
 
-            //crear category history order
-            var categoryOrderHistory = new OrderCategoryHistory
-            {
-                CreatedAt = createdAt,
-                OrderId= order.Id,
-                CreatorId= createOrderDto.CreatorId,
-                NewCategoryId = createOrderDto.CategoryId,
-            };
-
-            await _unitOfWork.OrderCategoryHistories.AddAsync(categoryOrderHistory);
-
+            await _unitOfWork.CommitAsync();
             return ApiResponse<bool>.Success(true, null, "Orden creada exitosamente");
-
         }
         catch (Exception ex)
         {

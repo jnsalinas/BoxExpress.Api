@@ -9,5 +9,6 @@ namespace BoxExpress.Domain.Interfaces
 {
     public interface IClientRepository : IRepository<Client>
     {
+        Task<Client?> GetByDocumentAsync(string document);
     }
 }

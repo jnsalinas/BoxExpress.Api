@@ -10,10 +10,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BoxExpress.Infrastructure.Repositories
 {
-    public class ClientAddresRepository : Repository<ClientAddress>, IClientAddresRepository
+    public class ClientAddressRepository : Repository<ClientAddress>, IClientAddressRepository
     {
         private readonly BoxExpressDbContext _context;
-        public ClientAddresRepository(BoxExpressDbContext context) : base(context)
+        public ClientAddressRepository(BoxExpressDbContext context) : base(context)
         {
             _context = context;
         }

@@ -17,6 +17,8 @@ public interface IUnitOfWork
     IOrderCategoryHistoryRepository OrderCategoryHistories { get; }
     IOrderStatusHistoryRepository OrderStatusHistories { get; }
     IWalletTransactionRepository WalletTransactions { get; }
+    IClientRepository Clients { get; }
+    IClientAddressRepository ClientAddresses { get; }
 
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();
