@@ -88,6 +88,9 @@ namespace BoxExpress.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("DocumentTypeId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
@@ -108,6 +111,8 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DocumentTypeId");
 
                     b.ToTable("Client");
                 });
@@ -1196,6 +1201,16 @@ namespace BoxExpress.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("BoxExpress.Domain.Entities.Client", b =>
+                {
+                    b.HasOne("BoxExpress.Domain.Entities.DocumentType", "DocumentType")
+                        .WithMany()
+                        .HasForeignKey("DocumentTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("DocumentType");
                 });
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.ClientAddress", b =>

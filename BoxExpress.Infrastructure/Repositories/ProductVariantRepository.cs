@@ -27,6 +27,13 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
             .FirstOrDefaultAsync(w => w.Id.Equals(id));
     }
 
+
+    public async Task<List<ProductVariant>> GetBySkusAsync(HashSet<string> skus)
+    {
+        return await _context.ProductVariants
+            .Where(x => x.Sku != null && skus.Contains(x.Sku))
+            .ToListAsync();
+    }
     // public async Task<List<ProductVariant>> GetVariantsAutocompleteAsync(string query, int warehouseOrigonId)
     // {
     //     List<ProductVariant> productVariants = await _context.ProductVariants

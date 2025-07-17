@@ -10,6 +10,8 @@ public class Client : BaseEntity
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? Email { get; set; }
+    public int? DocumentTypeId { get; set; }
+    public DocumentType? DocumentType { get; set; }
     public ICollection<ClientAddress> Addresses { get; set; } = new List<ClientAddress>();
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

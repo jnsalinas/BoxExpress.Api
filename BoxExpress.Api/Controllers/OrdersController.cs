@@ -17,7 +17,9 @@ public class OrdersController : ControllerBase
     private readonly IExcelExporter<OrderDto> _excelExporter;
     private readonly IOrderService _orderService;
 
-    public OrdersController(IOrderService orderService, IExcelExporter<OrderDto> excelStatusExporter
+    public OrdersController(
+        IOrderService orderService,
+        IExcelExporter<OrderDto> excelStatusExporter
     )
     {
         _orderService = orderService;
@@ -30,7 +32,7 @@ public class OrdersController : ControllerBase
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
         if (role?.ToLower() == RolConstants.Warehose)
         {
-            filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0"); 
+            filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0");
         }
         else if (role?.ToLower() == RolConstants.Store)
         {
@@ -40,13 +42,12 @@ public class OrdersController : ControllerBase
                 return BadRequest("StoreId is required for store role.");
             }
 
-            filter.StoreId = int.Parse(storeId); 
+            filter.StoreId = int.Parse(storeId);
         }
 
         var result = await _orderService.GetAllAsync(filter);
         return Ok(result);
     }
-
 
     [HttpPost("summary")]
     public async Task<IActionResult> Summary([FromBody] OrderFilterDto filter)
@@ -54,7 +55,7 @@ public class OrdersController : ControllerBase
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
         if (role?.ToLower() == RolConstants.Warehose)
         {
-            filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0"); 
+            filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0");
         }
         else if (role?.ToLower() == RolConstants.Store)
         {
@@ -63,8 +64,8 @@ public class OrdersController : ControllerBase
             {
                 return BadRequest("StoreId is required for store role.");
             }
-            
-            filter.StoreId = int.Parse(storeId); 
+
+            filter.StoreId = int.Parse(storeId);
         }
 
         var result = await _orderService.GetSummaryAsync(filter);
@@ -75,7 +76,8 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _orderService.GetByIdAsync(id);
-        if (result.Equals(null)) return NotFound();
+        if (result.Equals(null))
+            return NotFound();
         return Ok(result);
     }
 
@@ -92,7 +94,10 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPatch("{orderId}/schedule")]
-    public async Task<IActionResult> UpdateSchedule(int orderId, [FromBody] OrderScheduleUpdateDto dto)
+    public async Task<IActionResult> UpdateSchedule(
+        int orderId,
+        [FromBody] OrderScheduleUpdateDto dto
+    )
     {
         var updated = await _orderService.UpdateScheduleAsync(orderId, dto);
         return Ok(updated);
@@ -126,7 +131,7 @@ public class OrdersController : ControllerBase
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
         if (role?.ToLower() == RolConstants.Warehose)
         {
-            filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0"); 
+            filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0");
         }
         else if (role?.ToLower() == RolConstants.Store)
         {
@@ -136,7 +141,7 @@ public class OrdersController : ControllerBase
                 return BadRequest("StoreId is required for store role.");
             }
 
-            filter.StoreId = int.Parse(storeId); 
+            filter.StoreId = int.Parse(storeId);
         }
 
         var result = await _orderService.GetAllAsync(filter);
@@ -148,7 +153,7 @@ public class OrdersController : ControllerBase
         );
     }
 
-    [HttpPost("create")]
+    [HttpPost()]
     public async Task<IActionResult> Create([FromBody] CreateOrderDto createOrderDto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -157,5 +162,22 @@ public class OrdersController : ControllerBase
 
         var result = await _orderService.AddOrderAsync(createOrderDto);
         return Ok(result);
+    }
+
+    [HttpPost("create-massive")]
+    public async Task<IActionResult> CreateMassive([FromForm] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            using (var stream = file.OpenReadStream())
+            {
+                var result = await _orderService.AddOrdersFromExcelAsync(stream);
+                if (result.IsSuccess)
+                {
+                    return Ok(result);
+                }
+            }
+        }
+        return BadRequest();
     }
 }

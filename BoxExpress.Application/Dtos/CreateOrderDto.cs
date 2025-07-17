@@ -15,6 +15,7 @@ namespace BoxExpress.Application.Dtos
         public string ClientDocument { get; set; } = string.Empty;
         public string ClientEmail { get; set; } = string.Empty;
         public string? ClientExternalId { get; set; }
+        public string? ClientPhone { get; set; }
 
         // Address Information
         public string ClientAddress { get; set; } = string.Empty;

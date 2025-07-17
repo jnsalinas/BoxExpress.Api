@@ -8,6 +8,8 @@ using BoxExpress.Domain.Entities;
 using BoxExpress.Domain.Filters;
 using BoxExpress.Domain.Interfaces;
 using BoxExpress.Utilities;
+using Microsoft.Extensions.Configuration;
+using OfficeOpenXml;
 
 namespace BoxExpress.Application.Services;
 
@@ -32,7 +34,8 @@ public class OrderService : IOrderService
     private readonly IClientRepository _clientRepository;
     private readonly IDocumentTypeRepository _documentTypeRepository;
     private readonly IUnitOfWork _unitOfWork;
-
+    private readonly IProductVariantRepository _productVariantRepository;
+    private readonly IConfiguration _configuration;
 
     public OrderService(
         IOrderRepository repository,
@@ -52,7 +55,9 @@ public class OrderService : IOrderService
         IClientAddressRepository clientAddressRepository,
         IClientRepository clientRepository,
         IDocumentTypeRepository documentTypeRepository,
-        IUnitOfWork unitOfWork
+        IUnitOfWork unitOfWork,
+        IProductVariantRepository productVariantRepository,
+        IConfiguration configuration
         )
     {
         _warehouseInventoryTransferService = warehouseInventoryTransferService;
@@ -66,6 +71,7 @@ public class OrderService : IOrderService
         _walletTransactionService = walletTransactionService;
         _orderCategoryRepository = orderCategoryRepository;
         _orderStatusRepository = orderStatusRepository;
+        _productVariantRepository = productVariantRepository;
         _orderItemRepository = orderItemRepository;
         _repository = repository;
         _mapper = mapper;
@@ -73,6 +79,7 @@ public class OrderService : IOrderService
         _clientRepository = clientRepository;
         _documentTypeRepository = documentTypeRepository;
         _unitOfWork = unitOfWork;
+        _configuration = configuration;
     }
 
     public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter)
@@ -268,7 +275,7 @@ public class OrderService : IOrderService
             // Find or create client
             var existingClient = await _clientRepository.GetByDocumentAsync(createOrderDto.ClientDocument);
             Client client;
-            
+
             if (existingClient == null)
             {
                 // Create new client
@@ -279,7 +286,9 @@ public class OrderService : IOrderService
                     Document = createOrderDto.ClientDocument,
                     Email = createOrderDto.ClientEmail,
                     ExternalId = createOrderDto.ClientExternalId,
-                    CreatedAt = createdAt
+                    CreatedAt = createdAt,
+                    Phone = createOrderDto.ClientPhone ?? string.Empty,
+                    DocumentTypeId = createOrderDto.ClientDocumentTypeId,
                 };
                 await _unitOfWork.Clients.AddAsync(client);
             }
@@ -313,12 +322,12 @@ public class OrderService : IOrderService
             // Get default order status and category
             var defaultOrderStatus = await _orderStatusRepository.GetByNameAsync(OrderStatusConstants.Unscheduled);
             //var defaultOrderCategory = await _orderCategoryRepository.GetByNameAsync(OrderCategoryConstants.Traditional);
-            
+
             if (defaultOrderStatus == null)
             {
                 return ApiResponse<bool>.Fail("Estado de orden por defecto no encontrado");
             }
-            
+
             // if (defaultOrderCategory == null)
             // {
             //     return ApiResponse<bool>.Fail("Categoría de orden por defecto no encontrada");
@@ -388,5 +397,107 @@ public class OrderService : IOrderService
             await _unitOfWork.RollbackAsync();
             return ApiResponse<bool>.Fail("Error al crear Orden: " + ex.Message);
         }
+    }
+
+    public async Task<ApiResponse<bool>> AddOrdersFromExcelAsync(Stream stream, int? storeId = null)
+    {
+        using var package = new ExcelPackage(stream);
+        var ordersSheet = package.Workbook.Worksheets[0];
+
+        var orders = new List<CreateOrderDto>();
+
+        var allSkus = new HashSet<string>();
+        for (int row = 2; row <= ordersSheet.Dimension.End.Row; row++)
+        {
+            var orderItemsSKUS = ordersSheet.Cells[row, 14].Text.Split(';');
+            foreach (var sku in orderItemsSKUS)
+            {
+                var skuCode = sku.Split(':')[0].Trim();
+                if (!string.IsNullOrEmpty(skuCode))
+                    allSkus.Add(skuCode);
+            }
+        }
+
+        var skuToVariant = await _productVariantRepository.GetBySkusAsync(allSkus);
+
+        for (int row = 2; row <= ordersSheet.Dimension.End.Row; row++)
+        {
+            int col = 1;
+            var order = new CreateOrderDto
+            {
+                Code = ordersSheet.Cells[row, col++].Text,
+                ClientFirstName = ordersSheet.Cells[row, col++].Text,
+                ClientLastName = ordersSheet.Cells[row, col++].Text,
+                ClientDocumentTypeId = int.Parse(ordersSheet.Cells[row, col++].Text),
+                ClientDocument = ordersSheet.Cells[row, col++].Text,
+                ClientEmail = ordersSheet.Cells[row, col++].Text,
+                ClientPhone = ordersSheet.Cells[row, col++].Text,
+                ClientAddress = ordersSheet.Cells[row, col++].Text,
+                ClientAddressComplement = ordersSheet.Cells[row, col++].Text,
+                ClientAddress2 = ordersSheet.Cells[row, col++].Text,
+                Latitude = ordersSheet.Cells[row, col++].Text,
+                Longitude = ordersSheet.Cells[row, col++].Text,
+                TotalAmount = decimal.Parse(ordersSheet.Cells[row, col++].Text),
+                Notes = ordersSheet.Cells[row, col++].Text,
+                OrderItems = new List<OrderItemDto>()
+            };
+
+            if (storeId != null)
+            {
+                order.StoreId = storeId.Value;
+                col++;
+            }
+            else
+            {
+                order.StoreId = int.Parse(ordersSheet.Cells[row, col++].Text);
+            }
+
+            order.CityId = 1;
+            order.CurrencyId = 1;
+            // Obtener el valor de DeliveryFee desde la configuración por país (appsettings.json)
+            var countryCode = "MX"; // TODO: obtener dinámicamente según la orden o el usuario
+            var deliveryFeeSection = _configuration.GetSection($"{countryCode}:DeliveryFee");
+            if (deliveryFeeSection.Exists() && decimal.TryParse(deliveryFeeSection.Value, out var fee))
+            {
+                order.DeliveryFee = fee;
+            }
+            else
+            {
+                order.DeliveryFee = 150;
+            }
+
+            // .
+            //CurrencyId = int.Parse(ordersSheet.Cells[row, col++].Text),
+            //CityId = 1, //int.Parse(ordersSheet.Cells[row, col++].Text),
+
+
+            var orderItemsSKUS = ordersSheet.Cells[row, col++].Text.Split(';');
+            foreach (var sku in orderItemsSKUS)
+            {
+                // Asumiendo que el SKU tiene un formato SKU:Quantity
+                var parts = sku.Split(':');
+                var skuCode = parts[0].Trim();
+                var quantityText = parts.Length > 1 ? parts[1].Trim() : "0";
+
+                var productVariant = skuToVariant.Where(x => x.Sku != null && x.Sku.Equals(skuCode, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                if (productVariant != null)
+                {
+                    order.OrderItems.Add(new OrderItemDto
+                    {
+                        ProductVariantId = productVariant.Id,
+                        Quantity = int.Parse(quantityText)
+                    });
+                }
+            }
+
+            orders.Add(order);
+        }
+
+        foreach (var order in orders)
+        {
+            //await AddOrderAsync(order);
+        }
+
+        return ApiResponse<bool>.Success(true, null, "Órdenes creadas exitosamente");
     }
 }
