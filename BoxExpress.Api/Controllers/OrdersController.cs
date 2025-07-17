@@ -153,7 +153,7 @@ public class OrdersController : ControllerBase
         );
     }
 
-    [HttpPost()]
+    [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateOrderDto createOrderDto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
