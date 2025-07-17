@@ -335,13 +335,14 @@ public class OrderService : IOrderService
                 ClientId = client.Id,
                 ClientAddressId = clientAddress.Id,
                 CityId = createOrderDto.CityId,
-                Code = createOrderDto.Code,
+                Code = createOrderDto.Code ?? string.Empty,
                 Contains = createOrderDto.Contains,
                 TotalAmount = createOrderDto.TotalAmount,
                 Notes = createOrderDto.Notes,
                 ExternalId = createOrderDto.ExternalId,
                 CreatedAt = createdAt,
-                CreatorId = createOrderDto.CreatorId ?? 0
+                CreatorId = createOrderDto.CreatorId ?? 0,
+                IsEnabled = true
             };
 
             await _unitOfWork.Orders.AddAsync(order);

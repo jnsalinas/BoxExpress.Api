@@ -96,7 +96,7 @@ public class AutoMapperProfile : Profile
             ));
 
         CreateMap<Order, OrderDto>()
-            .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.Client.FullName))
+            .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.Client.FirstName + " " + src.Client.LastName))
             .ForMember(dest => dest.ClientDocument, opt => opt.MapFrom(src => src.Client.Document))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.Name))
             .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : string.Empty))
@@ -180,7 +180,7 @@ public class AutoMapperProfile : Profile
         CreateMap<WarehouseInventory, WarehouseInventoryDto>();
         CreateMap<Product, ProductDto>();
         CreateMap<InventoryHold, InventoryHoldDto>()
-            .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.OrderItem != null ? src.OrderItem.Order.Client.FullName : string.Empty))
+            .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.OrderItem != null ? src.OrderItem.Order.Client.FirstName + " " + src.OrderItem.Order.Client.LastName : string.Empty))
             .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.WarehouseInventory != null && src.WarehouseInventory.Warehouse != null ? src.WarehouseInventory.Warehouse.Name : string.Empty)); ;
 
         // Filtros

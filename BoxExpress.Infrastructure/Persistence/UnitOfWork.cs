@@ -39,7 +39,9 @@ public class UnitOfWork : IUnitOfWork
         IOrderItemRepository orderItems,
         IOrderCategoryHistoryRepository orderCategoryHistories,
         IOrderStatusHistoryRepository orderStatusHistories,
-        IWalletTransactionRepository walletTransactions)
+        IWalletTransactionRepository walletTransactions,
+        IClientRepository clients,
+        IClientAddressRepository clientAddresses)
     {
         _context = context;
         Products = products;
@@ -56,6 +58,9 @@ public class UnitOfWork : IUnitOfWork
         OrderCategoryHistories = orderCategoryHistories;
         OrderStatusHistories = orderStatusHistories;
         WalletTransactions = walletTransactions;
+        Clients = clients;
+        ClientAddresses = clientAddresses;
+        _transaction = null;
     }
 
     public async Task BeginTransactionAsync()

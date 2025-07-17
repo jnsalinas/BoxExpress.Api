@@ -4,7 +4,6 @@ namespace BoxExpress.Domain.Entities;
 
 public class Client : BaseEntity
 {
-    public string FullName { get; set; } = string.Empty; //todo: eliminar
     public string Document { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public string? ExternalId { get; set; }
