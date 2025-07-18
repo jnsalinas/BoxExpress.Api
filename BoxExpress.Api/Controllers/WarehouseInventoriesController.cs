@@ -3,6 +3,8 @@ using BoxExpress.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using BoxExpress.Application.Dtos;
 using System.Linq;
+using System.Security.Claims;
+using BoxExpress.Domain.Constants;
 
 namespace BoxExpress.Api.Controllers;
 
@@ -10,11 +12,13 @@ namespace BoxExpress.Api.Controllers;
 [Route("api/[controller]")]
 public class WarehouseInventoriesController : ControllerBase
 {
+    private readonly IExcelExporter<ProductDto> _excelExporter;
     private readonly IWarehouseInventoryService _service;
 
-    public WarehouseInventoriesController(IWarehouseInventoryService service)
+    public WarehouseInventoriesController(IWarehouseInventoryService service, IExcelExporter<ProductDto> excelExporter)
     {
         _service = service;
+        _excelExporter = excelExporter;
     }
 
     [HttpPost("search")]
@@ -50,5 +54,32 @@ public class WarehouseInventoriesController : ControllerBase
         var result = await _service.GetByIdAsync(id);
         if (result.Equals(null)) return NotFound();
         return Ok(result);
+    }
+
+
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportToExcel()
+    {
+        var filter = new WarehouseInventoryFilterDto();
+        filter.IsAll = true;
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Store)
+        {
+            var storeId = User.FindFirst("StoreId")?.Value;
+            if (storeId == null)
+            {
+                return BadRequest("StoreId is required for store role.");
+            }
+
+            filter.StoreId = int.Parse(storeId);
+        }
+
+        var result = await _service.GetWarehouseProductSummaryAsync(filter);;
+        var bytes = _excelExporter.ExportToExcel(result.Data.ToList());
+        return File(
+            bytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"Orders_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
+        );
     }
 }

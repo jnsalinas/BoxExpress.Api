@@ -4,6 +4,7 @@ using BoxExpress.Application.Exporters;
 using BoxExpress.Application.Mappings;
 using BoxExpress.Application.Interfaces;
 using BoxExpress.Application.Services;
+using BoxExpress.Domain.Entities;
 
 namespace BoxExpress.Application.Extensions;
 
@@ -23,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IExcelExporter<StoreDto>, StoreExcelExporter>();
         services.AddScoped<IExcelExporter<OrderDto>, OrderExporter>();
         services.AddScoped<IExcelExporter<WarehouseInventoryTransferDto>, WarehouseInventoryTransferExporter>();
+        services.AddScoped<IExcelExporter<ProductDto>, WarehouseInventoryExporter>();
         services.AddScoped<IStoreService, StoreService>();
         services.AddScoped<ITimeSlotService, TimeSlotService>();
         services.AddScoped<ITokenService, TokenService>();

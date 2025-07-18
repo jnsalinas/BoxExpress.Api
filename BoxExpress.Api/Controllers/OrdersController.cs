@@ -164,20 +164,20 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("create-massive")]
-    public async Task<IActionResult> CreateMassive([FromForm] IFormFile file)
-    {
-        if (file == null || file.Length == 0)
-        {
-            using (var stream = file.OpenReadStream())
-            {
-                var result = await _orderService.AddOrdersFromExcelAsync(stream);
-                if (result.IsSuccess)
-                {
-                    return Ok(result);
-                }
-            }
-        }
-        return BadRequest();
-    }
+    // [HttpPost("create-massive")]
+    // public async Task<IActionResult> CreateMassive([FromForm] IFormFile file)
+    // {
+    //     if (file == null || file.Length == 0)
+    //     {
+    //         using (var stream = file.OpenReadStream())
+    //         {
+    //             var result = await _orderService.AddOrdersFromExcelAsync(stream);
+    //             if (result.IsSuccess)
+    //             {
+    //                 return Ok(result);
+    //             }
+    //         }
+    //     }
+    //     return BadRequest();
+    // }
 }
