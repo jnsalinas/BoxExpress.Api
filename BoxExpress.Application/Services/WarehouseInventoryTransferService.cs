@@ -108,11 +108,11 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
                 };
                 await _unitOfWork.Inventories.AddAsync(inventoryDestination);
             }
-            // else
-            // {
-            //     inventoryDestination.Quantity += item.Quantity;
-            //     await _unitOfWork.Inventories.UpdateAsync(inventoryDestination);
-            // }
+            else
+            {
+                inventoryDestination.Quantity += item.Quantity;
+                await _unitOfWork.Inventories.UpdateAsync(inventoryDestination);
+            }
 
             #region Crear movimientos de inventario
 
@@ -230,5 +230,10 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
 
         await _unitOfWork.CommitAsync();
         return ApiResponse<bool>.Success(newTransfer.Id > 0, null, "Inventario creado exitosamente");
+    }
+
+    public async Task<ApiResponse<int>> GetPendingTransfersAsync(WarehouseInventoryTransferFilterDto filter)
+    {
+        return ApiResponse<int>.Success(await _warehouseInventoryTransferRepository.GetPendingTransfersAsync(_mapper.Map<WarehouseInventoryTransferFilter>(filter)));
     }
 }

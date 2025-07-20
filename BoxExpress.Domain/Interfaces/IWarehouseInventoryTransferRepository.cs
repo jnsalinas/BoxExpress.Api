@@ -7,4 +7,5 @@ public interface IWarehouseInventoryTransferRepository : IRepository<WarehouseIn
 {
     Task<(List<WarehouseInventoryTransfer> Transactions, int TotalCount)> GetFilteredAsync(WarehouseInventoryTransferFilter filter);
     Task<WarehouseInventoryTransfer?> GetByIdWithDetailsAsync(int id);
+    Task<int> GetPendingTransfersAsync(WarehouseInventoryTransferFilter warehouseInventoryTransferFilter);
 }

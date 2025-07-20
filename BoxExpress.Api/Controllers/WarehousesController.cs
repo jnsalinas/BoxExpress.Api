@@ -33,9 +33,9 @@ public class WarehousesController : ControllerBase
     public async Task<IActionResult> Search([FromBody] WarehouseFilterDto filter)
     {
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
-        if (role?.ToLower() == RolConstants.Warehose)
+        if (role?.ToLower() == RolConstants.Warehouse)
         {
-            filter.Id = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0"); 
+            filter.Id = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0");
         }
 
         var result = await _warehouseService.GetAllAsync(filter);
@@ -63,6 +63,14 @@ public class WarehousesController : ControllerBase
     {
         transferDto.FromWarehouseId = warehouseId;
         var result = await _warehouseInventoryTransferService.CreateTransferAsync(transferDto);
+        return Ok(result);
+    }
+
+    [HttpPost("create")]
+    public async Task<IActionResult> CreateWarehouse([FromBody] CreateWarehouseDto createWarehouseDto)
+    {
+        var result = await _warehouseService.CreateAsync(createWarehouseDto);
+        if (result.Equals(null)) return NotFound();
         return Ok(result);
     }
 }

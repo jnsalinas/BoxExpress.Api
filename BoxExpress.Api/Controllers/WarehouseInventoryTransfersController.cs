@@ -3,6 +3,8 @@ using BoxExpress.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using BoxExpress.Application.Dtos;
 using System.Linq;
+using System.Security.Claims;
+using BoxExpress.Domain.Constants;
 
 namespace BoxExpress.Api.Controllers;
 
@@ -23,6 +25,16 @@ public class WarehouseInventoryTransfersController : ControllerBase
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] WarehouseInventoryTransferFilterDto filter)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Warehouse)
+        {
+            var warehouseId = User.FindFirst("WarehouseId")?.Value;
+            if (warehouseId == null)
+            {
+                return BadRequest("Warehouse is required for warehouse role.");
+            }
+            filter.ToWarehouseId = int.Parse(warehouseId);
+        }
         var result = await _warehouseService.GetAllAsync(filter);
         return Ok(result);
     }
@@ -66,5 +78,24 @@ public class WarehouseInventoryTransfersController : ControllerBase
             $"InventoryTransfer_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
         );
     }
+
+    [HttpPost("pending-transfers")]
+    public async Task<IActionResult> GetPendingTransfers(WarehouseInventoryTransferFilterDto filter)
+    {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Warehouse)
+        {
+            var warehouseId = User.FindFirst("WarehouseId")?.Value;
+            if (warehouseId == null)
+            {
+                return BadRequest("Warehouse is required for warehouse role.");
+            }
+            filter.ToWarehouseId = int.Parse(warehouseId);
+        }
+
+        var result = await _warehouseService.GetPendingTransfersAsync(filter);
+        return Ok(result);
+    }
+
 }
 

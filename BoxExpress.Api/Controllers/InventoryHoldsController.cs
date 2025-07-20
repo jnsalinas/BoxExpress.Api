@@ -23,7 +23,7 @@ public class InventoryHoldsController : ControllerBase
     public async Task<IActionResult> Search([FromBody] InventoryHoldFilterDto filter)
     {
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
-        if (role?.ToLower() == RolConstants.Warehose)
+        if (role?.ToLower() == RolConstants.Warehouse)
         {
             filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0");
         }

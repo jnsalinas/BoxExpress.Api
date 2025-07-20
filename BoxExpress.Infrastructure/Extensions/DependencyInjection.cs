@@ -41,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<IClientRepository, ClientRepository>();
         services.AddScoped<IClientAddressRepository, ClientAddressRepository>();
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
 
         return services;
     }

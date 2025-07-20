@@ -7,6 +7,7 @@ public interface IUnitOfWork
     IProductVariantRepository Variants { get; }
     IWarehouseInventoryRepository Inventories { get; }
     IWarehouseInventoryTransferRepository WarehouseInventoryTransfers { get; }
+    IWarehouseRepository Warehouses { get; }
     IWalletRepository Wallets { get; }
     IStoreRepository Stores { get; }
     IUserRepository Users { get; }

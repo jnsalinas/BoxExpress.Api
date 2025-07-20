@@ -57,7 +57,7 @@ public class StoreService : IStoreService
             var user = _mapper.Map<User>(createStoreDto);
             user.CreatedAt = createdAt;
             user.StoreId = store.Id;
-            user.RoleId = 2;
+            user.RoleId = 2; //todo buscar el id del rol 
             user.PasswordHash = BcryptHelper.Hash(createStoreDto.Password);
 
             await _unitOfWork.Users.AddAsync(user);

@@ -6,6 +6,8 @@ using AutoMapper;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Domain.Enums;
+using BoxExpress.Domain.Constants;
+using BoxExpress.Utilities;
 
 namespace BoxExpress.Application.Services;
 
@@ -17,6 +19,8 @@ public class WarehouseService : IWarehouseService
     private readonly IMapper _mapper;
     private readonly IWarehouseInventoryRepository _warehouseInventoryRepository;
     private readonly IInventoryMovementRepository _inventoryMovementRepository;
+    private readonly IRoleRepository _roleRepository;
+    private readonly ICityRepository _cityRepository;
 
     public WarehouseService(
         IWarehouseInventoryTransferRepository warehouseInventoryTransferRepository,
@@ -24,7 +28,9 @@ public class WarehouseService : IWarehouseService
         IInventoryMovementRepository inventoryMovementRepository,
         IWarehouseRepository repository,
         IMapper mapper,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IRoleRepository roleRepository,
+        ICityRepository cityRepository)
     {
         _warehouseInventoryTransferRepository = warehouseInventoryTransferRepository;
         _warehouseInventoryRepository = warehouseInventoryRepository;
@@ -32,6 +38,8 @@ public class WarehouseService : IWarehouseService
         _repository = repository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _roleRepository = roleRepository;
+        _cityRepository = cityRepository;
     }
 
     public async Task<ApiResponse<IEnumerable<WarehouseDto>>> GetAllAsync(WarehouseFilterDto filter) =>
@@ -105,5 +113,49 @@ public class WarehouseService : IWarehouseService
             await _unitOfWork.RollbackAsync();
             return ApiResponse<bool>.Fail("Error al guardar el inventario: " + ex.Message);
         }
+    }
+
+    public async Task<ApiResponse<bool>> CreateAsync(CreateWarehouseDto createWarehouseDto)
+    {
+        Role? role = await _roleRepository.GetByNameAsync(RolConstants.Warehouse);
+        if (role == null)
+            return ApiResponse<bool>.Fail("Rol de bodega no encontrado");
+
+        City? city = await _cityRepository.GetByIdAsync(createWarehouseDto.CityId);
+        if (city == null)
+            return ApiResponse<bool>.Fail("Ciudad no encontrada");
+
+        var existingWarehouse = await _repository.GetFilteredAsync(new WarehouseFilter
+        {
+            Name = createWarehouseDto.Name,
+        });
+
+        if (existingWarehouse.Any())
+            return ApiResponse<bool>.Fail("Ya existe un almacén con ese nombre");
+
+        await _unitOfWork.BeginTransactionAsync();
+        Warehouse warehouse = _mapper.Map<Warehouse>(createWarehouseDto);
+        warehouse.CreatedAt = DateTime.UtcNow;
+        warehouse.CountryId = city.CountryId;
+
+        await _unitOfWork.Warehouses.AddAsync(warehouse);
+
+        await _unitOfWork.Users.AddAsync(new User
+        {
+            CreatedAt = DateTime.UtcNow,
+            Email = createWarehouseDto.Email,
+            PasswordHash = BcryptHelper.Hash(createWarehouseDto.Password),
+            WarehouseId = warehouse.Id,
+            CityId = createWarehouseDto.CityId,
+            RoleId = role.Id,
+            CompanyName = createWarehouseDto.Name,
+            FirstName = createWarehouseDto.Name,
+            CountryId = city.CountryId
+        });
+
+        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.CommitAsync();
+
+        return ApiResponse<bool>.Success(warehouse.Id > 0, null, "Almacén creado exitosamente");
     }
 }
