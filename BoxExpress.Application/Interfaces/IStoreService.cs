@@ -8,6 +8,6 @@ public interface IStoreService
 {
     Task<ApiResponse<StoreDto?>> GetByIdAsync(int storeId);
     Task<ApiResponse<IEnumerable<StoreDto>>> GetAllAsync(StoreFilterDto filter);
-    Task<ApiResponse<bool>> AddStoreAsync(CreateStoreDto createStoreDto);
+    Task<ApiResponse<AuthResponseDto>> AddStoreAsync(CreateStoreDto createStoreDto);
     Task<ApiResponse<StoreDto?>> GetBalanceSummary();
 }

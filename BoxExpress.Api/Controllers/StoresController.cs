@@ -11,6 +11,7 @@ namespace BoxExpress.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class StoresController : ControllerBase
 {
     private readonly IStoreService _storeService;
@@ -50,8 +51,8 @@ public class StoresController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpPost("create")]
+    [AllowAnonymous]
     public async Task<IActionResult> Create([FromBody] CreateStoreDto createStoreDto)
     {
         var result = await _storeService.AddStoreAsync(createStoreDto);

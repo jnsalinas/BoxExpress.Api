@@ -7,7 +7,6 @@ namespace BoxExpress.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class CityController : ControllerBase
     {
         private readonly ICityService _cityService;

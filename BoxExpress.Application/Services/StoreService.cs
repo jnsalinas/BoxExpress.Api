@@ -6,6 +6,7 @@ using AutoMapper;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Utilities;
+using BoxExpress.Domain.Constants;
 
 namespace BoxExpress.Application.Services;
 
@@ -14,12 +15,21 @@ public class StoreService : IStoreService
     private readonly IStoreRepository _repository;
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IAuthService _authService;
 
-    public StoreService(IUnitOfWork unitOfWork, IStoreRepository repository, IMapper mapper)
+    public StoreService(
+        IUnitOfWork unitOfWork,
+    IStoreRepository repository,
+    IMapper mapper,
+    IRoleRepository roleRepository,
+    IAuthService authService)
     {
+        _authService = authService;
         _unitOfWork = unitOfWork;
         _repository = repository;
         _mapper = mapper;
+        _roleRepository = roleRepository;
     }
 
     public async Task<ApiResponse<StoreDto?>> GetByIdAsync(int storeId)
@@ -27,7 +37,7 @@ public class StoreService : IStoreService
         return ApiResponse<StoreDto?>.Success(_mapper.Map<StoreDto?>(await _repository.GetByIdWithDetailsAsync(storeId)));
     }
 
-    public async Task<ApiResponse<bool>> AddStoreAsync(CreateStoreDto createStoreDto)
+    public async Task<ApiResponse<AuthResponseDto>> AddStoreAsync(CreateStoreDto createStoreDto)
     {
         try
         {
@@ -36,9 +46,8 @@ public class StoreService : IStoreService
                 Name = createStoreDto.StoreName,
             });
 
-
             if (existingStore.Stores.Any())
-                return ApiResponse<bool>.Fail("Ya existe una tienda con ese nombre");
+                return ApiResponse<AuthResponseDto>.Fail("Store with this name already exists");
 
             await _unitOfWork.BeginTransactionAsync();
             var createdAt = DateTime.UtcNow;
@@ -54,10 +63,14 @@ public class StoreService : IStoreService
 
             await _unitOfWork.Stores.AddAsync(store);
 
+            Role? role = await _roleRepository.GetByNameAsync(RolConstants.Store);
+            if (role == null)
+                return ApiResponse<AuthResponseDto>.Fail("Role not found");
+
             var user = _mapper.Map<User>(createStoreDto);
             user.CreatedAt = createdAt;
             user.StoreId = store.Id;
-            user.RoleId = 2; //todo buscar el id del rol 
+            user.RoleId = role.Id;
             user.PasswordHash = BcryptHelper.Hash(createStoreDto.Password);
 
             await _unitOfWork.Users.AddAsync(user);
@@ -66,14 +79,19 @@ public class StoreService : IStoreService
 
             await _unitOfWork.CommitAsync();
 
-            return ApiResponse<bool>.Success(true, null, "Usuario creado exitosamente");
+            return await _authService.AuthenticateAsync(new LoginDto
+            {
+                UserName = createStoreDto.Email,
+                Password = createStoreDto.Password
+            });
         }
         catch (Exception ex)
         {
             await _unitOfWork.RollbackAsync();
-            return ApiResponse<bool>.Fail("Error al crear usuario: " + ex.Message);
+            return ApiResponse<AuthResponseDto>.Fail("Error creating store: " + ex.Message);
         }
     }
+    
     public async Task<ApiResponse<IEnumerable<StoreDto>>> GetAllAsync(StoreFilterDto filter)
     {
         var (stores, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<StoreFilter>(filter));
