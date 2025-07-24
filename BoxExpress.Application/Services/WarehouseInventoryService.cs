@@ -38,6 +38,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
         //todo mirar si se puede pasar a automapper 
         var groupedProducts = products.Select(product => new ProductDto
         {
+            Id = product.Id,
             Name = product.Name,
             ShopifyProductId = product.ShopifyProductId,
             Price = product.Price,
@@ -93,15 +94,6 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                 Reference = "Adjustment"
             }, false); //todo mirar si es necesario el moveReserved o hacer otra funcion
         }
-
-        if (dto.ProductName != null)
-            warehouseInventory.ProductVariant.Product.Name = dto.ProductName;
-
-        if (dto.ProductSku != null)
-            warehouseInventory.ProductVariant.Product.Sku = dto.ProductSku;
-
-        if (dto.ShopifyProductId != null)
-            warehouseInventory.ProductVariant.Product.ShopifyProductId = dto.ShopifyProductId;
 
         if (dto.VariantSku != null)
             warehouseInventory.ProductVariant.Sku = dto.VariantSku;

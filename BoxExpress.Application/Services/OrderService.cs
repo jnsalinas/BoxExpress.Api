@@ -9,7 +9,7 @@ using BoxExpress.Domain.Filters;
 using BoxExpress.Domain.Interfaces;
 using BoxExpress.Utilities;
 using Microsoft.Extensions.Configuration;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 
 namespace BoxExpress.Application.Services;
 
@@ -58,7 +58,7 @@ public class OrderService : IOrderService
         IUnitOfWork unitOfWork,
         IProductVariantRepository productVariantRepository,
         IConfiguration configuration
-        )
+    )
     {
         _warehouseInventoryTransferService = warehouseInventoryTransferService;
         _orderCategoryHistoryRepository = orderCategoryHistoryRepository;
@@ -74,12 +74,12 @@ public class OrderService : IOrderService
         _productVariantRepository = productVariantRepository;
         _orderItemRepository = orderItemRepository;
         _repository = repository;
-        _mapper = mapper;
         _clientAddressRepository = clientAddressRepository;
         _clientRepository = clientRepository;
         _documentTypeRepository = documentTypeRepository;
         _unitOfWork = unitOfWork;
         _configuration = configuration;
+        _mapper = mapper;
     }
 
     public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter)
@@ -259,7 +259,7 @@ public class OrderService : IOrderService
         return ApiResponse<List<OrderItemDto>>.Success(listOrederItems);
     }
 
-    public async Task<ApiResponse<bool>> AddOrderAsync(CreateOrderDto createOrderDto)
+    public async Task<ApiResponse<OrderDto>> AddOrderAsync(CreateOrderDto createOrderDto)
     {
         try
         {
@@ -269,7 +269,7 @@ public class OrderService : IOrderService
             var documentType = await _documentTypeRepository.GetByIdAsync(createOrderDto.ClientDocumentTypeId);
             if (documentType == null)
             {
-                return ApiResponse<bool>.Fail("Tipo de documento no encontrado");
+                return ApiResponse<OrderDto>.Fail("Tipo de documento no encontrado");
             }
 
             // Find or create client
@@ -304,20 +304,30 @@ public class OrderService : IOrderService
                 await _unitOfWork.Clients.UpdateAsync(client);
             }
 
-            // Create client address
-            var clientAddress = new ClientAddress
+            var clientAddress = new ClientAddress();
+            if (client.Id > 0)
             {
-                ClientId = client.Id,
-                Address = createOrderDto.ClientAddress,
-                Complement = createOrderDto.ClientAddressComplement,
-                Address2 = createOrderDto.ClientAddress2,
-                CityId = createOrderDto.CityId,
-                Latitude = !string.IsNullOrEmpty(createOrderDto.Latitude) ? decimal.Parse(createOrderDto.Latitude) : null,
-                Longitude = !string.IsNullOrEmpty(createOrderDto.Longitude) ? decimal.Parse(createOrderDto.Longitude) : null,
-                IsDefault = true,
-                CreatedAt = createdAt
-            };
-            await _unitOfWork.ClientAddresses.AddAsync(clientAddress);
+                clientAddress = await _clientAddressRepository.GetByClientIdAsync(client.Id, createOrderDto.ClientAddress);
+            }
+            //validate client address
+
+            if (clientAddress == null)
+            {
+                // Create client address
+                clientAddress = new ClientAddress
+                {
+                    ClientId = client.Id,
+                    Address = createOrderDto.ClientAddress,
+                    Complement = createOrderDto.ClientAddressComplement,
+                    Address2 = createOrderDto.ClientAddress2,
+                    CityId = createOrderDto.CityId,
+                    Latitude = !string.IsNullOrEmpty(createOrderDto.Latitude) ? decimal.Parse(createOrderDto.Latitude) : null,
+                    Longitude = !string.IsNullOrEmpty(createOrderDto.Longitude) ? decimal.Parse(createOrderDto.Longitude) : null,
+                    IsDefault = true,
+                    CreatedAt = createdAt
+                };
+                await _unitOfWork.ClientAddresses.AddAsync(clientAddress);
+            }
 
             // Get default order status and category
             var defaultOrderStatus = await _orderStatusRepository.GetByNameAsync(OrderStatusConstants.Unscheduled);
@@ -325,7 +335,7 @@ public class OrderService : IOrderService
 
             if (defaultOrderStatus == null)
             {
-                return ApiResponse<bool>.Fail("Estado de orden por defecto no encontrado");
+                return ApiResponse<OrderDto>.Fail("Estado de orden por defecto no encontrado");
             }
 
             // if (defaultOrderCategory == null)
@@ -334,82 +344,86 @@ public class OrderService : IOrderService
             // }
 
             // Create order
-            var order = new Order
-            {
-                StoreId = createOrderDto.StoreId,
-                OrderStatusId = defaultOrderStatus.Id,
-                // OrderCategoryId = defaultOrderCategory.Id,
-                DeliveryFee = createOrderDto.DeliveryFee ?? 0,
-                CurrencyId = createOrderDto.CurrencyId,
-                ClientId = client.Id,
-                ClientAddressId = clientAddress.Id,
-                CityId = createOrderDto.CityId,
-                Code = createOrderDto.Code ?? string.Empty,
-                Contains = createOrderDto.Contains,
-                TotalAmount = createOrderDto.TotalAmount,
-                Notes = createOrderDto.Notes,
-                ExternalId = createOrderDto.ExternalId,
-                CreatedAt = createdAt,
-                CreatorId = createOrderDto.CreatorId ?? 0,
-                IsEnabled = true
-            };
 
-            await _unitOfWork.Orders.AddAsync(order);
-
-            // Validate and create order items
-            foreach (var orderItemDto in createOrderDto.OrderItems)
+            //validar si la orden ya existe
+            var order = await _repository.GetByCodeAsync(createOrderDto.Code, createOrderDto.StoreId);
+            if (order == null)
             {
-                var orderItem = new OrderItem
+                order = new Order
                 {
-                    OrderId = order.Id,
-                    ProductVariantId = orderItemDto.ProductVariantId,
-                    Quantity = orderItemDto.Quantity ?? 0,
-                    CreatedAt = createdAt
+                    StoreId = createOrderDto.StoreId,
+                    OrderStatusId = defaultOrderStatus.Id,
+                    DeliveryFee = createOrderDto.DeliveryFee ?? 0,
+                    CurrencyId = createOrderDto.CurrencyId,
+                    ClientId = client.Id,
+                    ClientAddressId = clientAddress.Id,
+                    CityId = createOrderDto.CityId,
+                    Code = createOrderDto.Code ?? string.Empty,
+                    Contains = createOrderDto.Contains,
+                    TotalAmount = createOrderDto.TotalAmount,
+                    Notes = createOrderDto.Notes,
+                    ExternalId = createOrderDto.ExternalId,
+                    CreatedAt = createdAt,
+                    CreatorId = createOrderDto.CreatorId ?? 0,
+                    IsEnabled = true,
                 };
-                await _unitOfWork.OrderItems.AddAsync(orderItem);
+
+                await _unitOfWork.Orders.AddAsync(order);
+
+                // Validate and create order items
+                foreach (var orderItemDto in createOrderDto.OrderItems)
+                {
+                    var orderItem = new OrderItem
+                    {
+                        OrderId = order.Id,
+                        ProductVariantId = orderItemDto.ProductVariantId,
+                        Quantity = orderItemDto.Quantity ?? 0,
+                        CreatedAt = createdAt
+                    };
+                    await _unitOfWork.OrderItems.AddAsync(orderItem);
+                }
+
+                // Create order status history
+                var orderStatusHistory = new OrderStatusHistory
+                {
+                    CreatedAt = createdAt,
+                    OrderId = order.Id,
+                    CreatorId = createOrderDto.CreatorId ?? 0,
+                    NewStatusId = defaultOrderStatus.Id
+                };
+                await _unitOfWork.OrderStatusHistories.AddAsync(orderStatusHistory);
+                await _unitOfWork.CommitAsync();
+            }
+            else
+            {
+                return ApiResponse<OrderDto>.Fail($"Orden {order.Code} ya existe", _mapper.Map<OrderDto>(order));
             }
 
-            // Create order status history
-            var orderStatusHistory = new OrderStatusHistory
-            {
-                CreatedAt = createdAt,
-                OrderId = order.Id,
-                CreatorId = createOrderDto.CreatorId ?? 0,
-                NewStatusId = defaultOrderStatus.Id
-            };
-            await _unitOfWork.OrderStatusHistories.AddAsync(orderStatusHistory);
-
-            // Create order category history
-            // var orderCategoryHistory = new OrderCategoryHistory
-            // {
-            //     CreatedAt = createdAt,
-            //     OrderId = order.Id,
-            //     CreatorId = createOrderDto.CreatorId ?? 0,
-            //     NewCategoryId = defaultOrderCategory.Id
-            // };
-            // await _unitOfWork.OrderCategoryHistories.AddAsync(orderCategoryHistory);
-
-            await _unitOfWork.CommitAsync();
-            return ApiResponse<bool>.Success(true, null, "Orden creada exitosamente");
+            return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order), null, "Orden creada exitosamente");
         }
         catch (Exception ex)
         {
             await _unitOfWork.RollbackAsync();
-            return ApiResponse<bool>.Fail("Error al crear Orden: " + ex.Message);
+            return ApiResponse<OrderDto>.Fail("Error al crear Orden: " + ex.Message);
         }
     }
 
-    public async Task<ApiResponse<bool>> AddOrdersFromExcelAsync(Stream stream, int? storeId = null)
+    public async Task<ApiResponse<List<OrderExcelUploadResponseDto>>> AddOrdersFromExcelAsync(OrderExcelUploadDto dto)
     {
-        using var package = new ExcelPackage(stream);
-        var ordersSheet = package.Workbook.Worksheets[0];
+        using var stream = new MemoryStream(dto.Content);
+        using var workbook = new XLWorkbook(stream);
+        var ordersSheet = workbook.Worksheet(1);
 
         var orders = new List<CreateOrderDto>();
-
         var allSkus = new HashSet<string>();
-        for (int row = 2; row <= ordersSheet.Dimension.End.Row; row++)
+
+        var lastRow = ordersSheet.LastRowUsed().RowNumber();
+
+        for (int row = 2; row <= lastRow; row++)
         {
-            var orderItemsSKUS = ordersSheet.Cells[row, 14].Text.Split(';');
+            var skuCell = ordersSheet.Cell(row, 15).GetString();
+            var orderItemsSKUS = skuCell.Split(';');
+
             foreach (var sku in orderItemsSKUS)
             {
                 var skuCode = sku.Split(':')[0].Trim();
@@ -418,44 +432,36 @@ public class OrderService : IOrderService
             }
         }
 
-        var skuToVariant = await _productVariantRepository.GetBySkusAsync(allSkus);
+        var skuToVariant = await _warehouseInventoryRepository.GetBySkusAsync(allSkus, dto.StoreId);
 
-        for (int row = 2; row <= ordersSheet.Dimension.End.Row; row++)
+        for (int row = 2; row <= lastRow; row++)
         {
             int col = 1;
             var order = new CreateOrderDto
             {
-                Code = ordersSheet.Cells[row, col++].Text,
-                ClientFirstName = ordersSheet.Cells[row, col++].Text,
-                ClientLastName = ordersSheet.Cells[row, col++].Text,
-                ClientDocumentTypeId = int.Parse(ordersSheet.Cells[row, col++].Text),
-                ClientDocument = ordersSheet.Cells[row, col++].Text,
-                ClientEmail = ordersSheet.Cells[row, col++].Text,
-                ClientPhone = ordersSheet.Cells[row, col++].Text,
-                ClientAddress = ordersSheet.Cells[row, col++].Text,
-                ClientAddressComplement = ordersSheet.Cells[row, col++].Text,
-                ClientAddress2 = ordersSheet.Cells[row, col++].Text,
-                Latitude = ordersSheet.Cells[row, col++].Text,
-                Longitude = ordersSheet.Cells[row, col++].Text,
-                TotalAmount = decimal.Parse(ordersSheet.Cells[row, col++].Text),
-                Notes = ordersSheet.Cells[row, col++].Text,
+                CreatorId = dto.CreatorId,
+                StoreId = dto.StoreId,
+                Code = ordersSheet.Cell(row, col++).GetString(),
+                ClientFirstName = ordersSheet.Cell(row, col++).GetString(),
+                ClientLastName = ordersSheet.Cell(row, col++).GetString(),
+                ClientDocumentTypeId = int.Parse(ordersSheet.Cell(row, col++).GetString()),
+                ClientDocument = ordersSheet.Cell(row, col++).GetString(),
+                ClientEmail = ordersSheet.Cell(row, col++).GetString(),
+                ClientPhone = ordersSheet.Cell(row, col++).GetString(),
+                ClientAddress = ordersSheet.Cell(row, col++).GetString(),
+                ClientAddressComplement = ordersSheet.Cell(row, col++).GetString(),
+                ClientAddress2 = ordersSheet.Cell(row, col++).GetString(),
+                Latitude = ordersSheet.Cell(row, col++).GetString(),
+                Longitude = ordersSheet.Cell(row, col++).GetString(),
+                TotalAmount = decimal.Parse(ordersSheet.Cell(row, col++).GetString()),
+                Notes = $"Carga masiva: {ordersSheet.Cell(row, col++).GetString()}",
                 OrderItems = new List<OrderItemDto>()
             };
 
-            if (storeId != null)
-            {
-                order.StoreId = storeId.Value;
-                col++;
-            }
-            else
-            {
-                order.StoreId = int.Parse(ordersSheet.Cells[row, col++].Text);
-            }
-
             order.CityId = 1;
             order.CurrencyId = 1;
-            // Obtener el valor de DeliveryFee desde la configuración por país (appsettings.json)
-            var countryCode = "MX"; // TODO: obtener dinámicamente según la orden o el usuario
+
+            var countryCode = "MX";
             var deliveryFeeSection = _configuration.GetSection($"{countryCode}:DeliveryFee");
             if (deliveryFeeSection.Exists() && decimal.TryParse(deliveryFeeSection.Value, out var fee))
             {
@@ -466,20 +472,15 @@ public class OrderService : IOrderService
                 order.DeliveryFee = 150;
             }
 
-            // .
-            //CurrencyId = int.Parse(ordersSheet.Cells[row, col++].Text),
-            //CityId = 1, //int.Parse(ordersSheet.Cells[row, col++].Text),
-
-
-            var orderItemsSKUS = ordersSheet.Cells[row, col++].Text.Split(';');
+            var orderItemsSKUS = ordersSheet.Cell(row, col++).GetString().Split(';');
             foreach (var sku in orderItemsSKUS)
             {
-                // Asumiendo que el SKU tiene un formato SKU:Quantity
                 var parts = sku.Split(':');
                 var skuCode = parts[0].Trim();
                 var quantityText = parts.Length > 1 ? parts[1].Trim() : "0";
 
-                var productVariant = skuToVariant.Where(x => x.Sku != null && x.Sku.Equals(skuCode, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                var productVariant = skuToVariant
+                    .FirstOrDefault(x => x.ProductVariant != null && x.ProductVariant.Sku != null && x.ProductVariant.Sku.Equals(skuCode, StringComparison.OrdinalIgnoreCase));
                 if (productVariant != null)
                 {
                     order.OrderItems.Add(new OrderItemDto
@@ -493,11 +494,24 @@ public class OrderService : IOrderService
             orders.Add(order);
         }
 
+        var result = new List<OrderExcelUploadResponseDto>();
         foreach (var order in orders)
         {
-            //await AddOrderAsync(order);
+            var response = await AddOrderAsync(order);
+            // var response = new ApiResponse<OrderDto>
+            // {
+            //     IsSuccess = true,
+            //     Message = "Orden creada exitosamente",
+            // };
+            result.Add(new OrderExcelUploadResponseDto
+            {
+                Code = order.Code,
+                Message = response.Message,
+                IsLoaded = response.IsSuccess
+            });
         }
 
-        return ApiResponse<bool>.Success(true, null, "Órdenes creadas exitosamente");
+        return ApiResponse<List<OrderExcelUploadResponseDto>>.Success(result, null, "Órdenes creadas exitosamente");
     }
+
 }

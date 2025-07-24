@@ -18,11 +18,11 @@ namespace BoxExpress.Api.Controllers
         //     _ShopifyService = ShopifyService;
         // }
 
-        [HttpPost()]
-        public async Task<IActionResult> Create([FromBody] ShopifyOrderDto orderDto)
-        {
-            // var result = await _ShopifyService.ShopifyenticateAsync(loginDto);
-            return Ok();
-        }
+        // [HttpPost()]
+        // public async Task<IActionResult> Create([FromBody] ShopifyOrderDto orderDto)
+        // {
+        //     // var result = await _ShopifyService.ShopifyenticateAsync(loginDto);
+        //     return Ok(orderDto);
+        // }
     }
 }

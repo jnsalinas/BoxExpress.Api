@@ -13,4 +13,5 @@ public interface IWarehouseInventoryRepository : IRepository<WarehouseInventory>
     Task<(List<WarehouseInventory> WarehouseInventories, int TotalCount)> GetFilteredAsync(WarehouseInventoryFilter filter);
     Task<(List<Product> Products, int TotalCount)> GetFilteredGroupedByProductAsync(WarehouseInventoryFilter filter);
     Task<List<WarehouseInventory>> GetByWarehouseAndProductsId(int? warehouseId, List<int> productIds, WarehouseInventoryFilter? filter = null);
+    Task<List<WarehouseInventory>> GetBySkusAsync(HashSet<string> skus, int? storeId = null);
 }

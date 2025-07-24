@@ -74,8 +74,8 @@ public class WarehouseInventoriesController : ControllerBase
             filter.StoreId = int.Parse(storeId);
         }
 
-        var result = await _service.GetWarehouseProductSummaryAsync(filter);;
-        var bytes = _excelExporter.ExportToExcel(result.Data.ToList());
+        var result = await _service.GetWarehouseProductSummaryAsync(filter);
+        var bytes = _excelExporter.ExportToExcel(result?.Data?.ToList() ?? new List<ProductDto>());
         return File(
             bytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

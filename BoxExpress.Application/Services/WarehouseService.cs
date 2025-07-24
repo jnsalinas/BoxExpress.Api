@@ -21,6 +21,7 @@ public class WarehouseService : IWarehouseService
     private readonly IInventoryMovementRepository _inventoryMovementRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly ICityRepository _cityRepository;
+    private readonly IWarehouseInventoryService _warehouseInventoryService;
 
     public WarehouseService(
         IWarehouseInventoryTransferRepository warehouseInventoryTransferRepository,
@@ -30,7 +31,8 @@ public class WarehouseService : IWarehouseService
         IMapper mapper,
         IUnitOfWork unitOfWork,
         IRoleRepository roleRepository,
-        ICityRepository cityRepository)
+        ICityRepository cityRepository,
+        IWarehouseInventoryService warehouseInventoryService)
     {
         _warehouseInventoryTransferRepository = warehouseInventoryTransferRepository;
         _warehouseInventoryRepository = warehouseInventoryRepository;
@@ -40,6 +42,7 @@ public class WarehouseService : IWarehouseService
         _mapper = mapper;
         _roleRepository = roleRepository;
         _cityRepository = cityRepository;
+        _warehouseInventoryService = warehouseInventoryService;
     }
 
     public async Task<ApiResponse<IEnumerable<WarehouseDto>>> GetAllAsync(WarehouseFilterDto filter) =>
@@ -58,38 +61,66 @@ public class WarehouseService : IWarehouseService
         {
             foreach (var productDto in products)
             {
-                Product product = new()
+                Product? product = null;
+                if (productDto.Id != null)
                 {
-                    CreatedAt = DateTime.UtcNow,
-                    Name = productDto.Name,
-                    Sku = productDto.Sku,
-                    Price = productDto.Price
-                };
+                    product = await _unitOfWork.Products.GetByIdAsync(productDto.Id.Value);
+                    if (product == null)
+                        return ApiResponse<bool>.Fail("Producto no encontrado");
 
-                await _unitOfWork.Products.AddAsync(product);
+                    product.Name = productDto.Name;
+                    product.Sku = productDto.Sku;
+                    product.Price = productDto.Price;
+                    product.Quantity = productDto.Quantity;
+                    await _unitOfWork.Products.UpdateAsync(product);
+                }
+                else
+                {
+                    product = new()
+                    {
+                        CreatedAt = DateTime.UtcNow,
+                        Name = productDto.Name,
+                        Sku = productDto.Sku,
+                        Price = productDto.Price
+                    };
+                    await _unitOfWork.Products.AddAsync(product);
+                }
 
                 foreach (var variantDto in productDto.Variants)
                 {
-                    ProductVariant productVariant = new()
+                    ProductVariant? productVariant = null;
+                    if (variantDto.Id != null)
                     {
-                        CreatedAt = DateTime.UtcNow,
-                        Name = variantDto.Name,
-                        ShopifyVariantId = variantDto.ShopifyId,
-                        Product = product,
-                        Sku = variantDto.Sku,
-                        Price = variantDto.Price
-                    };
-
-                    await _unitOfWork.Variants.AddAsync(productVariant);
-
-                    await _unitOfWork.Inventories.AddAsync(new()
+                        await _warehouseInventoryService.UpdateAsync(variantDto.Id.Value, new UpdateWarehouseInventoryDto
+                        {
+                            ProductName = productDto.Name,
+                            ProductSku = productDto.Sku,
+                            ShopifyProductId = productDto.ShopifyProductId,
+                            ShopifyVariantId = variantDto.ShopifyId,
+                        });
+                    }
+                    else
                     {
-                        CreatedAt = DateTime.UtcNow,
-                        WarehouseId = warehouseId,
-                        ProductVariant = productVariant,
-                        Quantity = variantDto.Quantity,
-                        StoreId = variantDto.StoreId
-                    });
+                        productVariant = new()
+                        {
+                            CreatedAt = DateTime.UtcNow,
+                            Name = variantDto.Name,
+                            ShopifyVariantId = variantDto.ShopifyId,
+                            Product = product,
+                            Sku = variantDto.Sku,
+                            Price = variantDto.Price
+                        };
+                        await _unitOfWork.Variants.AddAsync(productVariant);
+
+                        await _unitOfWork.Inventories.AddAsync(new()
+                        {
+                            CreatedAt = DateTime.UtcNow,
+                            WarehouseId = warehouseId,
+                            ProductVariant = productVariant,
+                            Quantity = variantDto.Quantity,
+                            StoreId = variantDto.StoreId
+                        });
+                    }
 
                     await _unitOfWork.InventoryMovements.AddAsync(new InventoryMovement
                     {
@@ -98,7 +129,7 @@ public class WarehouseService : IWarehouseService
                         ProductVariant = productVariant,
                         Quantity = variantDto.Quantity,
                         MovementType = InventoryMovementType.InitialStock,
-                        Notes = "Inventario inicial",
+                        Notes = productVariant.Id == 0 ? "Inventario inicial" : "Inventario actualizado",
                         Reference = $"Initial-Stock-{product.Name}-{productVariant.Name}"
                     });
                 }

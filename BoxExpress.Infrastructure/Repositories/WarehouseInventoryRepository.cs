@@ -166,4 +166,13 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
             .Include(wi => wi.Store)
             .FirstOrDefaultAsync(wi => wi.Id == id);
     }
+
+
+    public async Task<List<WarehouseInventory>> GetBySkusAsync(HashSet<string> skus, int? storeId = null)
+    {
+        return await _context.WarehouseInventories
+            .Include(x => x.ProductVariant)
+            .Where(x => x.ProductVariant != null && x.ProductVariant.Sku != null && skus.Contains(x.ProductVariant.Sku) && (storeId == null || x.StoreId == storeId))
+            .ToListAsync();
+    }
 }

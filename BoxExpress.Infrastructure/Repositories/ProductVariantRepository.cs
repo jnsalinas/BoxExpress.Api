@@ -26,35 +26,4 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
                 .ThenInclude(w => w.Transfer)
             .FirstOrDefaultAsync(w => w.Id.Equals(id));
     }
-
-
-    public async Task<List<ProductVariant>> GetBySkusAsync(HashSet<string> skus)
-    {
-        return await _context.ProductVariants
-            .Where(x => x.Sku != null && skus.Contains(x.Sku))
-            .ToListAsync();
-    }
-    // public async Task<List<ProductVariant>> GetVariantsAutocompleteAsync(string query, int warehouseOrigonId)
-    // {
-    //     List<ProductVariant> productVariants = await _context.ProductVariants
-    //         .Where
-    //         (
-    //             x =>
-    //                 (!string.IsNullOrEmpty(x.Name) && x.Name.Contains(query))
-    //                 || (!string.IsNullOrEmpty(x.Sku) && x.Sku.Contains(query))
-    //                 || x.Product.Name.Contains(query)
-    //                 || (!string.IsNullOrEmpty(x.Product.Sku) && x.Product.Sku.Contains(query))
-    //         )
-    //         .Include(x => x.Product)
-    //         .ToListAsync();
-
-    //     foreach (var productVariant in productVariants)
-    //     {
-    //         productVariant.AvailableUnits = (await _context.WarehouseInventories
-    //         .FirstOrDefaultAsync(x => x.ProductVariantId
-    //         .Equals(productVariant.Id) && x.WarehouseId.Equals(warehouseOrigonId)))?.AvailableQuantity;
-    //     }
-
-    //     return productVariants;
-    // }
 }

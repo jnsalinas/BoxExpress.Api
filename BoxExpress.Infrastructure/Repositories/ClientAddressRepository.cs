@@ -25,5 +25,12 @@ namespace BoxExpress.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Id.Equals(id));
         }
 
+        public async Task<ClientAddress?> GetByClientIdAsync(int clientId, string address)
+        {
+            return await _context.Set<ClientAddress>()
+                .Include(c => c.City)
+                .FirstOrDefaultAsync(x => x.ClientId.Equals(clientId) && x.Address.Equals(address));
+        }
+
     }
 }

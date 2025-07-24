@@ -115,4 +115,9 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         })
         .ToListAsync();
     }
+
+    public async Task<Order?> GetByCodeAsync(string code, int storeId)
+    {
+        return await _context.Orders.FirstOrDefaultAsync(w => w.Code.Equals(code) && w.StoreId.Equals(storeId));
+    }
 }

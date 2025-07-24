@@ -9,5 +9,6 @@ namespace BoxExpress.Domain.Interfaces
 {
     public interface IClientAddressRepository : IRepository<ClientAddress>
     {
+        Task<ClientAddress?> GetByClientIdAsync(int clientId, string address);
     }
 }

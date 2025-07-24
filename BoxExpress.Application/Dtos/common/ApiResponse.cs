@@ -22,12 +22,13 @@ public class ApiResponse<T>
         };
     }
 
-    public static ApiResponse<T> Fail(string message)
+    public static ApiResponse<T> Fail(string message, T? data = default)
     {
         return new ApiResponse<T>
         {
             IsSuccess = false,
-            Message = message
+            Message = message,
+            Data = data
         };
     }
 }

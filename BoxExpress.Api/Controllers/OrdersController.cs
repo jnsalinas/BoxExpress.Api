@@ -1,5 +1,6 @@
 // BoxExpress.Api/Controllers/OrdersController.cs
 using System.Security.Claims;
+using BoxExpress.Api.Dtos.Upload;
 using BoxExpress.Application.Dtos;
 using BoxExpress.Application.Interfaces;
 using BoxExpress.Application.Services;
@@ -7,6 +8,7 @@ using BoxExpress.Domain.Constants;
 using BoxExpress.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace BoxExpress.Api.Controllers;
 
@@ -145,7 +147,7 @@ public class OrdersController : ControllerBase
         }
 
         var result = await _orderService.GetAllAsync(filter);
-        var bytes = _excelExporter.ExportToExcel(result.Data.ToList());
+        var bytes = _excelExporter.ExportToExcel(result?.Data?.ToList() ?? new List<OrderDto>());
         return File(
             bytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -164,20 +166,45 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
-    // [HttpPost("create-massive")]
-    // public async Task<IActionResult> CreateMassive([FromForm] IFormFile file)
-    // {
-    //     if (file == null || file.Length == 0)
-    //     {
-    //         using (var stream = file.OpenReadStream())
-    //         {
-    //             var result = await _orderService.AddOrdersFromExcelAsync(stream);
-    //             if (result.IsSuccess)
-    //             {
-    //                 return Ok(result);
-    //             }
-    //         }
-    //     }
-    //     return BadRequest();
-    // }
+    [HttpPost("create-massive")]
+    public async Task<IActionResult> CreateMassive([FromForm] UploadFileRequest dto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        int storeId = 0;
+        if (role?.ToLower() == RolConstants.Store)
+        {
+            storeId = int.Parse(User.FindFirst("StoreId")?.Value ?? "0");
+        }
+        else
+        {
+            storeId = dto.StoreId ?? 0;
+        }
+
+        if (dto.File == null || dto.File.Length == 0)
+        {
+            return BadRequest("No file uploaded.");
+        }
+
+        using var memoryStream = new MemoryStream();
+        await dto.File.CopyToAsync(memoryStream);
+
+        var fileDto = new OrderExcelUploadDto
+        {
+            FileName = dto.File.FileName,
+            Content = memoryStream.ToArray(),
+            ContentType = dto.File.ContentType,
+            StoreId = storeId,
+            CreatorId = userId != null ? int.Parse(userId) : 0,
+        };
+
+        var result = await _orderService.AddOrdersFromExcelAsync(fileDto);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result);
+        }
+
+        return BadRequest(result.Message ?? "Upload failed.");
+    }
 }

@@ -57,12 +57,7 @@ public class WalletTransactionsController : ControllerBase
 
         filter.IsAll = true;
         var result = await _walletTransactionService.GetAllAsync(filter);
-        // if (result.Data == null || !result.Data.Any())
-        // {
-        //     return NotFound("No data found to export.");
-        // }
-
-        var bytes = _excelExporter.ExportToExcel(result.Data.ToList());
+        var bytes = _excelExporter.ExportToExcel(result?.Data?.ToList() ?? new List<WalletTransactionDto>());
         return File(
             bytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
