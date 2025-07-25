@@ -17,19 +17,22 @@ public class WalletTransactionService : IWalletTransactionService
     private readonly ITransactionTypeRepository _transactionTypeRepository;
     private readonly IWalletRepository _walletRepository;
     private readonly IInventoryMovementService _inventoryMovementService;
+    private readonly IUserContext _userContext;
 
     public WalletTransactionService(
         IWalletTransactionRepository repository,
         ITransactionTypeRepository transactionTypeRepository,
         IInventoryMovementService inventoryMovementService,
         IWalletRepository walletRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IUserContext userContext)
     {
         _transactionTypeRepository = transactionTypeRepository;
         _inventoryMovementService = inventoryMovementService;
         _walletRepository = walletRepository;
         _repository = repository;
         _mapper = mapper;
+        _userContext = userContext;
     }
 
     public async Task<ApiResponse<IEnumerable<WalletTransactionDto>>> GetAllAsync(WalletTransactionFilterDto filter)
@@ -63,11 +66,11 @@ public class WalletTransactionService : IWalletTransactionService
         {
             WalletId = order.Store.WalletId,
             TransactionTypeId = inbound.Id,
-            Amount = order.TotalAmount,
+            Amount = order.TotalAmount, 
             Description = string.Format(WalletDescriptionConstants.SuccessfulDeliveryPrefix, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = 2,//todo: poner usuario por sesion
+            CreatorId = _userContext.UserId,
         });
 
         // Register the delivery fee transaction
@@ -79,7 +82,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.DeliveredOrderDiscountPrefix, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = 2,//todo: poner usuario por sesion
+            CreatorId = _userContext.UserId,
         });
     }
 
@@ -111,7 +114,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.DiscountForOrderStatusCorrection, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = 2, //todo: poner usuario por sesion
+            CreatorId = _userContext.UserId,
         });
 
         // Register the refund transaction
@@ -123,7 +126,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.RefundForOrderStatusCorrection, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = 2,//todo: poner usuario por sesion
+            CreatorId = _userContext.UserId,
         });
     }
 
@@ -154,7 +157,7 @@ public class WalletTransactionService : IWalletTransactionService
             Amount = withdrawalRequest.Amount,
             Description = string.Format(WalletDescriptionConstants.WithdrawalRequestAccepted, withdrawalRequest.Id),
             RelatedWithdrawalRequestId = withdrawalRequest.Id,
-            CreatorId = 2,//todo: poner usuario por sesion
+            CreatorId = _userContext.UserId,
         });
     }
 }

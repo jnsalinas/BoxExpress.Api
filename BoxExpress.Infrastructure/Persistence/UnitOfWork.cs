@@ -7,6 +7,7 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly BoxExpressDbContext _context;
     private IDbContextTransaction? _transaction;
+    public bool HasActiveTransaction => _transaction != null;
     public IProductRepository Products { get; }
     public IProductVariantRepository Variants { get; }
     public IWarehouseInventoryRepository Inventories { get; }

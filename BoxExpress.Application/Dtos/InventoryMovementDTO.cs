@@ -18,6 +18,7 @@ namespace BoxExpress.Application.Dtos
         public int? OrderId { get; set; }
         public int? TransferId { get; set; }
         public string? Reference { get; set; }
+        public string? Creator { get; set; }
         public string? Notes { get; set; }
     }
 }

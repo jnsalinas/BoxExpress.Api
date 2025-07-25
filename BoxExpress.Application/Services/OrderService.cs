@@ -36,7 +36,7 @@ public class OrderService : IOrderService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IProductVariantRepository _productVariantRepository;
     private readonly IConfiguration _configuration;
-
+    private readonly IUserContext _userContext;
     public OrderService(
         IOrderRepository repository,
         IMapper mapper,
@@ -57,7 +57,8 @@ public class OrderService : IOrderService
         IDocumentTypeRepository documentTypeRepository,
         IUnitOfWork unitOfWork,
         IProductVariantRepository productVariantRepository,
-        IConfiguration configuration
+        IConfiguration configuration,
+        IUserContext userContext
     )
     {
         _warehouseInventoryTransferService = warehouseInventoryTransferService;
@@ -80,6 +81,7 @@ public class OrderService : IOrderService
         _unitOfWork = unitOfWork;
         _configuration = configuration;
         _mapper = mapper;
+        _userContext = userContext;
     }
 
     public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter)
@@ -124,7 +126,7 @@ public class OrderService : IOrderService
             OrderId = order.Id,
             OldCategoryId = order.OrderCategoryId,
             NewCategoryId = (int)newCategoryId,
-            CreatorId = 2, //todo tomar del token
+            CreatorId = _userContext.UserId, //todo tomar del token
         });
 
         order.OrderCategoryId = (int)newCategoryId;
@@ -214,7 +216,7 @@ public class OrderService : IOrderService
             OldStatusId = order.OrderStatusId,
             NewStatusId = statusId,
             CreatedAt = DateTime.UtcNow,
-            CreatorId = 2 //todo: tomar del token
+            CreatorId = _userContext.UserId
         });
 
         order.OrderStatusId = statusId;

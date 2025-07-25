@@ -20,6 +20,7 @@ public class InventoryMovementRepository : Repository<InventoryMovement>, IInven
         var query = _context.InventoryMovements
             .Include(w => w.Warehouse)
             .Include(w => w.ProductVariant)
+            .Include(w => w.Creator)
             // .Include(w => w.Order)
             // .Include(w => w.Transfer)
             .AsQueryable();

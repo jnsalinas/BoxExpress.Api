@@ -19,7 +19,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
     private readonly IWarehouseInventoryTransferRepository _warehouseInventoryTransferRepository;
     private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IInventoryHoldService _inventoryHoldService;
-
+    private readonly IUserContext _userContext;
     public WarehouseInventoryTransferService(
         IWarehouseInventoryRepository warehouseInventoryRepository,
         IInventoryHoldRepository inventoryHoldRepository,
@@ -28,7 +28,8 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
         IUnitOfWork unitOfWork,
         IInventoryMovementService inventoryMovementService,
         IWarehouseInventoryTransferRepository warehouseInventoryTransferRepository,
-        IInventoryHoldService inventoryHoldService)
+        IInventoryHoldService inventoryHoldService,
+        IUserContext userContext)
     {
         _warehouseInventoryTransferRepository = warehouseInventoryTransferRepository;
         _warehouseInventoryRepository = warehouseInventoryRepository;
@@ -38,6 +39,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
         _repository = repository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _userContext = userContext;
     }
 
     public async Task<ApiResponse<IEnumerable<WarehouseInventoryTransferDto>>> GetAllAsync(WarehouseInventoryTransferFilterDto filter)
@@ -134,6 +136,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
                 ProductVariantId = item.ProductVariantId,
                 Quantity = item.Quantity * -1,
                 Notes = "Transferencia enviada",
+                CreatorId = _userContext.UserId,
             });
 
             await _unitOfWork.InventoryMovements.AddAsync(new InventoryMovement
@@ -146,6 +149,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
                 ProductVariantId = item.ProductVariantId,
                 Quantity = item.Quantity,
                 Notes = "Transferencia recibida",
+                CreatorId = _userContext.UserId,
             });
             #endregion
         }
@@ -209,7 +213,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
         // Crear la transferencia  
         newTransfer.CreatedAt = DateTime.UtcNow;
         newTransfer.Status = InventoryTransferStatus.Pending;
-        newTransfer.CreatorId = 2; //todo: poner usuario con la sesion
+        newTransfer.CreatorId = _userContext.UserId; //todo: poner usuario con la sesion
         await _unitOfWork.WarehouseInventoryTransfers.AddAsync(newTransfer);
         await _unitOfWork.SaveChangesAsync();
 

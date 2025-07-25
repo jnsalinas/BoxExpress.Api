@@ -16,18 +16,21 @@ public class InventoryHoldService : IInventoryHoldService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IInventoryMovementService _inventoryMovementService;
+    private readonly IUserContext _userContext;
 
     public InventoryHoldService(IInventoryHoldRepository repository,
     IInventoryMovementService inventoryMovementService,
     IMapper mapper,
     IWarehouseInventoryRepository warehouseInventoryRepository,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IUserContext userContext)
     {
         _inventoryMovementService = inventoryMovementService;
         _repository = repository;
         _mapper = mapper;
         _warehouseInventoryRepository = warehouseInventoryRepository;
         _unitOfWork = unitOfWork;
+        _userContext = userContext;
     }
 
     public async Task<ApiResponse<IEnumerable<InventoryHoldDto>>> GetAllAsync(InventoryHoldFilterDto filter)
@@ -145,7 +148,7 @@ public class InventoryHoldService : IInventoryHoldService
             TransferId = transfer?.Id,
             Type = holdType,
             Status = holdStatus,
-            CreatorId = 2 // TODO: tomar del token
+            CreatorId = _userContext.UserId
         });
         return ApiResponse<bool>.Success(true);
     }
@@ -183,6 +186,7 @@ public class InventoryHoldService : IInventoryHoldService
 
         await _inventoryMovementService.AdjustInventoryAsync(new InventoryMovement()
         {
+            CreatorId = _userContext.UserId,
             WarehouseId = hold.WarehouseInventory.WarehouseId,
             ProductVariantId = hold.WarehouseInventory.ProductVariantId,
             Quantity = hold.Quantity * -1,

@@ -176,7 +176,8 @@ public class AutoMapperProfile : Profile
 
         CreateMap<Bank, BankDto>();
         CreateMap<DocumentType, DocumentTypeDto>();
-        CreateMap<InventoryMovement, InventoryMovementDto>();
+        CreateMap<InventoryMovement, InventoryMovementDto>()
+            .ForMember(dest => dest.Creator, opt => opt.MapFrom(src => src.Creator != null ? src.Creator.FullName : string.Empty));
         CreateMap<WarehouseInventory, WarehouseInventoryDto>();
         CreateMap<Product, ProductDto>();
         CreateMap<InventoryHold, InventoryHoldDto>()

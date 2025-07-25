@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using BoxExpress.Infrastructure.Persistence;
 using BoxExpress.Domain.Interfaces;
 using BoxExpress.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Http;
+using BoxExpress.Application.Interfaces;
+using BoxExpress.Application.Services;
 
 namespace BoxExpress.Infrastructure.Extensions;
 
@@ -42,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<IClientAddressRepository, ClientAddressRepository>();
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IUserContext, UserContext>();
 
         return services;
     }

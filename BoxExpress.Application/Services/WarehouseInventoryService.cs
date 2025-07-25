@@ -43,6 +43,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
             ShopifyProductId = product.ShopifyProductId,
             Price = product.Price,
             Sku = product.Sku,
+            TotalQuantity = variants.Where(v => v.ProductVariant.ProductId == product.Id).Sum(v => v.Quantity),
             Variants = variants
                 .Where(v => v.ProductVariant.ProductId == product.Id)
                 .Select(wi => new ProductVariantDto
@@ -60,8 +61,9 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                     StoreId = wi.StoreId,
                     Store = wi.Store != null ? new StoreDto { Id = wi.Store.Id, Name = wi.Store.Name } : null,
                     ProductName = product.Name,
-                }).ToList()
-        }).OrderBy(x => x.Name).ToList();
+                }).OrderBy(x => x.Store?.Name).ToList()
+        }).OrderBy(x => x.Name)
+        .ToList();
 
         return ApiResponse<IEnumerable<ProductDto>>.Success(groupedProducts, new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }
@@ -78,7 +80,12 @@ public class WarehouseInventoryService : IWarehouseInventoryService
         if (warehouseInventory == null)
             return ApiResponse<WarehouseInventoryDto?>.Fail("Warehouse inventory not found.");
 
-        await _unitOfWork.BeginTransactionAsync();
+        var startedTransaction = false;
+        if (!_unitOfWork.HasActiveTransaction)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            startedTransaction = true;
+        }
 
         //register inventory movement
         if (warehouseInventory.Quantity != dto.Quantity)
@@ -112,7 +119,9 @@ public class WarehouseInventoryService : IWarehouseInventoryService
 
         await _unitOfWork.Inventories.UpdateAsync(warehouseInventory);
         await _unitOfWork.SaveChangesAsync();
-        await _unitOfWork.CommitAsync();
+
+        if (startedTransaction)
+            await _unitOfWork.CommitAsync();
         return ApiResponse<WarehouseInventoryDto?>.Success(_mapper.Map<WarehouseInventoryDto>(warehouseInventory));
     }
 }

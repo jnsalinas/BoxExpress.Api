@@ -39,6 +39,8 @@ builder.Services.AddControllers();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
+builder.Services.AddHttpContextAccessor();
+
 // Application & Infrastructure
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration.GetConnectionString("DefaultConnection")!);

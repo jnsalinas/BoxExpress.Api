@@ -6,7 +6,7 @@ namespace BoxExpress.Infrastructure.Persistence
     //Correr migrations:
     //dotnet ef migrations add AddWarehouseUser --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
-    //dotnet ef migrations add ProductQuantity --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add AddCreatorInventoryMovement --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
 
     public class BoxExpressDbContext : DbContext
     {

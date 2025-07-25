@@ -22,7 +22,7 @@ public class WarehouseService : IWarehouseService
     private readonly IRoleRepository _roleRepository;
     private readonly ICityRepository _cityRepository;
     private readonly IWarehouseInventoryService _warehouseInventoryService;
-
+    private readonly IUserContext _userContext;
     public WarehouseService(
         IWarehouseInventoryTransferRepository warehouseInventoryTransferRepository,
         IWarehouseInventoryRepository warehouseInventoryRepository,
@@ -32,7 +32,8 @@ public class WarehouseService : IWarehouseService
         IUnitOfWork unitOfWork,
         IRoleRepository roleRepository,
         ICityRepository cityRepository,
-        IWarehouseInventoryService warehouseInventoryService)
+        IWarehouseInventoryService warehouseInventoryService,
+        IUserContext userContext)
     {
         _warehouseInventoryTransferRepository = warehouseInventoryTransferRepository;
         _warehouseInventoryRepository = warehouseInventoryRepository;
@@ -43,6 +44,7 @@ public class WarehouseService : IWarehouseService
         _roleRepository = roleRepository;
         _cityRepository = cityRepository;
         _warehouseInventoryService = warehouseInventoryService;
+        _userContext = userContext;
     }
 
     public async Task<ApiResponse<IEnumerable<WarehouseDto>>> GetAllAsync(WarehouseFilterDto filter) =>
@@ -55,6 +57,7 @@ public class WarehouseService : IWarehouseService
     // ✅ Su objetivo es garantizar que todo se guarde o nada se guarde (atomicidad).
     public async Task<ApiResponse<bool>> AddInventoryToWarehouseAsync(int warehouseId, List<CreateProductWithVariantsDto> products)
     {
+        string errorMessage = string.Empty;
         await _unitOfWork.BeginTransactionAsync();
 
         try
@@ -89,54 +92,72 @@ public class WarehouseService : IWarehouseService
                 foreach (var variantDto in productDto.Variants)
                 {
                     ProductVariant? productVariant = null;
-                    if (variantDto.Id != null)
+                    if (variantDto.Id > 0)
                     {
                         await _warehouseInventoryService.UpdateAsync(variantDto.Id.Value, new UpdateWarehouseInventoryDto
                         {
-                            ProductName = productDto.Name,
-                            ProductSku = productDto.Sku,
-                            ShopifyProductId = productDto.ShopifyProductId,
                             ShopifyVariantId = variantDto.ShopifyId,
-                        });
-                    }
-                    else
-                    {
-                        productVariant = new()
-                        {
-                            CreatedAt = DateTime.UtcNow,
-                            Name = variantDto.Name,
-                            ShopifyVariantId = variantDto.ShopifyId,
-                            Product = product,
-                            Sku = variantDto.Sku,
-                            Price = variantDto.Price
-                        };
-                        await _unitOfWork.Variants.AddAsync(productVariant);
-
-                        await _unitOfWork.Inventories.AddAsync(new()
-                        {
-                            CreatedAt = DateTime.UtcNow,
-                            WarehouseId = warehouseId,
-                            ProductVariant = productVariant,
+                            VariantName = variantDto.Name,
+                            VariantSku = variantDto.Sku,
+                            Price = variantDto.Price,
                             Quantity = variantDto.Quantity,
                             StoreId = variantDto.StoreId
                         });
+                        productVariant = await _unitOfWork.Variants.GetByIdAsync(variantDto.Id.Value);
                     }
-
-                    await _unitOfWork.InventoryMovements.AddAsync(new InventoryMovement
+                    else
                     {
-                        CreatedAt = DateTime.UtcNow,
-                        WarehouseId = warehouseId,
-                        ProductVariant = productVariant,
-                        Quantity = variantDto.Quantity,
-                        MovementType = InventoryMovementType.InitialStock,
-                        Notes = productVariant.Id == 0 ? "Inventario inicial" : "Inventario actualizado",
-                        Reference = $"Initial-Stock-{product.Name}-{productVariant.Name}"
-                    });
+                        var productVariantSkuExist = await _warehouseInventoryRepository.GetBySkusAsync(new HashSet<string> { variantDto.Sku }, variantDto.StoreId);
+                        if (productVariantSkuExist.Any())
+                        {
+                            errorMessage += $"{variantDto.Sku} ya existe";
+                        }
+                        else
+                        {
+                            productVariant = new()
+                            {
+                                CreatedAt = DateTime.UtcNow,
+                                Name = variantDto.Name,
+                                ShopifyVariantId = variantDto.ShopifyId,
+                                Product = product,
+                                Sku = variantDto.Sku,
+                                Price = variantDto.Price
+                            };
+                            await _unitOfWork.Variants.AddAsync(productVariant);
+
+                            await _unitOfWork.Inventories.AddAsync(new()
+                            {
+                                CreatedAt = DateTime.UtcNow,
+                                WarehouseId = warehouseId,
+                                ProductVariant = productVariant,
+                                Quantity = variantDto.Quantity,
+                                StoreId = variantDto.StoreId
+                            });
+
+                            await _unitOfWork.InventoryMovements.AddAsync(new InventoryMovement
+                            {
+                                CreatorId = _userContext.UserId,
+                                CreatedAt = DateTime.UtcNow,
+                                WarehouseId = warehouseId,
+                                ProductVariant = productVariant,
+                                Quantity = variantDto.Quantity,
+                                MovementType = InventoryMovementType.InitialStock,
+                                Notes = "Inventario inicial",
+                                Reference = $"Initial-Stock-{product.Name}-{productVariant.Name}"
+                            });
+                        }
+                    }
                 }
             }
 
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
+
+            if (errorMessage.Length > 0)
+            {
+                return ApiResponse<bool>.Fail("Algunos SKUs ya existen: " + errorMessage);
+            }
+
             return ApiResponse<bool>.Success(true, null, "Inventario creado exitosamente");
         }
         catch (Exception ex)
