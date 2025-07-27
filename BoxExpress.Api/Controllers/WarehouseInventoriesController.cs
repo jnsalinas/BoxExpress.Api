@@ -24,6 +24,19 @@ public class WarehouseInventoriesController : ControllerBase
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] WarehouseInventoryFilterDto filter)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Store)
+        {
+            var storeId = User.FindFirst("StoreId")?.Value;
+            if (storeId == null)
+            {
+                return BadRequest("StoreId is required for store role.");
+            }
+
+            filter.StoreId = int.Parse(storeId);
+
+            return Ok(await _service.GetWarehouseProductSummaryGroupAsync(filter));
+        }
         var result = await _service.GetWarehouseProductSummaryAsync(filter);
         return Ok(result);
     }

@@ -62,7 +62,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
             .Where
             (
                 x =>
-                    x.WarehouseId == filter.WarehouseId
+                    (filter.WarehouseId == null || x.WarehouseId == filter.WarehouseId)
                     &&
                     (filter.StoreId == null || x.StoreId == filter.StoreId)
                     &&
@@ -92,7 +92,6 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
         var totalCount = await query.CountAsync();
         return (await query.ToListAsync(), totalCount);
     }
-
 
     public async Task<(List<Product> Products, int TotalCount)> GetFilteredGroupedByProductAsync(WarehouseInventoryFilter filter)
     {
@@ -154,7 +153,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
             ).AsQueryable();
         }
 
-        return await query.Include(x => x.ProductVariant).Include(x => x.Store).ToListAsync();
+        return await query.Include(x => x.ProductVariant).Include(x => x.Warehouse).Include(x => x.Store).ToListAsync();
     }
 
     public async Task<WarehouseInventory?> GetByIdWithDetailsAsync(int id)
@@ -166,7 +165,6 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
             .Include(wi => wi.Store)
             .FirstOrDefaultAsync(wi => wi.Id == id);
     }
-
 
     public async Task<List<WarehouseInventory>> GetBySkusAsync(HashSet<string> skus, int? storeId = null)
     {

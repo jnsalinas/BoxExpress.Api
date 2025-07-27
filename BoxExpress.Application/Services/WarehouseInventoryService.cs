@@ -30,6 +30,34 @@ public class WarehouseInventoryService : IWarehouseInventoryService
         return ApiResponse<IEnumerable<ProductVariantDto>>.Success(_mapper.Map<List<ProductVariantDto>>(productVariants), new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }
 
+    public async Task<ApiResponse<IEnumerable<ProductDto>>> GetWarehouseProductSummaryGroupAsync(WarehouseInventoryFilterDto filter)
+    {
+        filter.IsAll = true;
+        var result = await GetAllAsync(filter);
+
+        var groupedData = result.Data
+            .GroupBy(x => new { x.StoreId, x.ProductName })
+            .Select(group => new ProductDto()
+            {
+                Name = group.Key.ProductName ?? string.Empty,
+                Variants = group
+                    .GroupBy(v => new { v.Name, v.Sku, v.ShopifyVariantId, v.Price })
+                    .Select(variantGroup => new ProductVariantDto
+                    {
+                        Name = variantGroup.Key.Name,
+                        Sku = variantGroup.Key.Sku,
+                        ShopifyVariantId = variantGroup.Key.ShopifyVariantId,
+                        Price = variantGroup.Key.Price,
+                        Quantity = variantGroup.Sum(q => q.Quantity),
+                        PendingReturnQuantity = variantGroup.Sum(q => q.PendingReturnQuantity),
+                        AvailableQuantity = variantGroup.Sum(q => q.AvailableQuantity),
+                        ReservedQuantity = variantGroup.Sum(q => q.ReservedQuantity),
+                    }).ToList()
+            }).OrderBy(x => x.Name).ToList();
+
+        return ApiResponse<IEnumerable<ProductDto>>.Success(groupedData, result.Pagination);
+    }
+
     public async Task<ApiResponse<IEnumerable<ProductDto>>> GetWarehouseProductSummaryAsync(WarehouseInventoryFilterDto filter)
     {
         var (products, totalCount) = await _repository.GetFilteredGroupedByProductAsync(_mapper.Map<WarehouseInventoryFilter>(filter));
@@ -48,6 +76,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                 .Where(v => v.ProductVariant.ProductId == product.Id)
                 .Select(wi => new ProductVariantDto
                 {
+                    WarehouseName = wi.Warehouse?.Name ?? "",
                     Name = wi.ProductVariant.Name ?? "",
                     ShopifyVariantId = wi.ProductVariant.ShopifyVariantId,
                     Sku = wi.ProductVariant.Sku,
@@ -79,6 +108,13 @@ public class WarehouseInventoryService : IWarehouseInventoryService
         var warehouseInventory = await _repository.GetByIdWithDetailsAsync(id);
         if (warehouseInventory == null)
             return ApiResponse<WarehouseInventoryDto?>.Fail("Warehouse inventory not found.");
+
+        if (!string.IsNullOrEmpty(dto.VariantSku))
+        {
+            var existSKU = await _repository.GetBySkusAsync(new HashSet<string> { dto.VariantSku });
+            if (existSKU != null && existSKU.Any() &&  existSKU.Any(x => x.Id != id))
+                return ApiResponse<WarehouseInventoryDto?>.Fail("SKU ya existe");
+        }
 
         var startedTransaction = false;
         if (!_unitOfWork.HasActiveTransaction)

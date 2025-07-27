@@ -184,6 +184,13 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.OrderItem != null ? src.OrderItem.Order.Client.FirstName + " " + src.OrderItem.Order.Client.LastName : string.Empty))
             .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.WarehouseInventory != null && src.WarehouseInventory.Warehouse != null ? src.WarehouseInventory.Warehouse.Name : string.Empty)); ;
 
+        CreateMap<WarehouseInventory, ProductVariantDto>()
+            .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : string.Empty))
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.ProductVariant.Name ?? string.Empty))
+            .ForMember(dest => dest.ShopifyVariantId, opt => opt.MapFrom(src => src.ProductVariant.ShopifyVariantId))
+            .ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.ProductVariant.Sku))
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductVariant.Product.Name));
+
         // Filtros
         CreateMap<WarehouseFilterDto, WarehouseFilter>();
         CreateMap<OrderFilterDto, OrderFilter>();

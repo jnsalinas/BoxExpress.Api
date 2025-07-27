@@ -15,23 +15,26 @@ public class WithdrawalRequestService : IWithdrawalRequestService
     private readonly IMapper _mapper;
     private readonly IWalletTransactionService _walletTransactionService;
     private readonly IWalletRepository _walletRepository;
+    private readonly IUserContext _userContext;
 
     public WithdrawalRequestService(
         IWithdrawalRequestRepository repository,
         IMapper mapper,
         IWalletTransactionService walletTransactionService,
-        IWalletRepository walletRepository)
+        IWalletRepository walletRepository,
+        IUserContext userContext)
     {
         _walletTransactionService = walletTransactionService;
         _repository = repository;
         _mapper = mapper;
         _walletRepository = walletRepository;
+        _userContext = userContext;
     }
 
     public async Task<ApiResponse<IEnumerable<WithdrawalRequestDto>>> GetAllAsync(WithdrawalRequestFilterDto filter)
     {
         var (withdrawalRequest, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<WithdrawalRequestFilter>(filter));
-        return ApiResponse<IEnumerable<WithdrawalRequestDto>>.Success(_mapper.Map<List<WithdrawalRequestDto>>(withdrawalRequest), new PaginationDto(totalCount, filter.PageSize, filter.Page));
+        return ApiResponse<IEnumerable<WithdrawalRequestDto>>.Success(_mapper.Map<List<WithdrawalRequestDto>>(withdrawalRequest.OrderByDescending(x => x.CreatedAt)), new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }
 
     public async Task<ApiResponse<bool>> AddAsync(WithdrawalRequestCreateDto dto)
@@ -54,7 +57,7 @@ public class WithdrawalRequestService : IWithdrawalRequestService
         await _walletRepository.UpdateAsync(wallet);
 
         WithdrawalRequest withdrawalRequest = _mapper.Map<WithdrawalRequest>(dto);
-        withdrawalRequest.CreatorId = 2;//todo: poner id de usuario por token
+        withdrawalRequest.CreatorId = _userContext.UserId;
         withdrawalRequest.CreatedAt = DateTime.UtcNow;
         await _repository.AddAsync(withdrawalRequest);
         return ApiResponse<bool>.Success(true);

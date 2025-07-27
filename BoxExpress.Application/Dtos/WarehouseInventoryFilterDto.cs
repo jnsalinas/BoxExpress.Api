@@ -12,6 +12,6 @@ public class WarehouseInventoryFilterDto : BaseFilterDto
     public string? ProductVariantSku { get; set; }
     public int? Quantity { get; set; }
     public int? Status { get; set; }
-    public string? Query { get; set; }   
+    public string? Query { get; set; }
 
 }

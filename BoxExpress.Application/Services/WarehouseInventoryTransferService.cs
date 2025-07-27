@@ -106,7 +106,8 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
                     WarehouseId = transfer.ToWarehouseId,
                     ProductVariantId = item.ProductVariantId,
                     Quantity = item.Quantity,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    StoreId = inventoryOrigin.StoreId, 
                 };
                 await _unitOfWork.Inventories.AddAsync(inventoryDestination);
             }

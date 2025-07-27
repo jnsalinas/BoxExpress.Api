@@ -11,4 +11,5 @@ public interface IWarehouseInventoryService
     Task<ApiResponse<IEnumerable<ProductDto>>> GetWarehouseProductSummaryAsync(WarehouseInventoryFilterDto filter);
     Task<ApiResponse<WarehouseInventoryDto?>> GetByIdAsync(int id);
     Task<ApiResponse<WarehouseInventoryDto?>> UpdateAsync(int id, UpdateWarehouseInventoryDto dto);
+    Task<ApiResponse<IEnumerable<ProductDto>>> GetWarehouseProductSummaryGroupAsync(WarehouseInventoryFilterDto filter);
 }
