@@ -65,7 +65,7 @@ public class WarehouseService : IWarehouseService
             foreach (var productDto in products)
             {
                 Product? product = null;
-                if (productDto.Id != null)
+                if (productDto.Id > 0)
                 {
                     product = await _unitOfWork.Products.GetByIdAsync(productDto.Id.Value);
                     if (product == null)
