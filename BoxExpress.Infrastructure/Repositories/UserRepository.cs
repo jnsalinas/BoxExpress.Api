@@ -23,6 +23,7 @@ namespace BoxExpress.Infrastructure.Repositories
             return await _context.Set<User>()
                 .AsNoTracking()
                 .Include(w => w.Role)
+                .Include(w => w.Warehouse)
                 .FirstOrDefaultAsync(w => w.Email.Equals(email));
         }
     }

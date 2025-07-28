@@ -37,6 +37,17 @@ public class WarehouseInventoriesController : ControllerBase
 
             return Ok(await _service.GetWarehouseProductSummaryGroupAsync(filter));
         }
+        else if (role?.ToLower() == RolConstants.Warehouse)
+        {
+            var warehouseId = User.FindFirst("WarehouseId")?.Value;
+            if (warehouseId == null)
+            {
+                return BadRequest("WarehouseId is required for store role.");
+            }
+
+            filter.WarehouseId = int.Parse(warehouseId);
+
+        }
         var result = await _service.GetWarehouseProductSummaryAsync(filter);
         return Ok(result);
     }

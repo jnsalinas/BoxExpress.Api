@@ -16,5 +16,6 @@ public class ClientAddress : BaseEntity
     public Client Client { get; set; } = null!;
     public City City { get; set; } = null!;
     public string? Zip { get; set; }
+    public string? PostalCode { get; set; }
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

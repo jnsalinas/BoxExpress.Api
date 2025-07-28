@@ -51,7 +51,8 @@ namespace BoxExpress.Application.Services
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 Expiration = expires,
                 Role = extraClaims?.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value,
-                StoreId = extraClaims?.FirstOrDefault(c => c.Type == "StoreId")?.Value
+                StoreId = extraClaims?.FirstOrDefault(c => c.Type == "StoreId")?.Value,
+                WarehouseName = extraClaims?.FirstOrDefault(c => c.Type == "WarehouseName")?.Value,
             };
         }
     }

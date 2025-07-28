@@ -267,13 +267,6 @@ public class OrderService : IOrderService
         {
             var createdAt = DateTime.UtcNow;
 
-            // Validate document type
-            var documentType = await _documentTypeRepository.GetByIdAsync(createOrderDto.ClientDocumentTypeId);
-            if (documentType == null)
-            {
-                return ApiResponse<OrderDto>.Fail("Tipo de documento no encontrado");
-            }
-
             // Find or create client
             var existingClient = await _clientRepository.GetByDocumentAsync(createOrderDto.ClientDocument);
             Client client;
@@ -285,12 +278,12 @@ public class OrderService : IOrderService
                 {
                     FirstName = createOrderDto.ClientFirstName,
                     LastName = createOrderDto.ClientLastName,
-                    Document = createOrderDto.ClientDocument,
+                    // Document = createOrderDto.ClientDocument,
                     Email = createOrderDto.ClientEmail,
-                    ExternalId = createOrderDto.ClientExternalId,
+                    // ExternalId = createOrderDto.ClientExternalId,
                     CreatedAt = createdAt,
                     Phone = createOrderDto.ClientPhone ?? string.Empty,
-                    DocumentTypeId = createOrderDto.ClientDocumentTypeId,
+                    // DocumentTypeId = createOrderDto.ClientDocumentTypeId,
                 };
                 await _unitOfWork.Clients.AddAsync(client);
             }
@@ -301,7 +294,7 @@ public class OrderService : IOrderService
                 client.FirstName = createOrderDto.ClientFirstName;
                 client.LastName = createOrderDto.ClientLastName;
                 client.Email = createOrderDto.ClientEmail;
-                client.ExternalId = createOrderDto.ClientExternalId;
+                // client.ExternalId = createOrderDto.ClientExternalId;
                 client.UpdatedAt = createdAt;
                 await _unitOfWork.Clients.UpdateAsync(client);
             }
@@ -326,7 +319,8 @@ public class OrderService : IOrderService
                     Latitude = !string.IsNullOrEmpty(createOrderDto.Latitude) ? decimal.Parse(createOrderDto.Latitude) : null,
                     Longitude = !string.IsNullOrEmpty(createOrderDto.Longitude) ? decimal.Parse(createOrderDto.Longitude) : null,
                     IsDefault = true,
-                    CreatedAt = createdAt
+                    CreatedAt = createdAt,
+                    PostalCode = createOrderDto.PostalCode,
                 };
                 await _unitOfWork.ClientAddresses.AddAsync(clientAddress);
             }
@@ -360,11 +354,11 @@ public class OrderService : IOrderService
                     ClientId = client.Id,
                     ClientAddressId = clientAddress.Id,
                     CityId = createOrderDto.CityId,
-                    Code = createOrderDto.Code ?? string.Empty,
+                    Code = createOrderDto.Code,
                     Contains = createOrderDto.Contains,
                     TotalAmount = createOrderDto.TotalAmount,
                     Notes = createOrderDto.Notes,
-                    ExternalId = createOrderDto.ExternalId,
+                    // ExternalId = createOrderDto.ExternalId,
                     CreatedAt = createdAt,
                     CreatorId = createOrderDto.CreatorId ?? 0,
                     IsEnabled = true,
@@ -460,7 +454,7 @@ public class OrderService : IOrderService
                 OrderItems = new List<OrderItemDto>()
             };
 
-            order.CityId = 1;
+            order.CityId = 1; //todo revisar como cargar esto
             order.CurrencyId = 1;
 
             var countryCode = "MX";

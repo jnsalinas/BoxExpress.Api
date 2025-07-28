@@ -37,7 +37,7 @@ public class Order : BaseEntity
     public Country Country { get; set; } = null!;
     public DateTime? DeliveredDate { get; set; } // cuando realmente se entregó el pedido
     public DateTime? RescheduledDate { get; set; } // fecha de progrmaacion
-    public string Code { get; set; } = string.Empty;
+    public string? Code { get; set; }
     public string? Contains { get; set; } // de shopify el resto debe sacar los productos que contiene
     public string? SecondManagement { get; set; }
     public string? CourierComment { get; set; }

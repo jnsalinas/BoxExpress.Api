@@ -11,7 +11,7 @@ namespace BoxExpress.Application.Dtos
         // Client Information
         public string ClientFirstName { get; set; } = string.Empty;
         public string ClientLastName { get; set; } = string.Empty;
-        public int ClientDocumentTypeId { get; set; }
+        public int? ClientDocumentTypeId { get; set; }
         public string ClientDocument { get; set; } = string.Empty;
         public string ClientEmail { get; set; } = string.Empty;
         public string? ClientExternalId { get; set; }
@@ -24,6 +24,7 @@ namespace BoxExpress.Application.Dtos
         public string? Latitude { get; set; }
         public string? Longitude { get; set; }
         public string? ClientAddress2 { get; set; }
+        public string? PostalCode { get; set; }
 
         // Order Information
         public int StoreId { get; set; }

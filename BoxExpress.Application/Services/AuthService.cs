@@ -42,9 +42,10 @@ namespace BoxExpress.Application.Services
             if (user.WarehouseId.HasValue)
             {
                 claimsExtras.Add(new Claim("WarehouseId", user.WarehouseId.Value.ToString()));
+                claimsExtras.Add(new Claim("WarehouseName", user.Warehouse?.Name ?? string.Empty));
             }
 
-             if (user.StoreId.HasValue)
+            if (user.StoreId.HasValue)
             {
                 claimsExtras.Add(new Claim("StoreId", user.StoreId.Value.ToString()));
             }
