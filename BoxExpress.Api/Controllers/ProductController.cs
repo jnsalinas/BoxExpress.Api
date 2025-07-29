@@ -15,6 +15,7 @@ namespace BoxExpress.Api.Controllers
         {
             _productService = productService;
         }
+        
         [HttpPost("getall")]
         public async Task<IActionResult> GetAll()
         {

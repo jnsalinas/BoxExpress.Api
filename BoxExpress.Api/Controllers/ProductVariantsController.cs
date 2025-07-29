@@ -25,6 +25,13 @@ public class ProductVariantsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("search")]
+    public async Task<IActionResult> Search([FromBody] ProductVariantFilterDto filter)
+    {
+        var result = await _productVariantService.GetAllAsync(filter);
+        return Ok(result);
+    }
+
 
     // [HttpGet("autocomplete")]
     // public async Task<IActionResult> Search([FromQuery] string query, [FromQuery] int warehouseOriginId)

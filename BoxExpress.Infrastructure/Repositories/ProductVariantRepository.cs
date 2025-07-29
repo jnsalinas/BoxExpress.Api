@@ -15,6 +15,22 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
         _context = context;
     }
 
+    public async Task<List<ProductVariant>> GetAllAsync(ProductVariantFilter filter)
+    {
+        var query = _context.ProductVariants.AsQueryable();
+
+        if (filter.StoreId.HasValue)
+        {
+            query = query
+                .Include(pv => pv.Product)
+                .Include(pv => pv.WarehouseInventories
+                    .Where(wi => wi.StoreId == filter.StoreId.Value))
+                .Where(pv => pv.WarehouseInventories.Any(wi => wi.StoreId == filter.StoreId.Value));
+        }
+
+        return await query.ToListAsync();
+    }
+
     public async Task<ProductVariant?> GetByIdWithDetailsAsync(int id)
     {
         return await _context.ProductVariants

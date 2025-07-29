@@ -19,6 +19,11 @@ public class ProductVariantService : IProductVariantService
         _mapper = mapper;
     }
 
-     public async Task<ApiResponse<ProductVariantDto?>> GetByIdAsync(int id) =>
+    public async Task<ApiResponse<List<ProductVariantDto>>> GetAllAsync(ProductVariantFilterDto filter)
+    {
+        return ApiResponse<List<ProductVariantDto>>.Success(_mapper.Map<List<ProductVariantDto>>(await _repository.GetAllAsync(_mapper.Map<ProductVariantFilter>(filter))));
+    }
+
+    public async Task<ApiResponse<ProductVariantDto?>> GetByIdAsync(int id) =>
         ApiResponse<ProductVariantDto?>.Success(_mapper.Map<ProductVariantDto>(await _repository.GetByIdWithDetailsAsync(id)));
 }

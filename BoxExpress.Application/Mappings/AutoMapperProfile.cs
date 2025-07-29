@@ -125,7 +125,8 @@ public class AutoMapperProfile : Profile
         CreateMap<ProductVariant, ProductVariantDto>()
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
             .ForMember(dest => dest.ProductSku, opt => opt.MapFrom(src => src.Product.Sku))
-            .ForMember(dest => dest.ProductPrice, opt => opt.MapFrom(src => src.Product.Price));
+            .ForMember(dest => dest.ProductPrice, opt => opt.MapFrom(src => src.Product.Price))
+            .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.WarehouseInventories.Sum(w => w.Quantity)));
 
         CreateMap<ProductVariant, ProductVariantAutocompleteDto>()
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
@@ -203,6 +204,7 @@ public class AutoMapperProfile : Profile
         CreateMap<WarehouseInventoryFilterDto, WarehouseInventoryFilter>();
         CreateMap<InventoryMovementFilterDto, InventoryMovementFilter>();
         CreateMap<InventoryHoldFilterDto, InventoryHoldFilter>();
+        CreateMap<ProductVariantFilterDto, ProductVariantFilter>();
 
         // DTOs de creación / actualización
         CreateMap<CreateStoreDto, Store>()

@@ -39,6 +39,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
             .GroupBy(x => new { x.StoreId, x.ProductName })
             .Select(group => new ProductDto()
             {
+                TotalQuantity = group.Sum(x => x.Quantity),
                 Name = group.Key.ProductName ?? string.Empty,
                 Variants = group
                     .GroupBy(v => new { v.Name, v.Sku, v.ShopifyVariantId, v.Price })
@@ -112,7 +113,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
         if (!string.IsNullOrEmpty(dto.VariantSku))
         {
             var existSKU = await _repository.GetBySkusAsync(new HashSet<string> { dto.VariantSku });
-            if (existSKU != null && existSKU.Any() &&  existSKU.Any(x => x.Id != id))
+            if (existSKU != null && existSKU.Any() &&  existSKU.Any(x => x.Id != id && x.ProductVariant.ProductId != warehouseInventory.ProductVariant.ProductId))
                 return ApiResponse<WarehouseInventoryDto?>.Fail("SKU ya existe");
         }
 
