@@ -11,8 +11,7 @@ public class OrderDto
     public DateTime? DeliveryDate { get; set; }
     public DateTime? RescheduleDate { get; set; }
     public string? Contains { get; set; }
-    public string? Latitude { get; set; }
-    public string? Longitude { get; set; }
+
     public string? ClientAddress { get; set; }
     public string? ClientFullName { get; set; }
     public string? ClientDocument { get; set; }
@@ -33,4 +32,5 @@ public class OrderDto
     public List<OrderItemDto>? OrderItems { get; set; }
     public int? StoreId { get; internal set; }
     public DateTime? CreatedAt { get; set; }
+    public ClientDto? Client { get; set; }
 }

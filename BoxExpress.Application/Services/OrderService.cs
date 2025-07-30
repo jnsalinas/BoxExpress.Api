@@ -97,7 +97,7 @@ public class OrderService : IOrderService
     }
 
     public async Task<ApiResponse<OrderDto?>> GetByIdAsync(int id) =>
-        ApiResponse<OrderDto?>.Success(_mapper.Map<OrderDto>(await _repository.GetByIdWithDetailsAsync(id)));
+        ApiResponse<OrderDto?>.Success(_mapper.Map<OrderDto>(await _repository.GetByIdAsync(id)));
 
     public async Task<ApiResponse<OrderDto>> UpdateWarehouseAsync(int orderId, int warehouseId)
     {
@@ -273,12 +273,9 @@ public class OrderService : IOrderService
             {
                 FirstName = createOrderDto.ClientFirstName,
                 LastName = createOrderDto.ClientLastName,
-                // Document = createOrderDto.ClientDocument,
                 Email = createOrderDto.ClientEmail,
-                // ExternalId = createOrderDto.ClientExternalId,
                 CreatedAt = createdAt,
-                Phone = createOrderDto.ClientPhone ?? string.Empty,
-                // DocumentTypeId = createOrderDto.ClientDocumentTypeId,
+                Phone = createOrderDto.ClientPhone,
             };
             await _unitOfWork.Clients.AddAsync(client);
 
@@ -288,10 +285,9 @@ public class OrderService : IOrderService
                 ClientId = client.Id,
                 Address = createOrderDto.ClientAddress,
                 Complement = createOrderDto.ClientAddressComplement,
-                Address2 = createOrderDto.ClientAddress2,
                 CityId = createOrderDto.CityId,
-                Latitude = !string.IsNullOrEmpty(createOrderDto.Latitude) ? decimal.Parse(createOrderDto.Latitude) : null,
-                Longitude = !string.IsNullOrEmpty(createOrderDto.Longitude) ? decimal.Parse(createOrderDto.Longitude) : null,
+                Latitude = createOrderDto.Latitude,
+                Longitude = createOrderDto.Longitude,
                 IsDefault = true,
                 CreatedAt = createdAt,
                 PostalCode = createOrderDto.PostalCode,
@@ -326,7 +322,6 @@ public class OrderService : IOrderService
                 ClientAddressId = clientAddress.Id,
                 CityId = createOrderDto.CityId,
                 Code = createOrderDto.Code,
-                Contains = createOrderDto.Contains,
                 TotalAmount = createOrderDto.TotalAmount,
                 Notes = createOrderDto.Notes,
                 CreatedAt = createdAt,
@@ -354,7 +349,7 @@ public class OrderService : IOrderService
             {
                 CreatedAt = createdAt,
                 OrderId = order.Id,
-                CreatorId = createOrderDto.CreatorId ?? 0,
+                CreatorId = _userContext.UserId,
                 NewStatusId = defaultOrderStatus.Id
             };
             await _unitOfWork.OrderStatusHistories.AddAsync(orderStatusHistory);
@@ -400,22 +395,17 @@ public class OrderService : IOrderService
             int col = 1;
             var order = new CreateOrderDto
             {
-                CreatorId = dto.CreatorId,
                 StoreId = dto.StoreId,
                 Code = ordersSheet.Cell(row, col++).GetString(),
                 ClientFirstName = ordersSheet.Cell(row, col++).GetString(),
                 ClientLastName = ordersSheet.Cell(row, col++).GetString(),
-                ClientDocumentTypeId = int.Parse(ordersSheet.Cell(row, col++).GetString()),
-                ClientDocument = ordersSheet.Cell(row, col++).GetString(),
                 ClientEmail = ordersSheet.Cell(row, col++).GetString(),
                 ClientPhone = ordersSheet.Cell(row, col++).GetString(),
                 ClientAddress = ordersSheet.Cell(row, col++).GetString(),
                 ClientAddressComplement = ordersSheet.Cell(row, col++).GetString(),
-                ClientAddress2 = ordersSheet.Cell(row, col++).GetString(),
-                Latitude = ordersSheet.Cell(row, col++).GetString(),
-                Longitude = ordersSheet.Cell(row, col++).GetString(),
+                Latitude = decimal.TryParse(ordersSheet.Cell(row, col++).GetString(), out var lat) ? lat : null,
+                Longitude = decimal.TryParse(ordersSheet.Cell(row, col++).GetString(), out var lon) ? lon : null,
                 TotalAmount = decimal.Parse(ordersSheet.Cell(row, col++).GetString()),
-                Notes = $"Carga masiva: {ordersSheet.Cell(row, col++).GetString()}",
                 OrderItems = new List<OrderItemDto>()
             };
 
@@ -475,4 +465,95 @@ public class OrderService : IOrderService
         return ApiResponse<List<OrderExcelUploadResponseDto>>.Success(result, null, "Órdenes creadas exitosamente");
     }
 
+    public async Task<ApiResponse<OrderDto>> UpdateOrderAsync(int id, CreateOrderDto createOrderDto)
+    {
+        var order = await _repository.GetByIdWithDetailsAsync(id);
+        if (order == null)
+            return ApiResponse<OrderDto>.Fail("Order not found");
+
+        // _mapper.Map(createOrderDto, order);
+
+        order.Client.FirstName = createOrderDto.ClientFirstName;
+        order.Client.LastName = createOrderDto.ClientLastName;
+        order.Client.Email = createOrderDto.ClientEmail;
+        order.Client.Phone = createOrderDto.ClientPhone;
+        order.ClientAddress.Address = createOrderDto.ClientAddress;
+        order.ClientAddress.Complement = createOrderDto.ClientAddressComplement;
+        order.ClientAddress.Latitude = createOrderDto.Latitude;
+        order.ClientAddress.Longitude = createOrderDto.Longitude;
+        order.ClientAddress.CityId = createOrderDto.CityId;
+        order.ClientAddress.PostalCode = createOrderDto.PostalCode;
+        order.ClientAddress.IsDefault = true;
+        order.ClientAddress.UpdatedAt = DateTime.UtcNow;
+        order.Client.UpdatedAt = DateTime.UtcNow;
+
+        order.TotalAmount = createOrderDto.TotalAmount;
+        order.Notes = createOrderDto.Notes;
+        order.UpdatedAt = DateTime.UtcNow;
+        order.DeliveryFee = createOrderDto.DeliveryFee ?? 0;
+        order.CurrencyId = createOrderDto.CurrencyId;
+        order.Code = createOrderDto.Code;
+        order.StoreId = createOrderDto.StoreId;
+
+        // Obtener IDs de items que vienen en el DTO
+        var dtoItemIds = createOrderDto.OrderItems
+            .Where(x => x.Id.HasValue)
+            .Select(x => x.Id.Value)
+            .ToHashSet();
+        
+        // Eliminar items que ya no están en el DTO
+        var itemsToRemove = order.OrderItems
+            .Where(x => !dtoItemIds.Contains(x.Id))
+            .ToList();
+        
+        foreach (var item in itemsToRemove)
+        {
+            await _unitOfWork.OrderItems.DeleteAsync(item.Id);
+        }
+        
+        // Actualizar items existentes
+        foreach (var orderItem in createOrderDto.OrderItems.Where(x => x.Id.HasValue))
+        {
+            var currentOrderItem = order.OrderItems.FirstOrDefault(x => x.Id == orderItem.Id);
+            if (currentOrderItem != null && orderItem.Quantity.HasValue)
+            {
+                var hasChanges = currentOrderItem.Quantity != orderItem.Quantity.Value ||
+                               currentOrderItem.ProductVariantId != orderItem.ProductVariantId;
+                
+                if (hasChanges)
+                {
+                    currentOrderItem.ProductVariantId = orderItem.ProductVariantId;
+                    currentOrderItem.Quantity = orderItem.Quantity.Value;
+                    currentOrderItem.UpdatedAt = DateTime.UtcNow;
+                    await _unitOfWork.OrderItems.UpdateAsync(currentOrderItem);
+                }
+            }
+        }
+        
+        // Agregar nuevos items
+        foreach (var orderItem in createOrderDto.OrderItems.Where(x => !x.Id.HasValue))
+        {
+            if (orderItem.Quantity.HasValue)
+            {
+                var newOrderItem = new OrderItem
+                {
+                    OrderId = order.Id,
+                    ProductVariantId = orderItem.ProductVariantId,
+                    Quantity = orderItem.Quantity.Value,
+                    CreatedAt = DateTime.UtcNow,
+                };
+                await _unitOfWork.OrderItems.AddAsync(newOrderItem);
+            }
+        }
+
+        order.UpdatedAt = DateTime.UtcNow;
+        order.CreatorId = _userContext.UserId;
+
+        await _unitOfWork.ClientAddresses.UpdateAsync(order.ClientAddress);
+        await _unitOfWork.Clients.UpdateAsync(order.Client);
+        await _unitOfWork.Orders.UpdateAsync(order);
+
+        await _unitOfWork.CommitAsync();
+        return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
+    }
 }

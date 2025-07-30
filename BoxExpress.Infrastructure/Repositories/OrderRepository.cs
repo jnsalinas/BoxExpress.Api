@@ -97,6 +97,15 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             .FirstOrDefaultAsync(w => w.Id.Equals(id));
     }
 
+    public async Task<Order?> GetByIdAsync(int id)
+    {
+        return await _context.Set<Order>()
+            .Include(w => w.Client)
+            .Include(w => w.ClientAddress)
+            .Include(w => w.OrderItems)
+            .FirstOrDefaultAsync(w => w.Id.Equals(id));
+    }
+
     public async Task<List<OrderSummary>> GetSummaryAsync(OrderFilter filter)
     {
         var query = _context.Orders

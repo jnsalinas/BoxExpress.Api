@@ -17,4 +17,5 @@ public interface IOrderService
     Task<ApiResponse<IEnumerable<OrderSummaryDto>>> GetSummaryAsync(OrderFilterDto filter);
     Task<ApiResponse<OrderDto>> AddOrderAsync(CreateOrderDto createOrderDto);
     Task<ApiResponse<List<OrderExcelUploadResponseDto>>> AddOrdersFromExcelAsync(OrderExcelUploadDto dto);
+    Task<ApiResponse<OrderDto>> UpdateOrderAsync(int id, CreateOrderDto createOrderDto);
 }

@@ -112,9 +112,10 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.CurrencyCode, opt => opt.MapFrom(src => src.Currency.Code))
             .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : string.Empty))
             .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name))
-            .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems));
+            .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems))
+            .ForMember(dest => dest.Client, opt => opt.MapFrom(src => src.Client));
 
-        CreateMap<CreateOrderDto, Order>();
+        CreateMap<CreateOrderDto, Order>(); 
         CreateMap<CreateWarehouseDto, Warehouse>();
         CreateMap<OrderItemDto, OrderItem>();
 

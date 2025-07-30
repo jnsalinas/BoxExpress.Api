@@ -41,8 +41,7 @@ public class Order : BaseEntity
     public string? Contains { get; set; } // de shopify el resto debe sacar los productos que contiene
     public string? SecondManagement { get; set; }
     public string? CourierComment { get; set; }
-    public decimal? Latitude { get; set; }
-    public decimal? Longitude { get; set; }
+
     public decimal TotalAmount { get; set; }
     public DateTime? ScheduledDate { get; set; } // Fecha elegida para entrega
     public string? Notes { get; set; }

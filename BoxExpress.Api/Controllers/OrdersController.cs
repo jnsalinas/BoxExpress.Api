@@ -28,6 +28,15 @@ public class OrdersController : ControllerBase
         _excelExporter = excelStatusExporter;
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var result = await _orderService.GetByIdAsync(id);
+        if (!result.IsSuccess)
+            return NotFound(result.Message);
+        return Ok(result);
+    }
+
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] OrderFilterDto filter)
     {
@@ -71,15 +80,6 @@ public class OrdersController : ControllerBase
         }
 
         var result = await _orderService.GetSummaryAsync(filter);
-        return Ok(result);
-    }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
-    {
-        var result = await _orderService.GetByIdAsync(id);
-        if (result.Equals(null))
-            return NotFound();
         return Ok(result);
     }
 
@@ -158,10 +158,6 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateOrderDto createOrderDto)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        createOrderDto.CreatorId = userId != null ? int.Parse(userId) : 0;
-
         var result = await _orderService.AddOrderAsync(createOrderDto);
         return Ok(result);
     }
@@ -206,5 +202,12 @@ public class OrdersController : ControllerBase
         }
 
         return BadRequest(result.Message ?? "Upload failed.");
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] CreateOrderDto createOrderDto)
+    {
+        var result = await _orderService.UpdateOrderAsync(id, createOrderDto);
+        return Ok(result);
     }
 }
