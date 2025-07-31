@@ -17,5 +17,6 @@ namespace BoxExpress.Application.Dtos
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
         public bool IsDefault { get; set; } = false;
+        public string? PostalCode { get; set; }
     }
 }

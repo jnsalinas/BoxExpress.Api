@@ -101,6 +101,12 @@ public class OrderRepository : Repository<Order>, IOrderRepository
     {
         return await _context.Set<Order>()
             .Include(w => w.Client)
+            .Include(w => w.City)
+            .Include(w => w.Warehouse)
+            .Include(w => w.Category)
+            .Include(w => w.Status)
+            .Include(w => w.Currency)
+            .Include(w => w.TimeSlot)
             .Include(w => w.ClientAddress)
             .Include(w => w.OrderItems)
             .FirstOrDefaultAsync(w => w.Id.Equals(id));
