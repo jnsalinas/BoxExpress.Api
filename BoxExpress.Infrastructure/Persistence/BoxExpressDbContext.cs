@@ -6,10 +6,14 @@ namespace BoxExpress.Infrastructure.Persistence
     //Correr migrations:
     //dotnet ef migrations add AddWarehouseUser --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
-    //dotnet ef migrations add AddPostalCode --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add QuantityDelivered --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     
+    //eliminar la base de datos
+    //ASPNETCORE_ENVIRONMENT=Development && dotnet ef database drop --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+
+
     //ASPNETCORE_ENVIRONMENT=Development && dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
-    //export ASPNETCORE_ENVIRONMENT=QA && dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //ASPNETCORE_ENVIRONMENT=QA && dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     public class BoxExpressDbContext : DbContext
     {
         public BoxExpressDbContext(DbContextOptions<BoxExpressDbContext> options) : base(options) { }

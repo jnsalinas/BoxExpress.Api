@@ -42,4 +42,9 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
                 .ThenInclude(w => w.Transfer)
             .FirstOrDefaultAsync(w => w.Id.Equals(id));
     }
+
+    public async Task<List<ProductVariant>> GetByIdsAsync(List<int> ids)
+    {
+        return await _context.ProductVariants.Where(x => ids.Contains(x.Id)).ToListAsync();
+    }   
 }

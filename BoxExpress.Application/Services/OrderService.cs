@@ -331,7 +331,9 @@ public class OrderService : IOrderService
 
             await _unitOfWork.Orders.AddAsync(order);
 
-            // Validate and create order items
+            //
+            var productVariants = await _productVariantRepository.GetByIdsAsync(createOrderDto.OrderItems.Select(x => x.ProductVariantId).ToList());
+
             foreach (var orderItemDto in createOrderDto.OrderItems)
             {
                 var orderItem = new OrderItem
@@ -339,7 +341,8 @@ public class OrderService : IOrderService
                     OrderId = order.Id,
                     ProductVariantId = orderItemDto.ProductVariantId,
                     Quantity = orderItemDto.Quantity ?? 0,
-                    CreatedAt = createdAt
+                    CreatedAt = createdAt,
+                    UnitPrice = productVariants.FirstOrDefault(x => x.Id == orderItemDto.ProductVariantId)?.Price ?? 0,
                 };
                 await _unitOfWork.OrderItems.AddAsync(orderItem);
             }

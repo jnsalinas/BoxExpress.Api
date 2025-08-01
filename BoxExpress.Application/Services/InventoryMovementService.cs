@@ -116,18 +116,8 @@ public class InventoryMovementService : IInventoryMovementService
         )
     {
         var orderItemIds = order.OrderItems.Select(x => x.Id).ToList();
-        var inventoryHolds = await _inventoryHoldRepository.GetByOrderItemIdsAndStatus(orderItemIds, fromHoldStatus);
+        var inventoryHolds = await GetInventoryHoldsForOrderAsync(orderItemIds, fromHoldStatus, movementType);
         var now = DateTime.UtcNow;
-
-        //todo: mirar donde se pone esto queda muy junto a mi parecer solo que tome el ultimo 
-        //cuando la orden esta cancelada tiene uno pending devolucion si se pone entregada de nuevo que quite solo el ultimo si encuentra
-        if (movementType == InventoryMovementType.OrderDelivered)
-        {
-            //todo PendingReturnQuantity debe restar en este caso 
-            var inventoryHoldPendingReturn = (await _inventoryHoldRepository.GetByOrderItemIdsAndStatus(orderItemIds, InventoryHoldStatus.PendingReturn)).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
-            if (inventoryHoldPendingReturn != null)
-                inventoryHolds.Add(inventoryHoldPendingReturn);
-        }
 
         foreach (var orderItem in order.OrderItems)
         {
@@ -135,23 +125,146 @@ public class InventoryMovementService : IInventoryMovementService
             if (hold == null)
                 throw new Exception($"No se encontró un bloqueo de inventario con estado {fromHoldStatus} para el OrderItem {orderItem.Id}");
 
-            await AdjustInventoryAsync(new InventoryMovement
-            {
-                WarehouseId = order.WarehouseId.Value,
-                ProductVariantId = orderItem.ProductVariantId,
-                Quantity = orderItem.Quantity * quantityMultiplier,
-                MovementType = movementType,
-                OrderId = order.Id,
-                Notes = movementNote,
-                Reference = $"{movementReferencePrefix}-{order.Id}-{orderItem.ProductVariantId}",
-                CreatedAt = now
-            }
-            , (movementType == InventoryMovementType.OrderDelivered) && hold.Status != InventoryHoldStatus.PendingReturn
-            , hold.Status == InventoryHoldStatus.PendingReturn);
-            
-            hold.Status = toHoldStatus;
-            hold.UpdatedAt = now;
-            await _unitOfWork.InventoryHolds.UpdateAsync(hold);
+            await ProcessInventoryMovementAsync(order, orderItem, movementType, quantityMultiplier, movementNote, movementReferencePrefix, now, hold);
+
+            await UpdateInventoryHoldStatusAsync(hold, toHoldStatus, now);
         }
+    }
+
+    private async Task<List<InventoryHold>> GetInventoryHoldsForOrderAsync(List<int> orderItemIds, InventoryHoldStatus fromHoldStatus, InventoryMovementType movementType)
+    {
+        // Obtener holds con el estado requerido
+        var inventoryHolds = await _inventoryHoldRepository.GetByOrderItemIdsAndStatus(orderItemIds, fromHoldStatus);
+
+        // Para entregas, incluir también holds pendientes de devolución
+        if (movementType == InventoryMovementType.OrderDelivered)
+        {
+            var pendingReturnHold = await GetLatestPendingReturnHoldAsync(orderItemIds);
+            if (pendingReturnHold != null)
+                inventoryHolds.Add(pendingReturnHold);
+        }
+
+        return inventoryHolds;
+    }
+
+    private async Task<InventoryHold?> GetLatestPendingReturnHoldAsync(List<int> orderItemIds)
+    {
+        var pendingReturnHolds = await _inventoryHoldRepository.GetByOrderItemIdsAndStatus(orderItemIds, InventoryHoldStatus.PendingReturn);
+        return pendingReturnHolds.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+    }
+
+    private async Task ProcessInventoryMovementAsync(
+        Order order,
+        OrderItem orderItem,
+        InventoryMovementType movementType,
+        int quantityMultiplier,
+        string movementNote,
+        string movementReferencePrefix,
+        DateTime now,
+        InventoryHold hold)
+    {
+        // Crear el movimiento de inventario
+        var movement = CreateInventoryMovement(order, orderItem, movementType, quantityMultiplier, movementNote, movementReferencePrefix, now);
+
+        // Determinar qué cantidades ajustar
+        var (moveReserved, movePendingReturn) = DetermineInventoryAdjustmentFlags(movementType, hold.Status);
+
+        // Obtener inventario una sola vez para optimizar las operaciones
+        var inventory = await GetWarehouseInventoryAsync(order.WarehouseId.Value, orderItem.ProductVariantId);
+
+        // Procesar el ajuste de inventario
+        await ProcessInventoryAdjustmentAsync(movement, moveReserved, movePendingReturn, inventory);
+
+        // Actualizar QuantityDelivered solo para entregas
+        if (movementType == InventoryMovementType.OrderDelivered)
+        {
+            await UpdateQuantityDeliveredAsync(inventory, orderItem.Quantity);
+        }
+    }
+
+    private InventoryMovement CreateInventoryMovement(
+        Order order,
+        OrderItem orderItem,
+        InventoryMovementType movementType,
+        int quantityMultiplier,
+        string movementNote,
+        string movementReferencePrefix,
+        DateTime now)
+    {
+        return new InventoryMovement
+        {
+            WarehouseId = order.WarehouseId.Value,
+            ProductVariantId = orderItem.ProductVariantId,
+            Quantity = orderItem.Quantity * quantityMultiplier,
+            MovementType = movementType,
+            OrderId = order.Id,
+            Notes = movementNote,
+            Reference = $"{movementReferencePrefix}-{order.Id}-{orderItem.ProductVariantId}",
+            CreatedAt = now
+        };
+    }
+
+    private (bool moveReserved, bool movePendingReturn) DetermineInventoryAdjustmentFlags(InventoryMovementType movementType, InventoryHoldStatus holdStatus)
+    {
+        // Para entregas, mover de reservado a consumido (excepto si ya está pendiente de devolución)
+        var moveReserved = (movementType == InventoryMovementType.OrderDelivered) && holdStatus != InventoryHoldStatus.PendingReturn;
+        
+        // Para holds pendientes de devolución, ajustar esa cantidad
+        var movePendingReturn = holdStatus == InventoryHoldStatus.PendingReturn;
+
+        return (moveReserved, movePendingReturn);
+    }
+
+    private async Task<WarehouseInventory> GetWarehouseInventoryAsync(int warehouseId, int productVariantId)
+    {
+        var inventory = await _unitOfWork.Inventories.GetByWarehouseAndProductVariant(warehouseId, productVariantId);
+        if (inventory == null)
+        {
+            throw new Exception($"No se encontró inventario en la bodega {warehouseId} para el producto {productVariantId}");
+        }
+        return inventory;
+    }
+
+    private async Task ProcessInventoryAdjustmentAsync(InventoryMovement movement, bool moveReserved, bool movePendingReturn, WarehouseInventory inventory)
+    {
+        // Validar que hay inventario suficiente
+        if (inventory.Quantity + movement.Quantity < 0)
+        {
+            throw new Exception($"Inventario insuficiente para el producto {movement.ProductVariantId} en la bodega {movement.WarehouseId}");
+        }
+
+        // Actualizar cantidades del inventario
+        inventory.Quantity += movement.Quantity;
+        inventory.UpdatedAt = DateTime.UtcNow;
+
+        // Ajustar cantidades reservadas si corresponde
+        if (moveReserved)
+            inventory.ReservedQuantity += movement.Quantity;
+        
+        // Ajustar cantidades pendientes de devolución si corresponde
+        if (movePendingReturn)
+            inventory.PendingReturnQuantity += movement.Quantity;
+
+        // Guardar el movimiento y actualizar el inventario
+        await _unitOfWork.InventoryMovements.AddAsync(movement);
+        await _unitOfWork.Inventories.UpdateAsync(inventory);
+    }
+
+    private async Task UpdateQuantityDeliveredAsync(WarehouseInventory inventory, int quantity)
+    {
+        // Actualizar la cantidad entregada
+        if(inventory.QuantityDelivered == null)
+            inventory.QuantityDelivered = 0;
+            
+        inventory.QuantityDelivered += quantity;
+        inventory.UpdatedAt = DateTime.UtcNow;
+        await _unitOfWork.Inventories.UpdateAsync(inventory);
+    }
+
+    private async Task UpdateInventoryHoldStatusAsync(InventoryHold hold, InventoryHoldStatus newStatus, DateTime now)
+    {
+        hold.Status = newStatus;
+        hold.UpdatedAt = now;
+        await _unitOfWork.InventoryHolds.UpdateAsync(hold);
     }
 }

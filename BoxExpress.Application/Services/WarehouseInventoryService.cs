@@ -89,6 +89,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                     Quantity = wi.Quantity,
                     PendingReturnQuantity = wi.PendingReturnQuantity,
                     StoreId = wi.StoreId,
+                    QuantityDelivered = wi.QuantityDelivered ?? 0,
                     Store = wi.Store != null ? new StoreDto { Id = wi.Store.Id, Name = wi.Store.Name } : null,
                     ProductName = product.Name,
                 }).OrderBy(x => x.Store?.Name).ToList()
