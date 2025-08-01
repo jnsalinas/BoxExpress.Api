@@ -3,11 +3,12 @@ using BoxExpress.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using BoxExpress.Application.Dtos;
 using System.Linq;
-
+using Microsoft.AspNetCore.Authorization;
 namespace BoxExpress.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class OrderStatusesController : ControllerBase
 {
     private readonly IOrderStatusService _orderStatusService;

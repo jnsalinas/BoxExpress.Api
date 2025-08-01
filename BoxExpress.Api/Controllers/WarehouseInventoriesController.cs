@@ -5,11 +5,13 @@ using BoxExpress.Application.Dtos;
 using System.Linq;
 using System.Security.Claims;
 using BoxExpress.Domain.Constants;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BoxExpress.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class WarehouseInventoriesController : ControllerBase
 {
     private readonly IExcelExporter<ProductDto> _excelExporter;

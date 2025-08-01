@@ -5,11 +5,12 @@ using BoxExpress.Application.Dtos;
 using System.Linq;
 using System.Security.Claims;
 using BoxExpress.Domain.Constants;
-
+using Microsoft.AspNetCore.Authorization;
 namespace BoxExpress.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class InventoryHoldsController : ControllerBase
 {
     private readonly IInventoryHoldService _inventoryHoldservice;
