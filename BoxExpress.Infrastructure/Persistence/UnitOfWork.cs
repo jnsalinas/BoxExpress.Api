@@ -25,6 +25,7 @@ public class UnitOfWork : IUnitOfWork
     public IClientRepository Clients { get; }
     public IClientAddressRepository ClientAddresses { get; }
     public IWarehouseRepository Warehouses { get; }
+    public IProductLoanRepository ProductLoans { get; }
 
     public UnitOfWork(
         BoxExpressDbContext context,
@@ -44,7 +45,8 @@ public class UnitOfWork : IUnitOfWork
         IWalletTransactionRepository walletTransactions,
         IClientRepository clients,
         IClientAddressRepository clientAddresses,
-        IWarehouseRepository warehouses)
+        IWarehouseRepository warehouses,
+        IProductLoanRepository productLoans)
     {
         _context = context;
         Products = products;
@@ -64,6 +66,7 @@ public class UnitOfWork : IUnitOfWork
         Clients = clients;
         ClientAddresses = clientAddresses;
         Warehouses = warehouses;
+        ProductLoans = productLoans;
         _transaction = null;
     }
 

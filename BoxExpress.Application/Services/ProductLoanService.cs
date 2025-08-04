@@ -18,6 +18,7 @@ public class ProductLoanService : IProductLoanService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IUserContext _userContext;
+    private readonly IInventoryMovementService _inventoryMovementService;
 
     public ProductLoanService(
         IProductLoanRepository productLoanRepository,
@@ -26,7 +27,8 @@ public class ProductLoanService : IProductLoanService
         IInventoryMovementRepository inventoryMovementRepository,
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        IUserContext userContext)
+        IUserContext userContext,
+        IInventoryMovementService inventoryMovementService)
     {
         _productLoanRepository = productLoanRepository;
         _productLoanDetailRepository = productLoanDetailRepository;
@@ -35,6 +37,7 @@ public class ProductLoanService : IProductLoanService
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _userContext = userContext;
+        _inventoryMovementService = inventoryMovementService;
     }
 
     public async Task<ApiResponse<ProductLoanDto>> CreateAsync(CreateProductLoanDto dto)
@@ -141,6 +144,8 @@ public class ProductLoanService : IProductLoanService
     {
         try
         {
+            await _unitOfWork.BeginTransactionAsync();
+
             var productLoan = await _productLoanRepository.GetByIdAsync(id);
             if (productLoan == null)
                 return ApiResponse<ProductLoanDto>.Fail("Préstamo no encontrado");
@@ -165,13 +170,16 @@ public class ProductLoanService : IProductLoanService
                 productLoan.ProcessedById = _userContext.UserId;
             }
 
-            await _productLoanRepository.UpdateAsync(productLoan);
+            //adjust inventory
+            //await _inventoryMovementService.AdjustInventoryAsync(productLoan);
+            await _unitOfWork.ProductLoans.UpdateAsync(productLoan);
             await _unitOfWork.SaveChangesAsync();
-
-            return await GetByIdAsync(id);
+            await _unitOfWork.CommitAsync();
+            return ApiResponse<ProductLoanDto>.Success(_mapper.Map<ProductLoanDto>(productLoan));
         }
         catch (Exception ex)
         {
+            await _unitOfWork.RollbackAsync();
             return ApiResponse<ProductLoanDto>.Fail($"Error al actualizar el préstamo: {ex.Message}");
         }
     }

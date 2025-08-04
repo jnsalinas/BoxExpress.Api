@@ -20,6 +20,7 @@ public interface IUnitOfWork
     IWalletTransactionRepository WalletTransactions { get; }
     IClientRepository Clients { get; }
     IClientAddressRepository ClientAddresses { get; }
+    IProductLoanRepository ProductLoans { get; }
     bool HasActiveTransaction { get; }
 
     Task<int> SaveChangesAsync();
