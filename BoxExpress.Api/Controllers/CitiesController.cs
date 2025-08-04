@@ -7,19 +7,18 @@ namespace BoxExpress.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
-    public class CurrencyController : ControllerBase
+    public class CitiesController : ControllerBase
     {
-        private readonly ICurrencyService _CurrencyService;
-        public CurrencyController(ICurrencyService CurrencyService)
+        private readonly ICityService _cityService;
+        public CitiesController(ICityService cityService)
         {
-            _CurrencyService = CurrencyService;
+            _cityService = cityService;
         }
 
         [HttpPost("search")]
         public async Task<IActionResult> Search()
         {
-            var result = await _CurrencyService.GetAllAsync();
+            var result = await _cityService.GetAllAsync();
             return Ok(result);
         }
     }

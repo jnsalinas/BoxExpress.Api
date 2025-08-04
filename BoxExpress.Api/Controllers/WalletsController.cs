@@ -13,10 +13,10 @@ namespace BoxExpress.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class WalletController : ControllerBase
+public class WalletsController : ControllerBase
 {
     private readonly IStoreService _storeService;
-    public WalletController(IStoreService storeService)
+    public WalletsController(IStoreService storeService)
     {
         _storeService = storeService;
     }

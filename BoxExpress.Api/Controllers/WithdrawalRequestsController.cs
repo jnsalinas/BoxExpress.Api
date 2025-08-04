@@ -11,11 +11,11 @@ namespace BoxExpress.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class WithdrawalRequestController : ControllerBase
+public class WithdrawalRequestsController : ControllerBase
 {
     private readonly IWithdrawalRequestService _withdrawalRequestService;
 
-    public WithdrawalRequestController(IWithdrawalRequestService withdrawalRequestService)
+    public WithdrawalRequestsController(IWithdrawalRequestService withdrawalRequestService)
     {
         _withdrawalRequestService = withdrawalRequestService;
     }

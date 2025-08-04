@@ -10,11 +10,11 @@ namespace BoxExpress.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ProductLoanController : ControllerBase
+public class ProductLoansController : ControllerBase
 {
     private readonly IProductLoanService _productLoanService;
 
-    public ProductLoanController(IProductLoanService productLoanService)
+    public ProductLoansController(IProductLoanService productLoanService)
     {
         _productLoanService = productLoanService;
     }
