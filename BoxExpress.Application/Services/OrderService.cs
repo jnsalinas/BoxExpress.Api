@@ -10,6 +10,7 @@ using BoxExpress.Domain.Interfaces;
 using BoxExpress.Utilities;
 using Microsoft.Extensions.Configuration;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace BoxExpress.Application.Services;
 
@@ -380,7 +381,7 @@ public class OrderService : IOrderService
 
         for (int row = 2; row <= lastRow; row++)
         {
-            var skuCell = ordersSheet.Cell(row, 15).GetString();
+            var skuCell = ordersSheet.Cell(row, 14).GetString();
             var orderItemsSKUS = skuCell.Split(';');
 
             foreach (var sku in orderItemsSKUS)
@@ -399,16 +400,19 @@ public class OrderService : IOrderService
             var order = new CreateOrderDto
             {
                 StoreId = dto.StoreId,
-                Code = ordersSheet.Cell(row, col++).GetString(),
                 ClientFirstName = ordersSheet.Cell(row, col++).GetString(),
                 ClientLastName = ordersSheet.Cell(row, col++).GetString(),
-                ClientEmail = ordersSheet.Cell(row, col++).GetString(),
                 ClientPhone = ordersSheet.Cell(row, col++).GetString(),
+                ClientEmail = ordersSheet.Cell(row, col++).GetString(),
                 ClientAddress = ordersSheet.Cell(row, col++).GetString(),
                 ClientAddressComplement = ordersSheet.Cell(row, col++).GetString(),
+                CityId = int.Parse(ordersSheet.Cell(row, col++).GetString()),
+                PostalCode = ordersSheet.Cell(row, col++).GetString(),
                 Latitude = decimal.TryParse(ordersSheet.Cell(row, col++).GetString(), out var lat) ? lat : null,
                 Longitude = decimal.TryParse(ordersSheet.Cell(row, col++).GetString(), out var lon) ? lon : null,
+                Code = ordersSheet.Cell(row, col++).GetString(),
                 TotalAmount = decimal.Parse(ordersSheet.Cell(row, col++).GetString()),
+                Notes = ordersSheet.Cell(row, col++).GetString(),
                 OrderItems = new List<OrderItemDto>()
             };
 
@@ -426,6 +430,7 @@ public class OrderService : IOrderService
                 order.DeliveryFee = 150;
             }
 
+            var skuvalidations = string.Empty;
             var orderItemsSKUS = ordersSheet.Cell(row, col++).GetString().Split(';');
             foreach (var sku in orderItemsSKUS)
             {
@@ -443,25 +448,41 @@ public class OrderService : IOrderService
                         Quantity = int.Parse(quantityText)
                     });
                 }
+                else
+                {
+                    skuvalidations += $"El SKU {skuCode} no existe en el inventario; ";
+                }
             }
 
+            order.RowBulkUpload = row;
+            order.ResultBulkUpload = string.IsNullOrEmpty(skuvalidations) ? "OK" : skuvalidations;
             orders.Add(order);
         }
 
         var result = new List<OrderExcelUploadResponseDto>();
         foreach (var order in orders)
         {
-            var response = await AddOrderAsync(order);
             // var response = new ApiResponse<OrderDto>
             // {
-            //     IsSuccess = true,
-            //     Message = "Orden creada exitosamente",
+            //     IsSuccess = order.ResultBulkUpload == "OK",
+            //     Message = order.ResultBulkUpload,
             // };
+
+            // var response = await AddOrderAsync(order);
+            // result.Add(new OrderExcelUploadResponseDto
+            // {
+            //     Code = order.Code,
+            //     Message = response.Message,
+            //     IsLoaded = response.IsSuccess
+            // });
+
             result.Add(new OrderExcelUploadResponseDto
             {
+                Id = order.RowBulkUpload,
+                RowNumber = order.RowBulkUpload,
                 Code = order.Code,
-                Message = response.Message,
-                IsLoaded = response.IsSuccess
+                Message = order.ResultBulkUpload ?? string.Empty,
+                IsLoaded = order.ResultBulkUpload == "OK"
             });
         }
 
@@ -503,17 +524,17 @@ public class OrderService : IOrderService
             .Where(x => x.Id.HasValue)
             .Select(x => x.Id.Value)
             .ToHashSet();
-        
+
         // Eliminar items que ya no están en el DTO
         var itemsToRemove = order.OrderItems
             .Where(x => !dtoItemIds.Contains(x.Id))
             .ToList();
-        
+
         foreach (var item in itemsToRemove)
         {
             await _unitOfWork.OrderItems.DeleteAsync(item.Id);
         }
-        
+
         // Actualizar items existentes
         foreach (var orderItem in createOrderDto.OrderItems.Where(x => x.Id.HasValue))
         {
@@ -522,7 +543,7 @@ public class OrderService : IOrderService
             {
                 var hasChanges = currentOrderItem.Quantity != orderItem.Quantity.Value ||
                                currentOrderItem.ProductVariantId != orderItem.ProductVariantId;
-                
+
                 if (hasChanges)
                 {
                     currentOrderItem.ProductVariantId = orderItem.ProductVariantId;
@@ -532,7 +553,7 @@ public class OrderService : IOrderService
                 }
             }
         }
-        
+
         // Agregar nuevos items
         foreach (var orderItem in createOrderDto.OrderItems.Where(x => !x.Id.HasValue))
         {

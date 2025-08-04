@@ -184,7 +184,19 @@ public class AutoMapperProfile : Profile
         CreateMap<Product, ProductDto>();
         CreateMap<InventoryHold, InventoryHoldDto>()
             .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.OrderItem != null ? src.OrderItem.Order.Client.FirstName + " " + src.OrderItem.Order.Client.LastName : string.Empty))
-            .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.WarehouseInventory != null && src.WarehouseInventory.Warehouse != null ? src.WarehouseInventory.Warehouse.Name : string.Empty)); ;
+            .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.WarehouseInventory != null && src.WarehouseInventory.Warehouse != null ? src.WarehouseInventory.Warehouse.Name : string.Empty));
+
+        // ProductLoan mappings
+        CreateMap<ProductLoan, ProductLoanDto>()
+            .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse.Name))
+            .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.Warehouse.Name))
+            .ForMember(dest => dest.CreatedByName, opt => opt.MapFrom(src => src.CreatedBy.FullName))
+            .ForMember(dest => dest.ProcessedByName, opt => opt.MapFrom(src => src.ProcessedBy != null ? src.ProcessedBy.FullName : string.Empty));
+
+        CreateMap<ProductLoanDetail, ProductLoanDetailDto>()
+            .ForMember(dest => dest.ProductVariantName, opt => opt.MapFrom(src => src.ProductVariant.Name ?? string.Empty))
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductVariant.Product.Name))
+            .ForMember(dest => dest.ProductVariantDescription, opt => opt.MapFrom(src => src.ProductVariant.Name ?? string.Empty));
 
         CreateMap<WarehouseInventory, ProductVariantDto>()
             .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : string.Empty))
@@ -206,6 +218,7 @@ public class AutoMapperProfile : Profile
         CreateMap<InventoryMovementFilterDto, InventoryMovementFilter>();
         CreateMap<InventoryHoldFilterDto, InventoryHoldFilter>();
         CreateMap<ProductVariantFilterDto, ProductVariantFilter>();
+        CreateMap<ProductLoanFilterDto, ProductLoanFilter>();
 
         // DTOs de creación / actualización
         CreateMap<CreateStoreDto, Store>()

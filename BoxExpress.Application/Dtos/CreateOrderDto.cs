@@ -29,5 +29,9 @@ namespace BoxExpress.Application.Dtos
 
         // Order Items
         public required List<OrderItemDto> OrderItems { get; set; }
+
+        // Result of bulk upload
+        public string? ResultBulkUpload { get; set; }
+        public int? RowBulkUpload { get; set; }
     }
 }

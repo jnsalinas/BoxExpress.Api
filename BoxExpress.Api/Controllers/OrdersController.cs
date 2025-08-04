@@ -162,8 +162,8 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("create-massive")]
-    public async Task<IActionResult> CreateMassive([FromForm] UploadFileRequest dto)
+    [HttpPost("bulk-upload")]
+    public async Task<IActionResult> BulkUpload([FromForm] UploadFileRequest dto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var role = User.FindFirst(ClaimTypes.Role)?.Value;

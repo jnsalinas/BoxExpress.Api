@@ -7,13 +7,12 @@ namespace BoxExpress.Infrastructure.Persistence
     //dotnet ef migrations add AddWarehouseUser --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef migrations add QuantityDelivered --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
-    
+
     //eliminar la base de datos
     //ASPNETCORE_ENVIRONMENT=Development && dotnet ef database drop --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
 
-
     //ASPNETCORE_ENVIRONMENT=Development && dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
-    //ASPNETCORE_ENVIRONMENT=QA && dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //export ASPNETCORE_ENVIRONMENT=qa && dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     public class BoxExpressDbContext : DbContext
     {
         public BoxExpressDbContext(DbContextOptions<BoxExpressDbContext> options) : base(options) { }
@@ -44,6 +43,8 @@ namespace BoxExpress.Infrastructure.Persistence
         public DbSet<DocumentType> DocumentTypes { get; set; }
         public DbSet<InventoryMovement> InventoryMovements { get; set; }
         public DbSet<InventoryHold> InventoryHolds { get; set; }
+        public DbSet<ProductLoan> ProductLoans { get; set; }
+        public DbSet<ProductLoanDetail> ProductLoanDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
