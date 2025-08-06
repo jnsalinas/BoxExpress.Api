@@ -9,8 +9,5 @@ public class ProductLoanDetail : BaseEntity
     public int RequestedQuantity { get; set; }
     public int DeliveredQuantity { get; set; }
     public int ReturnedQuantity { get; set; }
-    public string? Notes { get; set; }
-    
-    // Propiedad calculada para la cantidad pendiente de devolución
     public int PendingReturnQuantity => DeliveredQuantity - ReturnedQuantity;
-} 
+}

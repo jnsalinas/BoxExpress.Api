@@ -13,5 +13,4 @@ public class ProductLoanDetailDto : BaseDto
     public int DeliveredQuantity { get; set; }
     public int ReturnedQuantity { get; set; }
     public int PendingReturnQuantity { get; set; }
-    public string? Notes { get; set; }
 } 

@@ -56,6 +56,8 @@ public class ProductLoanService : IProductLoanService
                 }
             }
 
+            await _unitOfWork.BeginTransactionAsync();
+
             var productLoan = new ProductLoan
             {
                 LoanDate = dto.LoanDate,
@@ -66,25 +68,29 @@ public class ProductLoanService : IProductLoanService
                 Status = ProductLoanStatus.Pending
             };
 
+            await _unitOfWork.ProductLoans.AddAsync(productLoan);
+
             // Crear los detalles
             foreach (var detailDto in dto.Details)
             {
                 var detail = new ProductLoanDetail
                 {
+                    ProductLoanId = productLoan.Id,
                     ProductVariantId = detailDto.ProductVariantId,
                     RequestedQuantity = detailDto.RequestedQuantity,
                     DeliveredQuantity = 0,
                     ReturnedQuantity = 0,
-                    Notes = detailDto.Notes
                 };
-                productLoan.Details.Add(detail);
+                await _unitOfWork.ProductLoanDetails.AddAsync(detail);
             }
 
-            await _productLoanRepository.AddAsync(productLoan);
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
             return ApiResponse<ProductLoanDto>.Success(_mapper.Map<ProductLoanDto>(productLoan));
         }
         catch (Exception ex)
         {
+            await _unitOfWork.RollbackAsync();
             return ApiResponse<ProductLoanDto>.Fail($"Error al crear el préstamo: {ex.Message}");
         }
     }
@@ -220,7 +226,6 @@ public class ProductLoanService : IProductLoanService
 
                 detail.DeliveredQuantity = detailDto.DeliveredQuantity;
                 detail.ReturnedQuantity = detailDto.ReturnedQuantity;
-                detail.Notes = detailDto.Notes;
                 detail.UpdatedAt = DateTime.UtcNow;
 
                 // Actualizar inventario
@@ -237,7 +242,7 @@ public class ProductLoanService : IProductLoanService
                         Quantity = detailDto.DeliveredQuantity - previousDelivered,
                         MovementType = InventoryMovementType.Loan,
                         Reference = $"ProductLoan-{productLoanId}",
-                        Notes = $"Préstamo: {productLoan.ResponsibleName} - {detailDto.Notes}"
+                        Notes = $"Préstamo: {productLoan.ResponsibleName}"
                     };
 
                     await _inventoryMovementRepository.AddAsync(movement);

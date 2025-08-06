@@ -21,5 +21,5 @@ public class ProductLoanDto : BaseDto
     public int TotalDeliveredQuantity { get; set; }
     public int TotalReturnedQuantity { get; set; }
     public int TotalPendingReturnQuantity { get; set; }
-    public List<ProductLoanDetailDto> ProductLoanItems { get; set; } = new List<ProductLoanDetailDto>();
+    public List<ProductLoanDetailDto> Details { get; set; } = new List<ProductLoanDetailDto>();
 } 
