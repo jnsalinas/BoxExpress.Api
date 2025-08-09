@@ -15,8 +15,10 @@ namespace BoxExpress.Application.Dtos
         public int Quantity { get; set; }
         public int? OrderItemId { get; set; }
         public OrderItemDto? OrderItem { get; set; }
-        public int? TransferId { get; set; }
-        // public WarehouseInventoryTransfer? Transfer { get; set; } = null!;
+        public int? WarehouseInventoryTransferDetailId { get; set; }
+        public int? WarehouseInventoryTransferId { get; set; }
+        public int? ProductLoanDetailId { get; set; }
+        public int? ProductLoanId { get; set; }
         public InventoryHoldType Type { get; set; }
         public InventoryHoldStatus Status { get; set; }
         public int CreatorId { get; set; }

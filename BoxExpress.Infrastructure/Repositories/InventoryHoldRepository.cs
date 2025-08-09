@@ -45,6 +45,8 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
                     .ThenInclude(pv => pv.Product)
             .Include(w => w.WarehouseInventory)
                 .ThenInclude(wi => wi.Warehouse)
+            .Include(w => w.WarehouseInventoryTransferDetail)
+            .Include(w => w.ProductLoanDetail)
             .AsQueryable();
 
         if (filter.WarehouseInventoryId.HasValue)
@@ -105,7 +107,7 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
     public async Task<List<InventoryHold>> GetByTransferIdsAndStatus(int transferId, InventoryHoldStatus? status)
     {
         return await _context.InventoryHolds
-                .Where(w => w.TransferId.HasValue && (!status.HasValue || (w.Status == status)))
+                .Where(w => w.WarehouseInventoryTransferDetailId.HasValue && w.WarehouseInventoryTransferDetail.WarehouseInventoryTransferId == transferId && (!status.HasValue || (w.Status == status)))
                 .ToListAsync();
     }
 

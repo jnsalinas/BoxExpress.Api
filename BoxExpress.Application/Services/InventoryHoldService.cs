@@ -96,7 +96,8 @@ public class InventoryHoldService : IInventoryHoldService
     InventoryHoldType holdType,
     InventoryHoldStatus holdStatus,
     int? orderItemId = null,
-    WarehouseInventoryTransfer? transfer = null)
+    int? warehouseInventoryTransferDetailId = null, 
+    int? productLoanDetailId = null)
     {
         // Validación según el tipo de holdStatus
         if (holdStatus == InventoryHoldStatus.Active)
@@ -118,7 +119,7 @@ public class InventoryHoldService : IInventoryHoldService
             }
 
             var quantityToRelease = 0;
-            var activeHolds = await _repository.GetByWarehouseInventoryAndStatus(warehouseInventory.Id, InventoryHoldStatus.Active);
+            var activeHolds = (await _repository.GetByWarehouseInventoryAndStatus(warehouseInventory.Id, InventoryHoldStatus.Active)).Where(x => x.Type == holdType);
             foreach (var hold in activeHolds.Where(h => h.OrderItemId == orderItemId))
             {
                 hold.Status = InventoryHoldStatus.Released;
@@ -145,10 +146,11 @@ public class InventoryHoldService : IInventoryHoldService
             Quantity = quantity,
             CreatedAt = DateTime.UtcNow,
             OrderItemId = orderItemId,
-            TransferId = transfer?.Id,
+            WarehouseInventoryTransferDetailId = warehouseInventoryTransferDetailId,
             Type = holdType,
             Status = holdStatus,
-            CreatorId = _userContext.UserId
+            CreatorId = _userContext.UserId,
+            ProductLoanDetailId = productLoanDetailId
         });
         return ApiResponse<bool>.Success(true);
     }

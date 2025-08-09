@@ -227,7 +227,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
                     InventoryHoldType.Transfer,
                     InventoryHoldStatus.Active,
                     null,
-                    newTransfer
+                    item.Id
             );
             if (!holdResult.IsSuccess)
                 return ApiResponse<bool>.Fail(holdResult.Message ?? "Error al reservar el inventario");

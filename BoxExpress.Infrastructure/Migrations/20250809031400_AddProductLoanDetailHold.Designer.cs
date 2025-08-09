@@ -4,6 +4,7 @@ using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoxExpress.Infrastructure.Migrations
 {
     [DbContext(typeof(BoxExpressDbContext))]
-    partial class BoxExpressDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250809031400_AddProductLoanDetailHold")]
+    partial class AddProductLoanDetailHold
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -280,6 +283,9 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TransferId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
@@ -287,9 +293,6 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("WarehouseInventoryId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("WarehouseInventoryTransferDetailId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -300,9 +303,9 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     b.HasIndex("ProductLoanDetailId");
 
-                    b.HasIndex("WarehouseInventoryId");
+                    b.HasIndex("TransferId");
 
-                    b.HasIndex("WarehouseInventoryTransferDetailId");
+                    b.HasIndex("WarehouseInventoryId");
 
                     b.ToTable("InventoryHolds");
                 });
@@ -1350,16 +1353,16 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasForeignKey("ProductLoanDetailId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("BoxExpress.Domain.Entities.WarehouseInventoryTransfer", "Transfer")
+                        .WithMany()
+                        .HasForeignKey("TransferId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("BoxExpress.Domain.Entities.WarehouseInventory", "WarehouseInventory")
                         .WithMany()
                         .HasForeignKey("WarehouseInventoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("BoxExpress.Domain.Entities.WarehouseInventoryTransferDetail", "WarehouseInventoryTransferDetail")
-                        .WithMany()
-                        .HasForeignKey("WarehouseInventoryTransferDetailId")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Creator");
 
@@ -1367,9 +1370,9 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     b.Navigation("ProductLoanDetail");
 
-                    b.Navigation("WarehouseInventory");
+                    b.Navigation("Transfer");
 
-                    b.Navigation("WarehouseInventoryTransferDetail");
+                    b.Navigation("WarehouseInventory");
                 });
 
             modelBuilder.Entity("BoxExpress.Domain.Entities.InventoryMovement", b =>

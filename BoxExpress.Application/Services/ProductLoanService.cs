@@ -19,6 +19,7 @@ public class ProductLoanService : IProductLoanService
     private readonly IMapper _mapper;
     private readonly IUserContext _userContext;
     private readonly IInventoryMovementService _inventoryMovementService;
+    private readonly IInventoryHoldService _inventoryHoldService;
 
     public ProductLoanService(
         IProductLoanRepository productLoanRepository,
@@ -28,7 +29,8 @@ public class ProductLoanService : IProductLoanService
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IUserContext userContext,
-        IInventoryMovementService inventoryMovementService)
+        IInventoryMovementService inventoryMovementService,
+        IInventoryHoldService inventoryHoldService)
     {
         _productLoanRepository = productLoanRepository;
         _productLoanDetailRepository = productLoanDetailRepository;
@@ -38,18 +40,20 @@ public class ProductLoanService : IProductLoanService
         _mapper = mapper;
         _userContext = userContext;
         _inventoryMovementService = inventoryMovementService;
+        _inventoryHoldService = inventoryHoldService;
     }
 
     public async Task<ApiResponse<ProductLoanDto>> CreateAsync(CreateProductLoanDto dto)
     {
         try
         {
+            var warehouseInventories = await _warehouseInventoryRepository.GetByWarehouseAndProductVariants(
+                dto.WarehouseId, dto.Details.Select(x => x.ProductVariantId).ToList());
+
             // Validar que la bodega existe y tiene inventario disponible
             foreach (var detail in dto.Details)
             {
-                var inventory = await _warehouseInventoryRepository.GetByWarehouseAndProductVariant(
-                    dto.WarehouseId, detail.ProductVariantId);
-
+                var inventory = warehouseInventories.FirstOrDefault(x => x.ProductVariantId == detail.ProductVariantId);
                 if (inventory == null || inventory.AvailableQuantity < detail.RequestedQuantity)
                 {
                     return ApiResponse<ProductLoanDto>.Fail($"No hay suficiente inventario disponible para la variante {detail.ProductVariantId}");
@@ -82,6 +86,15 @@ public class ProductLoanService : IProductLoanService
                     ReturnedQuantity = 0,
                 };
                 await _unitOfWork.ProductLoanDetails.AddAsync(detail);
+                await _inventoryHoldService.CreateInventoryHoldAsync(
+                    warehouseInventories.First(x => x.ProductVariantId == detailDto.ProductVariantId),
+                    detailDto.RequestedQuantity,
+                    InventoryHoldType.ProductLoan,
+                    InventoryHoldStatus.Active,
+                    null,
+                    null,
+                    detail.Id
+                );
             }
 
             await _unitOfWork.SaveChangesAsync();

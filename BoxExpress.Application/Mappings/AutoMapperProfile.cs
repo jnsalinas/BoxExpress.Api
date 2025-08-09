@@ -184,7 +184,9 @@ public class AutoMapperProfile : Profile
         CreateMap<Product, ProductDto>();
         CreateMap<InventoryHold, InventoryHoldDto>()
             .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.OrderItem != null ? src.OrderItem.Order.Client.FirstName + " " + src.OrderItem.Order.Client.LastName : string.Empty))
-            .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.WarehouseInventory != null && src.WarehouseInventory.Warehouse != null ? src.WarehouseInventory.Warehouse.Name : string.Empty));
+            .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.WarehouseInventory != null && src.WarehouseInventory.Warehouse != null ? src.WarehouseInventory.Warehouse.Name : string.Empty))
+            .ForMember(dest => dest.WarehouseInventoryTransferId, opt => opt.MapFrom(src => src.WarehouseInventoryTransferDetail != null ? src.WarehouseInventoryTransferDetail.WarehouseInventoryTransferId : (int?)null))
+            .ForMember(dest => dest.ProductLoanId, opt => opt.MapFrom(src => src.ProductLoanDetail != null ? src.ProductLoanDetail.ProductLoanId : (int?)null)) ;
 
         // ProductLoan mappings
         CreateMap<ProductLoan, ProductLoanDto>()
