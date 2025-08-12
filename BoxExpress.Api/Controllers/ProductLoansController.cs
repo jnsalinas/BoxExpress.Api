@@ -52,6 +52,15 @@ public class ProductLoansController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPut("{id}/complete")]
+    public async Task<IActionResult> Complete(int id, [FromBody] CreateProductLoanDto dto)
+    {
+        var result = await _productLoanService.UpdateDetailsAsync(id, dto);
+        if (!result.IsSuccess)
+            return BadRequest(result.Message);
+        return Ok(result);
+    }
+
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateProductLoanDto dto)
     {
@@ -69,4 +78,4 @@ public class ProductLoansController : ControllerBase
             return BadRequest(result.Message);
         return Ok(result);
     }
-} 
+}

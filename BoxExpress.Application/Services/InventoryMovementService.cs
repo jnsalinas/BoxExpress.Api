@@ -253,10 +253,10 @@ public class InventoryMovementService : IInventoryMovementService
     private async Task UpdateQuantityDeliveredAsync(WarehouseInventory inventory, int quantity)
     {
         // Actualizar la cantidad entregada
-        if(inventory.QuantityDelivered == null)
-            inventory.QuantityDelivered = 0;
+        if(inventory.DeliveredQuantity == null)
+            inventory.DeliveredQuantity = 0;
             
-        inventory.QuantityDelivered += quantity;
+        inventory.DeliveredQuantity += quantity;
         inventory.UpdatedAt = DateTime.UtcNow;
         await _unitOfWork.Inventories.UpdateAsync(inventory);
     }

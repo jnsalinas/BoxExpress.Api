@@ -10,5 +10,5 @@ public interface IProductLoanService
     Task<ApiResponse<IEnumerable<ProductLoanDto>>> GetFilteredAsync(ProductLoanFilterDto filter);
     Task<ApiResponse<ProductLoanDto>> UpdateAsync(int id, UpdateProductLoanDto dto);
     Task<ApiResponse<IEnumerable<ProductLoanDetailDto>>> GetDetailsAsync(int productLoanId);
-    Task<ApiResponse<bool>> UpdateDetailsAsync(int productLoanId, List<UpdateProductLoanDetailDto> details);
+    Task<ApiResponse<bool>> UpdateDetailsAsync(int productLoanId, CreateProductLoanDto dto);
 } 

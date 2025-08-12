@@ -18,4 +18,6 @@ public class InventoryMovement : BaseEntity
     public string? Notes { get; set; }
     public int? CreatorId { get; set; }
     public User? Creator { get; set; }
+    public int? ProductLoanDetailId { get; set; }
+    public ProductLoanDetail? ProductLoanDetail { get; set; }
 }

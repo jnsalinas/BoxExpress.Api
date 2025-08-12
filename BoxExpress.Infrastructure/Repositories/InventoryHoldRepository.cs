@@ -84,6 +84,15 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
             query = query.Where(w => w.WarehouseInventory != null && w.WarehouseInventory.WarehouseId == filter.WarehouseId.Value);
         }
 
+        if (filter.ProductLoanDetailId.HasValue)
+        {
+            query = query.Where(w => w.ProductLoanDetailId == filter.ProductLoanDetailId.Value);
+        }
+
+        if (filter.ProductLoanId.HasValue)
+        {
+            query = query.Where(w => w.ProductLoanDetail != null && w.ProductLoanDetail.ProductLoanId == filter.ProductLoanId.Value);
+        }
 
         var total = query.Count();
         if (!filter.IsAll)

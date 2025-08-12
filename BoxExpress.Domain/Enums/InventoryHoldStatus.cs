@@ -8,5 +8,6 @@ public enum InventoryHoldStatus
     PendingReturn = 4, // Esperando confirmación de devolución (nuevo)
     Returned = 5, // Producto volvió a bodega
     NotReturned = 6, // Producto NO volvió (se pierde o daña)
-    Reverted = 7
+    Reverted = 7,
+    PartialReturned = 8
 }

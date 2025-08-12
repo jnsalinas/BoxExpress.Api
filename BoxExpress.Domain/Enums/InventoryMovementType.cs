@@ -11,7 +11,7 @@ public enum InventoryMovementType
     OrderDeliveryReverted = 7,
     InitialStock = 8,
     LostOnCancellation = 9,
-    Loan = 10
+    Loan = 10,
+    LoanReturned = 11,
+    LoanDelivered = 12,
 }
-
-

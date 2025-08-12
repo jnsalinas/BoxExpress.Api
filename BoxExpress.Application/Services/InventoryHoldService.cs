@@ -174,7 +174,6 @@ public class InventoryHoldService : IInventoryHoldService
         hold.Notes = dto.Notes;
         hold.UpdatedAt = DateTime.UtcNow;
 
-
         await _warehouseInventoryRepository.UpdateAsync(inventory);
         await _repository.UpdateAsync(hold);
         return ApiResponse<bool>.Success(true);

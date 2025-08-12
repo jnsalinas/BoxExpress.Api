@@ -14,4 +14,5 @@ public class InventoryHoldFilterDto : BaseFilterDto
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public int? WarehouseId { get; set; } 
+    public int? ProductLoanDetailId { get; set; }
 }

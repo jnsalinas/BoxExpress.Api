@@ -20,6 +20,7 @@ public class ProductLoanService : IProductLoanService
     private readonly IUserContext _userContext;
     private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IInventoryHoldService _inventoryHoldService;
+    private readonly IInventoryHoldRepository _inventoryHoldRepository;
 
     public ProductLoanService(
         IProductLoanRepository productLoanRepository,
@@ -30,7 +31,8 @@ public class ProductLoanService : IProductLoanService
         IMapper mapper,
         IUserContext userContext,
         IInventoryMovementService inventoryMovementService,
-        IInventoryHoldService inventoryHoldService)
+        IInventoryHoldService inventoryHoldService,
+        IInventoryHoldRepository inventoryHoldRepository)
     {
         _productLoanRepository = productLoanRepository;
         _productLoanDetailRepository = productLoanDetailRepository;
@@ -41,6 +43,7 @@ public class ProductLoanService : IProductLoanService
         _userContext = userContext;
         _inventoryMovementService = inventoryMovementService;
         _inventoryHoldService = inventoryHoldService;
+        _inventoryHoldRepository = inventoryHoldRepository;
     }
 
     public async Task<ApiResponse<ProductLoanDto>> CreateAsync(CreateProductLoanDto dto)
@@ -217,10 +220,11 @@ public class ProductLoanService : IProductLoanService
         }
     }
 
-    public async Task<ApiResponse<bool>> UpdateDetailsAsync(int productLoanId, List<UpdateProductLoanDetailDto> details)
+    public async Task<ApiResponse<bool>> UpdateDetailsAsync(int productLoanId, CreateProductLoanDto dto)
     {
         try
         {
+            var details = dto.Details;
             var productLoan = await _productLoanRepository.GetByIdAsync(productLoanId);
             if (productLoan == null)
                 return ApiResponse<bool>.Fail("Préstamo no encontrado");
@@ -228,14 +232,20 @@ public class ProductLoanService : IProductLoanService
             if (productLoan.Status == ProductLoanStatus.CompletedOk || productLoan.Status == ProductLoanStatus.CompletedWithIssue)
                 return ApiResponse<bool>.Fail("No se puede modificar un préstamo ya completado");
 
+            await _unitOfWork.BeginTransactionAsync();
+
+            var inventoryHolds = (await _inventoryHoldRepository.GetFilteredAsync(new InventoryHoldFilter()
+            {
+                ProductLoanId = productLoanId,
+                Statuses = new List<InventoryHoldStatus>() { InventoryHoldStatus.Active, InventoryHoldStatus.PendingReturn },
+                IsAll = true
+            })).InventoryHolds;
+
             foreach (var detailDto in details)
             {
-                var detail = await _productLoanDetailRepository.GetByIdAsync(detailDto.Id);
+                var detail = await _productLoanDetailRepository.GetByIdAsync(detailDto.Id.Value);
                 if (detail == null || detail.ProductLoanId != productLoanId)
                     continue;
-
-                var previousDelivered = detail.DeliveredQuantity;
-                var previousReturned = detail.ReturnedQuantity;
 
                 detail.DeliveredQuantity = detailDto.DeliveredQuantity;
                 detail.ReturnedQuantity = detailDto.ReturnedQuantity;
@@ -245,69 +255,79 @@ public class ProductLoanService : IProductLoanService
                 var inventory = await _warehouseInventoryRepository.GetByWarehouseAndProductVariant(
                     productLoan.WarehouseId, detail.ProductVariantId);
 
-                if (inventory != null)
+                //falta el hold de la bodega
+                //tener en cuenta hold 
+                //si hay delivered quantity, hacer movimientod de inventario
+                //si hay returned quantity, no mueve inventario pero se libera inventario
+                var hold = inventoryHolds.FirstOrDefault(x => x.ProductLoanDetailId == detail.Id);
+                if (hold != null)
                 {
-                    // Registrar movimiento de inventario
-                    var movement = new InventoryMovement
-                    {
-                        WarehouseId = productLoan.WarehouseId,
-                        ProductVariantId = detail.ProductVariantId,
-                        Quantity = detailDto.DeliveredQuantity - previousDelivered,
-                        MovementType = InventoryMovementType.Loan,
-                        Reference = $"ProductLoan-{productLoanId}",
-                        Notes = $"Préstamo: {productLoan.ResponsibleName}"
-                    };
-
-                    await _inventoryMovementRepository.AddAsync(movement);
-
-                    // Actualizar inventario
-                    inventory.ReservedQuantity += (detailDto.DeliveredQuantity - previousDelivered);
-                    inventory.PendingReturnQuantity += (detailDto.ReturnedQuantity - previousReturned);
-                    await _warehouseInventoryRepository.UpdateAsync(inventory);
+                    if (detail.ReturnedQuantity > 0 && detail.DeliveredQuantity > 0)
+                        hold.Status = InventoryHoldStatus.PartialReturned;
+                    else if (detail.ReturnedQuantity == detail.RequestedQuantity)
+                        hold.Status = InventoryHoldStatus.Returned;
+                    else if (detail.DeliveredQuantity == detail.RequestedQuantity)
+                        hold.Status = InventoryHoldStatus.Released;
+                    await _unitOfWork.InventoryHolds.UpdateAsync(hold);
                 }
 
-                await _productLoanDetailRepository.UpdateAsync(detail);
+                if (inventory != null)
+                {
+                    // Solo crear movimiento si hay cambio en delivered quantity
+                    if (detail.DeliveredQuantity != 0)
+                    {
+                        await _inventoryMovementService.AdjustInventoryAsync(new InventoryMovement()
+                        {
+                            ProductLoanDetailId = detail.Id,
+                            CreatorId = _userContext.UserId,
+                            WarehouseId = productLoan.WarehouseId,
+                            ProductVariantId = detail.ProductVariantId,
+                            Quantity = detail.DeliveredQuantity * -1,
+                            MovementType = InventoryMovementType.LoanDelivered,
+                            Reference = $"ProductLoan-{productLoanId}",
+                            Notes = $"Préstamo: {productLoan.ResponsibleName} - Cambio: {detail.DeliveredQuantity}"
+                        }, true, false);
+                    }
+
+                    if (detail.ReturnedQuantity != 0)
+                    {
+                        inventory.ReservedQuantity -= detail.ReturnedQuantity;
+                        await _unitOfWork.Inventories.UpdateAsync(inventory);
+                    }
+                }
+
+                await _unitOfWork.ProductLoanDetails.UpdateAsync(detail);
             }
 
             // Actualizar estado del préstamo
-            var allDetails = await _productLoanDetailRepository.GetByProductLoanIdAsync(productLoanId);
+            var allDetails = await _unitOfWork.ProductLoanDetails.GetByProductLoanIdAsync(productLoanId);
+            var totalRequested = allDetails.Sum(d => d.RequestedQuantity);
             var totalDelivered = allDetails.Sum(d => d.DeliveredQuantity);
             var totalReturned = allDetails.Sum(d => d.ReturnedQuantity);
 
-            if (totalDelivered > 0)
+            if (totalRequested == totalDelivered)
             {
-                // Determinar el estado basado en las cantidades
-                if (totalReturned >= totalDelivered)
-                {
-                    // Si se devolvió todo o más, está completado OK
-                    productLoan.Status = ProductLoanStatus.CompletedOk;
-                }
-                else if (totalReturned > 0)
-                {
-                    // Si se devolvió algo pero no todo, está completado con novedad
-                    productLoan.Status = ProductLoanStatus.CompletedWithIssue;
-                }
-                else
-                {
-                    // Si no se ha devuelto nada, está en proceso
-                    productLoan.Status = ProductLoanStatus.InProcess;
-                }
-
-                if (productLoan.Status == ProductLoanStatus.CompletedOk || productLoan.Status == ProductLoanStatus.CompletedWithIssue)
-                {
-                    productLoan.ProcessedAt = DateTime.UtcNow;
-                    productLoan.ProcessedById = _userContext.UserId;
-                }
-                await _productLoanRepository.UpdateAsync(productLoan);
+                productLoan.Status = ProductLoanStatus.CompletedOk;
+            }
+            else if (totalReturned > 0)
+            {
+                productLoan.Status = ProductLoanStatus.CompletedWithIssue;
             }
 
-            await _unitOfWork.SaveChangesAsync();
+            productLoan.Notes = dto.Notes;
+            productLoan.ProcessedAt = DateTime.UtcNow;
+            productLoan.ProcessedById = _userContext.UserId;
+            await _unitOfWork.ProductLoans.UpdateAsync(productLoan);
 
-            return ApiResponse<bool>.Success(true);
+            await _unitOfWork.SaveChangesAsync();
         }
         catch (Exception ex)
         {
+            await _unitOfWork.RollbackAsync();
             return ApiResponse<bool>.Fail($"Error al actualizar los detalles: {ex.Message}");
         }
+
+        await _unitOfWork.CommitAsync();
+        return ApiResponse<bool>.Success(true);
     }
 }
