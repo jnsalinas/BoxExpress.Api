@@ -266,6 +266,7 @@ public class OrderService : IOrderService
     {
         try
         {
+            await _unitOfWork.BeginTransactionAsync();
             //todo quitar
             var createdAt = DateTime.UtcNow;
 
@@ -450,7 +451,7 @@ public class OrderService : IOrderService
                 }
                 else
                 {
-                    skuvalidations += $"El SKU {skuCode} no existe en el inventario; ";
+                    skuvalidations += $"El SKU {skuCode} no existe en el inventario";
                 }
             }
 
@@ -468,22 +469,24 @@ public class OrderService : IOrderService
             //     Message = order.ResultBulkUpload,
             // };
 
-            // var response = await AddOrderAsync(order);
-            // result.Add(new OrderExcelUploadResponseDto
-            // {
-            //     Code = order.Code,
-            //     Message = response.Message,
-            //     IsLoaded = response.IsSuccess
-            // });
-
+            var response = await AddOrderAsync(order);
             result.Add(new OrderExcelUploadResponseDto
             {
-                Id = order.RowBulkUpload,
+                Id = response.Data?.Id,
                 RowNumber = order.RowBulkUpload,
-                Code = order.Code,
-                Message = order.ResultBulkUpload ?? string.Empty,
-                IsLoaded = order.ResultBulkUpload == "OK"
+                Code = order.Code ?? string.Empty,
+                Message = response.Message ?? order.ResultBulkUpload + " " + response.Message ?? string.Empty,
+                IsLoaded = response.IsSuccess
             });
+
+            // result.Add(new OrderExcelUploadResponseDto
+            // {
+            //     Id = order.RowBulkUpload,
+            //     RowNumber = order.RowBulkUpload,
+            //     Code = order.Code,
+            //     Message = order.ResultBulkUpload ?? string.Empty,
+            //     IsLoaded = order.ResultBulkUpload == "OK"
+            // });
         }
 
         return ApiResponse<List<OrderExcelUploadResponseDto>>.Success(result, null, "Órdenes creadas exitosamente");
