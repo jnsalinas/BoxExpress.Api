@@ -28,4 +28,7 @@ public interface IUnitOfWork
     Task BeginTransactionAsync();
     Task CommitAsync();
     Task RollbackAsync();
+    void ClearContext();
+    string GetContextStatus();
+    void Dispose();
 }
