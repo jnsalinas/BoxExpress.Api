@@ -311,7 +311,7 @@ public class ProductLoanService : IProductLoanService
             }
             else if (totalReturned > 0)
             {
-                productLoan.Status = ProductLoanStatus.CompletedWithIssue;
+                productLoan.Status = ProductLoanStatus.CompletedOk;//CompletedWithIssue;
             }
 
             productLoan.Notes = dto.Notes;
