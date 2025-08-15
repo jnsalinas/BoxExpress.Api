@@ -15,13 +15,15 @@ public class WarehouseInventoryService : IWarehouseInventoryService
     private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserContext _userContext;
 
-    public WarehouseInventoryService(IWarehouseInventoryRepository repository, IMapper mapper, IInventoryMovementService inventoryMovementService, IUnitOfWork unitOfWork)
+    public WarehouseInventoryService(IWarehouseInventoryRepository repository, IMapper mapper, IInventoryMovementService inventoryMovementService, IUnitOfWork unitOfWork, IUserContext userContext)
     {
         _unitOfWork = unitOfWork;
         _inventoryMovementService = inventoryMovementService;
         _repository = repository;
         _mapper = mapper;
+        _userContext = userContext;
     }
 
     public async Task<ApiResponse<IEnumerable<ProductVariantDto>>> GetAllAsync(WarehouseInventoryFilterDto filter)
@@ -107,59 +109,71 @@ public class WarehouseInventoryService : IWarehouseInventoryService
 
     public async Task<ApiResponse<WarehouseInventoryDto?>> UpdateAsync(int id, UpdateWarehouseInventoryDto dto)
     {
-        var warehouseInventory = await _repository.GetByIdWithDetailsAsync(id);
-        if (warehouseInventory == null)
-            return ApiResponse<WarehouseInventoryDto?>.Fail("Warehouse inventory not found.");
-
-        if (!string.IsNullOrEmpty(dto.VariantSku))
+        try
         {
-            var existSKU = await _repository.GetBySkusAsync(new HashSet<string> { dto.VariantSku });
-            if (existSKU != null && existSKU.Any() &&  existSKU.Any(x => x.Id != id && x.ProductVariant.ProductId != warehouseInventory.ProductVariant.ProductId))
-                return ApiResponse<WarehouseInventoryDto?>.Fail("SKU ya existe");
-        }
+            var warehouseInventory = await _repository.GetByIdWithDetailsAsync(id);
+            if (warehouseInventory == null)
+                return ApiResponse<WarehouseInventoryDto?>.Fail("Warehouse inventory not found.");
 
-        var startedTransaction = false;
-        if (!_unitOfWork.HasActiveTransaction)
-        {
-            await _unitOfWork.BeginTransactionAsync();
-            startedTransaction = true;
-        }
-
-        //register inventory movement
-        if (warehouseInventory.Quantity != dto.Quantity)
-        {
-            int quantityDifference = dto.Quantity - warehouseInventory.Quantity;
-            await _inventoryMovementService.AdjustInventoryAsync(new InventoryMovement
+            if (!string.IsNullOrEmpty(dto.VariantSku))
             {
-                WarehouseId = warehouseInventory.WarehouseId,
-                ProductVariantId = warehouseInventory.ProductVariantId,
-                Quantity = quantityDifference,
-                MovementType = InventoryMovementType.ManualAdjustment,
-                Notes = dto.Notes,
-                Reference = "Adjustment"
-            }, false); //todo mirar si es necesario el moveReserved o hacer otra funcion
+                var existSKU = await _repository.GetBySkusAsync(new HashSet<string> { dto.VariantSku });
+                if (existSKU != null && existSKU.Any() && existSKU.Any(x => x.Id != id && x.ProductVariant.ProductId != warehouseInventory.ProductVariant.ProductId))
+                    return ApiResponse<WarehouseInventoryDto?>.Fail("SKU ya existe");
+            }
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            int quantityDifference = 0;
+            //register inventory movement
+            if (dto.Quantity != null && warehouseInventory.Quantity != dto.Quantity)
+            {
+                quantityDifference = dto.Quantity.Value - warehouseInventory.Quantity;
+            }
+
+            if (dto.AddQuantity != null && dto.AddQuantity > 0)
+            {
+                quantityDifference = dto.AddQuantity.Value;
+            }
+
+            if (quantityDifference != 0)
+            {
+                await _inventoryMovementService.AdjustInventoryAsync(new InventoryMovement
+                {
+                    WarehouseId = warehouseInventory.WarehouseId,
+                    ProductVariantId = warehouseInventory.ProductVariantId,
+                    Quantity = quantityDifference,
+                    MovementType = InventoryMovementType.ManualAdjustment,
+                    Notes = dto.Notes,
+                    Reference = "Adjustment",
+                }, false);
+            }
+
+            if (dto.VariantSku != null)
+                warehouseInventory.ProductVariant.Sku = dto.VariantSku;
+
+            if (dto.VariantName != null)
+                warehouseInventory.ProductVariant.Name = dto.VariantName;
+
+            if (dto.ShopifyVariantId != null)
+                warehouseInventory.ProductVariant.ShopifyVariantId = dto.ShopifyVariantId;
+
+            if (dto.StoreId.HasValue)
+                warehouseInventory.StoreId = dto.StoreId;
+
+            if (dto.Price != null)
+                warehouseInventory.ProductVariant.Price = dto.Price;
+
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
+
+            return ApiResponse<WarehouseInventoryDto?>.Success(_mapper.Map<WarehouseInventoryDto>(warehouseInventory));
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollbackAsync();
+            return ApiResponse<WarehouseInventoryDto?>.Fail($"Error updating warehouse inventory: {ex.Message}");
         }
 
-        if (dto.VariantSku != null)
-            warehouseInventory.ProductVariant.Sku = dto.VariantSku;
-
-        if (dto.VariantName != null)
-            warehouseInventory.ProductVariant.Name = dto.VariantName;
-
-        if (dto.ShopifyVariantId != null)
-            warehouseInventory.ProductVariant.ShopifyVariantId = dto.ShopifyVariantId;
-
-        if (dto.StoreId.HasValue)
-            warehouseInventory.StoreId = dto.StoreId;
-
-        if (dto.Price != null)
-            warehouseInventory.ProductVariant.Price = dto.Price;
-
-        await _unitOfWork.Inventories.UpdateAsync(warehouseInventory);
-        await _unitOfWork.SaveChangesAsync();
-
-        if (startedTransaction)
-            await _unitOfWork.CommitAsync();
-        return ApiResponse<WarehouseInventoryDto?>.Success(_mapper.Map<WarehouseInventoryDto>(warehouseInventory));
     }
 }

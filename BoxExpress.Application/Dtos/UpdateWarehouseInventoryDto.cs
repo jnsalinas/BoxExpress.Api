@@ -12,7 +12,8 @@ public class UpdateWarehouseInventoryDto
     public string? VariantName { get; set; }
     public string? VariantSku { get; set; }
     public int? StoreId { get; set; }
-    public int Quantity { get; set; }
+    public int? Quantity { get; set; }
+    public int? AddQuantity { get; set; }
     public string? Notes { get; set; }
     public decimal? Price { get; set; }
 }

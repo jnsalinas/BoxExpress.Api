@@ -16,19 +16,21 @@ public class InventoryMovementService : IInventoryMovementService
     private readonly IWarehouseInventoryRepository _warehouseInventoryRepository;
     private readonly IMapper _mapper;
     private readonly IInventoryHoldRepository _inventoryHoldRepository;
-
+    private readonly IUserContext _userContext;
     public InventoryMovementService(
         IInventoryMovementRepository inventoryMovementRepository,
         IMapper mapper,
         IInventoryHoldRepository inventoryHoldRepository,
         IWarehouseInventoryRepository warehouseInventoryRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IUserContext userContext)
     {
         _inventoryMovementRepository = inventoryMovementRepository;
         _warehouseInventoryRepository = warehouseInventoryRepository;
         _inventoryHoldRepository = inventoryHoldRepository;
         _mapper = mapper;
         _unitOfWork = unitOfWork;
+        _userContext = userContext;
     }
 
     public async Task<ApiResponse<IEnumerable<InventoryMovementDto>>> GetAllAsync(InventoryMovementFilterDto filter)
@@ -101,6 +103,7 @@ public class InventoryMovementService : IInventoryMovementService
         if (movePendingReturn)
             inventory.PendingReturnQuantity += movement.Quantity;
 
+        movement.CreatorId = _userContext.UserId;
         await _unitOfWork.InventoryMovements.AddAsync(movement);
         await _unitOfWork.Inventories.UpdateAsync(inventory);
     }
