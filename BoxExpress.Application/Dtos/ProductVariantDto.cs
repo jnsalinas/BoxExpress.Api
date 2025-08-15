@@ -20,4 +20,5 @@ public class ProductVariantDto
     public string? ProductSku { get; set; }
     public decimal? ProductPrice { get; set; }
     public string? WarehouseName { get; set; }
+    public int? warehouseId { get; set; }
 }

@@ -118,6 +118,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
            .Include(w => w.Status)
            .AsQueryable();
 
+        filter.IsAll = true;
         query = GetQueryFiltered(filter, query);
 
         return await query

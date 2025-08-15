@@ -103,6 +103,8 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.ClientPhone, opt => opt.MapFrom(src => src.Client.Phone))
             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City.Name))
             .ForMember(dest => dest.ClientAddress, opt => opt.MapFrom(src => src.ClientAddress.Address))
+            .ForMember(dest => dest.ClientAddressComplement, opt => opt.MapFrom(src => src.ClientAddress.Complement))
+            .ForMember(dest => dest.ClientAddressPostalCode, opt => opt.MapFrom(src => src.ClientAddress.PostalCode))
             .ForMember(dest => dest.StoreId, opt => opt.MapFrom(src => src.StoreId))
             .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.Store.Name))
             .ForMember(dest => dest.TimeSlotStartTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.StartTime : (TimeSpan?)null))
@@ -202,6 +204,7 @@ public class AutoMapperProfile : Profile
 
         CreateMap<WarehouseInventory, ProductVariantDto>()
             .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : string.Empty))
+            .ForMember(dest => dest.warehouseId, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Id : (int?)null))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.ProductVariant.Name ?? string.Empty))
             .ForMember(dest => dest.ShopifyVariantId, opt => opt.MapFrom(src => src.ProductVariant.ShopifyVariantId))
             .ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.ProductVariant.Sku))

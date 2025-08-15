@@ -13,6 +13,8 @@ public class OrderDto
     public string? Contains { get; set; }
 
     public string? ClientAddress { get; set; }
+    public string? ClientAddressComplement { get; set; }
+    public string? ClientAddressPostalCode { get; set; }
     public string? ClientFullName { get; set; }
     public string? ClientDocument { get; set; }
     public string? ClientPhone { get; set; }

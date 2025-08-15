@@ -79,6 +79,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                 .Where(v => v.ProductVariant.ProductId == product.Id)
                 .Select(wi => new ProductVariantDto
                 {
+                    warehouseId = wi.WarehouseId,
                     WarehouseName = wi.Warehouse?.Name ?? "",
                     Name = wi.ProductVariant.Name ?? "",
                     ShopifyVariantId = wi.ProductVariant.ShopifyVariantId,

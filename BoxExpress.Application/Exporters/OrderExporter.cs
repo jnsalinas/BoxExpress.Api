@@ -19,6 +19,8 @@ public class OrderExporter : IExcelExporter<OrderDto>
         worksheet.Cell(1, row++).Value = "Documento";
         worksheet.Cell(1, row++).Value = "Teléfono";
         worksheet.Cell(1, row++).Value = "Dirección";
+        worksheet.Cell(1, row++).Value = "Complemento";
+        worksheet.Cell(1, row++).Value = "Código postal";
         worksheet.Cell(1, row++).Value = "Notas";
         worksheet.Cell(1, row++).Value = "Contiene";
         worksheet.Cell(1, row++).Value = "Valor total";
@@ -37,6 +39,8 @@ public class OrderExporter : IExcelExporter<OrderDto>
             worksheet.Cell(i + 2, rowAux++).Value = data[i].ClientDocument;
             worksheet.Cell(i + 2, rowAux++).Value = data[i].ClientPhone;
             worksheet.Cell(i + 2, rowAux++).Value = data[i].ClientAddress;
+            worksheet.Cell(i + 2, rowAux++).Value = data[i].ClientAddressComplement;
+            worksheet.Cell(i + 2, rowAux++).Value = data[i].ClientAddressPostalCode;
             worksheet.Cell(i + 2, rowAux++).Value = data[i].Notes;
 
             string contains = data[i].Contains ?? string.Empty;
