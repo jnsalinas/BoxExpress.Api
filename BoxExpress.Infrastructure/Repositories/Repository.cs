@@ -7,7 +7,7 @@ namespace BoxExpress.Infrastructure.Repositories;
 
 public class Repository<T> : IRepository<T> where T : BaseEntity
 {
-    private readonly BoxExpressDbContext _context;
+    protected readonly BoxExpressDbContext _context;
 
     public Repository(BoxExpressDbContext context)
     {
@@ -32,7 +32,11 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     }
     public async Task<T> UpdateAsync(T entity)
     {
-        _context.Set<T>().Update(entity);
+        // Limpiar el contexto antes de hacer el update para evitar conflictos de tracking
+        _context.ChangeTracker.Clear();
+        
+        var entry = _context.Attach(entity);
+        entry.State = EntityState.Modified;
         await _context.SaveChangesAsync();
         return entity;
     }

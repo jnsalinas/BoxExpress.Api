@@ -150,18 +150,6 @@ public class OrderService : IOrderService
         if (orderStatus == null)
             return ApiResponse<OrderDto>.Fail("Status not found");
 
-        var pendingHolds = await _inventoryHoldService.GetAllAsync(new InventoryHoldFilterDto
-        {
-            OrderId = orderId,
-            Status = Domain.Enums.InventoryHoldStatus.PendingReturn
-        });
-
-        //ahora puede tener varios en hold ya que la orden puede volver a ser programada
-        // if (pendingHolds.Data != null && pendingHolds.Data.Any())
-        // {
-        //     return ApiResponse<OrderDto>.Fail("El pedido tiene retenciones de inventario pendientes, resuélvalas antes de cambiar el estado.");
-        // }
-
         #endregion
 
         switch (orderStatus.Name)
@@ -220,7 +208,10 @@ public class OrderService : IOrderService
             CreatorId = _userContext.UserId
         });
 
+        order.Status = orderStatus;
         order.OrderStatusId = statusId;
+        order.UpdatedAt = DateTime.UtcNow;
+
         await _repository.UpdateAsync(order);
         return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
     }

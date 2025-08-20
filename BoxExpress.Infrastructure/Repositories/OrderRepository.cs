@@ -8,11 +8,8 @@ namespace BoxExpress.Infrastructure.Repositories;
 
 public class OrderRepository : Repository<Order>, IOrderRepository
 {
-    private readonly BoxExpressDbContext _context;
-
     public OrderRepository(BoxExpressDbContext context) : base(context)
     {
-        _context = context;
     }
 
     public async Task<(List<Order> Orders, int TotalCount)> GetFilteredAsync(OrderFilter filter)
@@ -70,7 +67,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         if (filter.OrderId.HasValue && filter.OrderId > 0)
             query = query.Where(w => w.Id.Equals(filter.OrderId));
         if (filter.ScheduledDate.HasValue)
-            query = query.Where(w => w.ScheduledDate.HasValue && w.ScheduledDate.Value.Date == filter.ScheduledDate.Value);
+            query = query.Where(w => w.ScheduledDate.HasValue && w.ScheduledDate.Value.Date == filter.ScheduledDate.Value.Date);
         if (filter.WarehouseId.HasValue)
             query = query.Where(w => w.WarehouseId.HasValue && w.WarehouseId.Value == filter.WarehouseId.Value);
 

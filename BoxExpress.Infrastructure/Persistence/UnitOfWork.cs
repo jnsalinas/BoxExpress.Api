@@ -138,7 +138,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         finally
         {
             CleanupTransaction();
-            ClearContext(); // ← LIMPIEZA AUTOMÁTICA DESPUÉS DEL COMMIT
+            // ClearContext(); // ← REMOVIDO: Interfiere con el repositorio base
         }
     }
 
@@ -165,7 +165,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         finally
         {
             CleanupTransaction();
-            ClearContext(); // ← LIMPIEZA AUTOMÁTICA DESPUÉS DEL ROLLBACK
+            // ClearContext(); // ← REMOVIDO: Interfiere con el repositorio base
         }
     }
 
