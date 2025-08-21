@@ -29,9 +29,7 @@ public class WarehouseInventoryTransferRepository : Repository<WarehouseInventor
                 .ThenInclude(x => x.Product)
             .Include(w => w.ToWarehouse)
             .Include(w => w.FromWarehouse)
-             .OrderBy(x => x.Status)
-                .ThenByDescending(x => x.CreatedAt)
-                .ThenByDescending(x => x.UpdatedAt)
+            .OrderByDescending(x => x.Id)
             .AsQueryable();
 
         if (!filter.IsAll)

@@ -179,9 +179,15 @@ public class InventoryMovementService : IInventoryMovementService
         await ProcessInventoryAdjustmentAsync(movement, moveReserved, movePendingReturn, inventory);
 
         // Actualizar QuantityDelivered solo para entregas
-        if (movementType == InventoryMovementType.OrderDelivered)
+
+        switch (movementType)
         {
-            await UpdateQuantityDeliveredAsync(inventory, orderItem.Quantity);
+            case InventoryMovementType.OrderDelivered:
+                await UpdateQuantityDeliveredAsync(inventory, orderItem.Quantity);
+                break;
+            case InventoryMovementType.OrderDeliveryReverted:
+                await UpdateQuantityDeliveryRevertedAsync(inventory, orderItem.Quantity);
+                break;
         }
     }
 
@@ -211,7 +217,7 @@ public class InventoryMovementService : IInventoryMovementService
     {
         // Para entregas, mover de reservado a consumido (excepto si ya está pendiente de devolución)
         var moveReserved = (movementType == InventoryMovementType.OrderDelivered) && holdStatus != InventoryHoldStatus.PendingReturn;
-        
+
         // Para holds pendientes de devolución, ajustar esa cantidad
         var movePendingReturn = holdStatus == InventoryHoldStatus.PendingReturn;
 
@@ -243,7 +249,7 @@ public class InventoryMovementService : IInventoryMovementService
         // Ajustar cantidades reservadas si corresponde
         if (moveReserved)
             inventory.ReservedQuantity += movement.Quantity;
-        
+
         // Ajustar cantidades pendientes de devolución si corresponde
         if (movePendingReturn)
             inventory.PendingReturnQuantity += movement.Quantity;
@@ -256,10 +262,21 @@ public class InventoryMovementService : IInventoryMovementService
     private async Task UpdateQuantityDeliveredAsync(WarehouseInventory inventory, int quantity)
     {
         // Actualizar la cantidad entregada
-        if(inventory.DeliveredQuantity == null)
+        if (inventory.DeliveredQuantity == null)
             inventory.DeliveredQuantity = 0;
-            
+
         inventory.DeliveredQuantity += quantity;
+        inventory.UpdatedAt = DateTime.UtcNow;
+        await _unitOfWork.Inventories.UpdateAsync(inventory);
+    }
+
+    private async Task UpdateQuantityDeliveryRevertedAsync(WarehouseInventory inventory, int quantity)
+    {
+        // Actualizar la cantidad entregada
+        if (inventory.DeliveredQuantity == null)
+            inventory.DeliveredQuantity = 0;
+
+        inventory.DeliveredQuantity -= quantity;
         inventory.UpdatedAt = DateTime.UtcNow;
         await _unitOfWork.Inventories.UpdateAsync(inventory);
     }
