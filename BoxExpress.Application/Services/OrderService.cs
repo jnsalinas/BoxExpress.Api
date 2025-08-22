@@ -434,6 +434,7 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             await _unitOfWork.RollbackAsync();
+            await AddOrderMockAsync(JsonConvert.SerializeObject(createOrderDto));
             return ApiResponse<OrderDto>.Fail("Error al crear Orden: " + ex.Message);
         }
     }
