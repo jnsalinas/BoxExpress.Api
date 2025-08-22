@@ -5,7 +5,7 @@ namespace BoxExpress.Domain.Entities;
 public class Client : BaseEntity
 {
     public string Document { get; set; } = string.Empty;
-    public string Phone { get; set; } = string.Empty;
+    public string? Phone { get; set; }
     public string? ExternalId { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }

@@ -291,7 +291,7 @@ public class OrderService : IOrderService
                 item.Variant_Id = warehouseInventory.ProductVariantId;
             }
 
-            contains += $"{item.Title} - {item.Sku}:{item.Quantity};";
+            contains += $"Producto: {item.Title} - SKU: {item.Sku} - Cantidad: {item.Quantity};";
         }
 
         var createOrderDto = new CreateOrderDto
@@ -385,7 +385,7 @@ public class OrderService : IOrderService
                 DeliveryFee = createOrderDto.DeliveryFee ?? 0,
                 CurrencyId = createOrderDto.CurrencyId,
                 Client = client,
-                ClientAddress = clientAddress,  
+                ClientAddress = clientAddress,
                 CityId = createOrderDto.CityId,
                 Code = createOrderDto.Code,
                 TotalAmount = createOrderDto.TotalAmount,
@@ -404,15 +404,19 @@ public class OrderService : IOrderService
             // Create OrderItems usando referencias de navegación
             foreach (var orderItemDto in createOrderDto.OrderItems)
             {
-                var orderItem = new OrderItem
+                if (orderItemDto.ProductVariantId > 0)
                 {
-                    Order = order,  // ← Referencia de navegación en lugar de OrderId
-                    ProductVariantId = orderItemDto.ProductVariantId,
-                    Quantity = orderItemDto.Quantity ?? 0,
-                    CreatedAt = createdAt,
-                    UnitPrice = productVariants.FirstOrDefault(x => x.Id == orderItemDto.ProductVariantId)?.Price ?? 0,
-                };
-                await _unitOfWork.OrderItems.AddAsync(orderItem);
+                    var orderItem = new OrderItem
+                    {
+                        Order = order,  // ← Referencia de navegación en lugar de OrderId
+                        ProductVariantId = orderItemDto.ProductVariantId,
+                        Quantity = orderItemDto.Quantity ?? 0,
+                        CreatedAt = createdAt,
+                        UnitPrice = productVariants.FirstOrDefault(x => x.Id == orderItemDto.ProductVariantId)?.Price ?? 0,
+                    };
+                    await _unitOfWork.OrderItems.AddAsync(orderItem);
+                }
+
             }
 
             // Create order status history
@@ -434,7 +438,7 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             await _unitOfWork.RollbackAsync();
-            await AddOrderMockAsync(JsonConvert.SerializeObject(ex));
+            await AddOrderMockAsync(JsonConvert.SerializeObject(createOrderDto) + "|" + JsonConvert.SerializeObject(ex));
             return ApiResponse<OrderDto>.Fail("Error al crear Orden: " + ex.Message);
         }
     }
