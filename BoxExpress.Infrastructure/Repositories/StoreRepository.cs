@@ -39,6 +39,16 @@ public class StoreRepository : Repository<Store>, IStoreRepository
             storesQuery = storesQuery.Where(x => x.Name.ToLower().Contains(filter.Name.ToLower()));
         }
 
+        if (!string.IsNullOrEmpty(filter.ShopifyAccessToken))
+        {
+            storesQuery = storesQuery.Where(x => x.ShopifyAccessToken == filter.ShopifyAccessToken);
+        }
+
+        if (!string.IsNullOrEmpty(filter.ShopifyShopDomain))
+        {
+            storesQuery = storesQuery.Where(x => x.ShopifyShopDomain == filter.ShopifyShopDomain);
+        }
+
         if (!filter.IsAll)
         {
             storesQuery = storesQuery

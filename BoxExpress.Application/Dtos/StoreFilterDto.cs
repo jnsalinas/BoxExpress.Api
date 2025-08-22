@@ -8,4 +8,5 @@ public class StoreFilterDto : BaseFilterDto
     public int? StoreId { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    public string? ShopifyShopDomain { get; set; }
 }

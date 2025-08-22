@@ -7,10 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using BoxExpress.Api.Attributes;
+
 namespace BoxExpress.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class ShopifyController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -33,8 +36,11 @@ namespace BoxExpress.Api.Controllers
         }
 
         [HttpPost()]
+        [ServiceFilter(typeof(ShopifyTokenAttribute))]
         public async Task<IActionResult> Create([FromBody] ShopifyOrderDto orderDto)
         {
+            var storeDomain = Request.Headers["X-Shopify-Shop-Domain"].FirstOrDefault();
+            orderDto.Store_Domain = storeDomain;
             var result = await _orderService.AddOrderAsync(orderDto);
             return Ok(orderDto);
         }

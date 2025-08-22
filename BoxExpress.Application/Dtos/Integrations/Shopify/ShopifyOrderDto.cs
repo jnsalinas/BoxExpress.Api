@@ -19,4 +19,5 @@ public class ShopifyOrderDto
     public List<ShopifyNoteAttributeDto>? Note_Attributes { get; set; }
     public string[]? Payment_Gateway_Names { get; set; }
     public List<ShopifyShippingLineDto>? Shipping_Lines { get; set; }
+    public string? Store_Domain { get; set; }
 }

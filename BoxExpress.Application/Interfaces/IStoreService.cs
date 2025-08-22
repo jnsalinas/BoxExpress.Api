@@ -10,4 +10,5 @@ public interface IStoreService
     Task<ApiResponse<IEnumerable<StoreDto>>> GetAllAsync(StoreFilterDto filter);
     Task<ApiResponse<AuthResponseDto>> AddStoreAsync(CreateStoreDto createStoreDto);
     Task<ApiResponse<StoreDto?>> GetBalanceSummary();
+    Task<bool> ExistsByTokenAsync(string token);
 }

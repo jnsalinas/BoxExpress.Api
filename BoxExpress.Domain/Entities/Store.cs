@@ -9,4 +9,7 @@ public class Store : BaseEntity
     public City City { get; set; } = null!;
     public int WalletId { get; set; }
     public Wallet Wallet { get; set; } = null!;
+    public string? ShopifyAccessToken { get; set; }
+    public string? ShopifyShopDomain { get; set; }
+
 }

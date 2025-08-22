@@ -39,6 +39,9 @@ public class OrderService : IOrderService
     private readonly IProductVariantRepository _productVariantRepository;
     private readonly IConfiguration _configuration;
     private readonly IUserContext _userContext;
+    private readonly IStoreRepository _storeRepository;
+    private readonly ICityRepository _cityRepository;
+
     public OrderService(
         IOrderRepository repository,
         IMapper mapper,
@@ -60,7 +63,9 @@ public class OrderService : IOrderService
         IUnitOfWork unitOfWork,
         IProductVariantRepository productVariantRepository,
         IConfiguration configuration,
-        IUserContext userContext
+        IUserContext userContext,
+        IStoreRepository storeRepository,
+        ICityRepository cityRepository
     )
     {
         _warehouseInventoryTransferService = warehouseInventoryTransferService;
@@ -84,6 +89,8 @@ public class OrderService : IOrderService
         _configuration = configuration;
         _mapper = mapper;
         _userContext = userContext;
+        _storeRepository = storeRepository;
+        _cityRepository = cityRepository;
     }
 
     public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter)
@@ -294,16 +301,21 @@ public class OrderService : IOrderService
             contains += $"Producto: {item.Title} - SKU: {item.Sku} - Cantidad: {item.Quantity};";
         }
 
+        var (stores, totalCount) = await _storeRepository.GetFilteredAsync(new StoreFilter { ShopifyShopDomain = shopifyOrderDto.Store_Domain });
+        int storeId = stores.FirstOrDefault()?.Id ?? 1;
+
+        var cityId = await _cityRepository.GetByNameAsync(shopifyOrderDto.Shipping_Address.City ?? "Ciudad de México");
+
         var createOrderDto = new CreateOrderDto
         {
-            StoreId = 1,
+            StoreId = storeId,
             ClientFirstName = shopifyOrderDto.Customer.First_Name,
             ClientLastName = shopifyOrderDto.Customer.Last_Name,
             ClientEmail = shopifyOrderDto.Customer.Email,
             ClientPhone = shopifyOrderDto.Customer.Phone,
             ClientAddress = shopifyOrderDto.Shipping_Address.Address1,
             ClientAddressComplement = shopifyOrderDto.Shipping_Address.Address2,
-            CityId = 1,
+            CityId = cityId?.Id ?? 1,
             PostalCode = shopifyOrderDto.Shipping_Address.Zip,
             Latitude = shopifyOrderDto.Shipping_Address.Latitude,
             Longitude = shopifyOrderDto.Shipping_Address.Longitude,
@@ -377,12 +389,28 @@ public class OrderService : IOrderService
                 }
             }
 
+
+            decimal deliveryFee = createOrderDto.DeliveryFee ?? 0;
+            if(deliveryFee == 0)
+            {
+                var countryCode = "MX"; //todo cambiar a la ciudad de la direccion
+                var deliveryFeeSection = _configuration.GetSection($"{countryCode}:DeliveryFee");
+                if (deliveryFeeSection.Exists() && decimal.TryParse(deliveryFeeSection.Value, out var fee))
+                {
+                    deliveryFee = fee;
+                }
+                else
+                {
+                    deliveryFee = 150;
+                }
+            }
+
             // Create Order
             var order = new Order
             {
                 StoreId = createOrderDto.StoreId,
                 OrderStatusId = defaultOrderStatus.Id,
-                DeliveryFee = createOrderDto.DeliveryFee ?? 0,
+                DeliveryFee = deliveryFee,
                 CurrencyId = createOrderDto.CurrencyId,
                 Client = client,
                 ClientAddress = clientAddress,
@@ -492,16 +520,6 @@ public class OrderService : IOrderService
             };
 
             order.CurrencyId = 1;
-            var countryCode = "MX";
-            var deliveryFeeSection = _configuration.GetSection($"{countryCode}:DeliveryFee");
-            if (deliveryFeeSection.Exists() && decimal.TryParse(deliveryFeeSection.Value, out var fee))
-            {
-                order.DeliveryFee = fee;
-            }
-            else
-            {
-                order.DeliveryFee = 150;
-            }
 
             var skuvalidations = string.Empty;
             var orderItemsSKUS = ordersSheet.Cell(row, col++).GetString().Split(';');

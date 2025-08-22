@@ -9,5 +9,6 @@ namespace BoxExpress.Domain.Interfaces
 {
     public interface ICityRepository : IRepository<City>
     {
+        Task<City?> GetByNameAsync(string name);
     }
 }

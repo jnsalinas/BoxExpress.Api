@@ -102,4 +102,10 @@ public class StoreService : IStoreService
     {
         return ApiResponse<StoreDto?>.Success(_mapper.Map<StoreDto?>(await _repository.GetBalanceSummary()));
     }
+
+    public async Task<bool> ExistsByTokenAsync(string token)
+    {
+        var (stores, totalCount) = await _repository.GetFilteredAsync(new StoreFilter { ShopifyAccessToken = token });
+        return stores.Any();
+    }
 }
