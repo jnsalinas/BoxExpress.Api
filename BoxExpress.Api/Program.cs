@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using BoxExpress.Api.Extensions;
 using Microsoft.OpenApi.Models;
+using BoxExpress.Api.Attributes;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,7 @@ builder.Services.AddDbContext<BoxExpressDbContext>(options =>
 
 // Controllers
 builder.Services.AddControllers();
+builder.Services.AddScoped<ShopifyTokenAttribute>();
 
 // JWT Auth
 builder.Services.AddJwtAuthentication(builder.Configuration);
