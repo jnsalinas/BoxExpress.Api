@@ -239,7 +239,7 @@ public class AutoMapperProfile : Profile
         CreateMap<ShopifyOrderDto, Order>()
             .ForMember(dest => dest.ExternalId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Parse(src.Created_At)))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.Created_At))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Financial_Status))
             .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => decimal.Parse(src.Total_Price)))
             .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency))

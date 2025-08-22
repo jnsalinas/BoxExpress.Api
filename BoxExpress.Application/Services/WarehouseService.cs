@@ -136,7 +136,7 @@ public class WarehouseService : IWarehouseService
 
                             await _unitOfWork.InventoryMovements.AddAsync(new InventoryMovement
                             {
-                                CreatorId = _userContext.UserId,
+                                CreatorId = _userContext.UserId.Value,
                                 CreatedAt = DateTime.UtcNow,
                                 WarehouseId = warehouseId,
                                 ProductVariant = productVariant,

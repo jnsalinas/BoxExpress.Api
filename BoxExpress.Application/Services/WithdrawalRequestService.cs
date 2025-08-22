@@ -57,7 +57,7 @@ public class WithdrawalRequestService : IWithdrawalRequestService
         await _walletRepository.UpdateAsync(wallet);
 
         WithdrawalRequest withdrawalRequest = _mapper.Map<WithdrawalRequest>(dto);
-        withdrawalRequest.CreatorId = _userContext.UserId;
+        withdrawalRequest.CreatorId = _userContext.UserId.Value;
         withdrawalRequest.CreatedAt = DateTime.UtcNow;
         await _repository.AddAsync(withdrawalRequest);
         return ApiResponse<bool>.Success(true);

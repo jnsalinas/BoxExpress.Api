@@ -150,7 +150,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
                 ProductVariantId = item.ProductVariantId,
                 Quantity = item.Quantity,
                 Notes = "Transferencia recibida",
-                CreatorId = _userContext.UserId,
+                CreatorId = _userContext.UserId.Value,
             });
             #endregion
         }
@@ -214,7 +214,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
         // Crear la transferencia  
         newTransfer.CreatedAt = DateTime.UtcNow;
         newTransfer.Status = InventoryTransferStatus.Pending;
-        newTransfer.CreatorId = _userContext.UserId; //todo: poner usuario con la sesion
+        newTransfer.CreatorId = _userContext.UserId.Value; //todo: poner usuario con la sesion
         await _unitOfWork.WarehouseInventoryTransfers.AddAsync(newTransfer);
         await _unitOfWork.SaveChangesAsync();
 

@@ -149,7 +149,7 @@ public class InventoryHoldService : IInventoryHoldService
             WarehouseInventoryTransferDetailId = warehouseInventoryTransferDetailId,
             Type = holdType,
             Status = holdStatus,
-            CreatorId = _userContext.UserId,
+            CreatorId = _userContext.UserId.Value,
             ProductLoanDetailId = productLoanDetailId
         });
         return ApiResponse<bool>.Success(true);
@@ -187,7 +187,7 @@ public class InventoryHoldService : IInventoryHoldService
 
         await _inventoryMovementService.AdjustInventoryAsync(new InventoryMovement()
         {
-            CreatorId = _userContext.UserId,
+            CreatorId = _userContext.UserId.Value,
             WarehouseId = hold.WarehouseInventory.WarehouseId,
             ProductVariantId = hold.WarehouseInventory.ProductVariantId,
             Quantity = hold.Quantity * -1,

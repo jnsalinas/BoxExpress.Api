@@ -9,9 +9,8 @@ public class Order : BaseEntity
     public int StoreId { get; set; }
     public Store Store { get; set; } = null!;
 
-    public int CreatorId { get; set; }
-    public int? CreatedBy { get; set; }
-    public User Creator { get; set; } = null!;
+    public int? CreatorId { get; set; }
+    public User? Creator { get; set; }
 
     public int OrderStatusId { get; set; }
     public OrderStatus Status { get; set; } = null!;

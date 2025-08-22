@@ -8,7 +8,7 @@ namespace BoxExpress.Infrastructure.Persistence
 
 
     //Correr migrations:
-    //dotnet ef migrations add InsertNewProfile --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add NullableCreatorOrder --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef migrations add RemoveNotesDetailProductLoan --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     

@@ -4,7 +4,7 @@ public class ShopifyOrderDto
 {
     public long Id { get; set; }
     public string? Name { get; set; }
-    public string? Created_At { get; set; }
+    public DateTime? Created_At { get; set; }
     public string? Processed_At { get; set; }
     public string? Currency { get; set; }
     public string? Total_Price { get; set; }

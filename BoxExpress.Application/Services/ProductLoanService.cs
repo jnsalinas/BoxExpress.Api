@@ -71,7 +71,7 @@ public class ProductLoanService : IProductLoanService
                 ResponsibleName = dto.ResponsibleName,
                 Notes = dto.Notes,
                 WarehouseId = dto.WarehouseId,
-                CreatedById = _userContext.UserId,
+                CreatedById = _userContext.UserId.Value,
                 Status = ProductLoanStatus.Pending
             };
 
@@ -189,7 +189,7 @@ public class ProductLoanService : IProductLoanService
             if (dto.Status == ProductLoanStatus.CompletedOk || dto.Status == ProductLoanStatus.CompletedWithIssue)
             {
                 productLoan.ProcessedAt = DateTime.UtcNow;
-                productLoan.ProcessedById = _userContext.UserId;
+                productLoan.ProcessedById = _userContext.UserId.Value;
             }
 
             //adjust inventory
@@ -279,7 +279,7 @@ public class ProductLoanService : IProductLoanService
                         await _inventoryMovementService.AdjustInventoryAsync(new InventoryMovement()
                         {
                             ProductLoanDetailId = detail.Id,
-                            CreatorId = _userContext.UserId,
+                            CreatorId = _userContext.UserId.Value,
                             WarehouseId = productLoan.WarehouseId,
                             ProductVariantId = detail.ProductVariantId,
                             Quantity = detail.DeliveredQuantity * -1,
@@ -316,7 +316,7 @@ public class ProductLoanService : IProductLoanService
 
             productLoan.Notes = dto.Notes;
             productLoan.ProcessedAt = DateTime.UtcNow;
-            productLoan.ProcessedById = _userContext.UserId;
+            productLoan.ProcessedById = _userContext.UserId.Value;
             await _unitOfWork.ProductLoans.UpdateAsync(productLoan);
 
             await _unitOfWork.SaveChangesAsync();

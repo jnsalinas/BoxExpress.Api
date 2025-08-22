@@ -4,25 +4,39 @@ using BoxExpress.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-
+using System.Text.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 namespace BoxExpress.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class ShopifyController : ControllerBase
     {
-        // private readonly shopifyService _ShopifyService;
+        private readonly IOrderService _orderService;
 
-        // public ShopifyController(IShopifyService ShopifyService)
-        // {
-        //     _ShopifyService = ShopifyService;
-        // }
+        public ShopifyController(IOrderService orderService)
+        {
+            _orderService = orderService;
+        }
 
-        // [HttpPost()]
-        // public async Task<IActionResult> Create([FromBody] ShopifyOrderDto orderDto)
-        // {
-        //     // var result = await _ShopifyService.ShopifyenticateAsync(loginDto);
-        //     return Ok(orderDto);
-        // }
+        [HttpPost("test")]
+        public async Task<IActionResult> CreateTest()
+        {
+            var shopId = Request.Headers["X-Shopify-Shop-Domain"].FirstOrDefault();
+            using var reader = new StreamReader(Request.Body);
+            var jsonBody = await reader.ReadToEndAsync();
+            jsonBody += "|headers: " + JsonConvert.SerializeObject(Request.Headers);
+
+            var result = await _orderService.AddOrderMockAsync(jsonBody);
+            return Ok(result);
+        }
+
+        [HttpPost()]
+        public async Task<IActionResult> Create([FromBody] ShopifyOrderDto orderDto)
+        {
+            var result = await _orderService.AddOrderAsync(orderDto);
+            return Ok(orderDto);
+        }
     }
 }

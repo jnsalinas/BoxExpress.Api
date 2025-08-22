@@ -10,5 +10,5 @@ public class ShopifyLineItemDto
     public string? Variant_Title { get; set; }
     public string? Total_Discount { get; set; }
     public long? Product_Id { get; set; }
-    public long? Variant_Id { get; set; }
+    public int? Variant_Id { get; set; }
 }

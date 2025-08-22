@@ -24,11 +24,12 @@ namespace BoxExpress.Application.Dtos
         public int CurrencyId { get; set; }
         public string? Code { get; set; }
         public decimal TotalAmount { get; set; }
-
+        public DateTime? CreatedAt { get; set; }
         public string? Notes { get; set; }
+        public string? Contains { get; set; }
 
         // Order Items
-        public required List<OrderItemDto> OrderItems { get; set; }
+        public List<OrderItemDto> OrderItems { get; set; } = new List<OrderItemDto>();
 
         // Result of bulk upload
         public string? ResultBulkUpload { get; set; }

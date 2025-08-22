@@ -14,6 +14,7 @@ namespace BoxExpress.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class OrdersController : ControllerBase
 {
     private readonly IExcelExporter<OrderDto> _excelExporter;

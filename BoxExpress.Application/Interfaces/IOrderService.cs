@@ -1,6 +1,8 @@
 using BoxExpress.Application.Dtos;
 using BoxExpress.Application.Dtos.Common;
+using BoxExpress.Application.Integrations.Shopify;
 using BoxExpress.Domain.Entities;
+using System.Text.Json;
 
 namespace BoxExpress.Application.Interfaces;
 
@@ -18,4 +20,6 @@ public interface IOrderService
     Task<ApiResponse<OrderDto>> AddOrderAsync(CreateOrderDto createOrderDto);
     Task<ApiResponse<List<OrderExcelUploadResponseDto>>> AddOrdersFromExcelAsync(OrderExcelUploadDto dto);
     Task<ApiResponse<OrderDto>> UpdateOrderAsync(int id, CreateOrderDto createOrderDto);
+    Task<ApiResponse<OrderDto>> AddOrderAsync(ShopifyOrderDto shopifyOrderDto);
+    Task<ApiResponse<OrderDto>> AddOrderMockAsync(string objShopifyOrderDto);
 }

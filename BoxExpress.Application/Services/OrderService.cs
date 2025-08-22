@@ -10,7 +10,8 @@ using BoxExpress.Domain.Interfaces;
 using BoxExpress.Utilities;
 using Microsoft.Extensions.Configuration;
 using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
+using BoxExpress.Application.Integrations.Shopify;
+using Newtonsoft.Json;
 
 namespace BoxExpress.Application.Services;
 
@@ -127,7 +128,7 @@ public class OrderService : IOrderService
             OrderId = order.Id,
             OldCategoryId = order.OrderCategoryId,
             NewCategoryId = (int)newCategoryId,
-            CreatorId = _userContext.UserId, //todo tomar del token
+            CreatorId = _userContext.UserId.Value,
         });
 
         order.OrderCategoryId = (int)newCategoryId;
@@ -205,7 +206,7 @@ public class OrderService : IOrderService
             OldStatusId = order.OrderStatusId,
             NewStatusId = statusId,
             CreatedAt = DateTime.UtcNow,
-            CreatorId = _userContext.UserId
+            CreatorId = _userContext.UserId.Value
         });
 
         order.Status = orderStatus;
@@ -253,13 +254,83 @@ public class OrderService : IOrderService
         return ApiResponse<List<OrderItemDto>>.Success(listOrederItems);
     }
 
+    public async Task<ApiResponse<OrderDto>> AddOrderMockAsync(string objShopifyOrderDto)
+    {
+        var createOrderDto = new CreateOrderDto
+        {
+            StoreId = 1,
+            ClientFirstName = "Juan",
+            ClientLastName = "Perez",
+            ClientEmail = "juan.perez@gmail.com",
+            ClientPhone = "1234567890",
+            ClientAddress = "Calle 123",
+            ClientAddressComplement = "Apt 123",
+            CityId = 1,
+            PostalCode = "12345",
+            Latitude = 19.432607m,
+            Longitude = -99.133209m,
+            TotalAmount = 100,
+            CurrencyId = 1,
+            Notes = "Orden creada desde mock:",
+            Contains = objShopifyOrderDto
+        };
+
+        return await AddOrderAsync(createOrderDto);
+    }
+
+    public async Task<ApiResponse<OrderDto>> AddOrderAsync(ShopifyOrderDto shopifyOrderDto)
+    {
+        var warehouseInventoroies = await _warehouseInventoryRepository.GetBySkusAsync(shopifyOrderDto.Line_Items.Select(x => x.Sku).ToList().ToHashSet());
+
+        var contains = shopifyOrderDto.Order_Status_Url ?? string.Empty;
+        foreach (var item in shopifyOrderDto.Line_Items)
+        {
+            var warehouseInventory = warehouseInventoroies.FirstOrDefault(x => x.ProductVariant.Sku == item.Sku);
+            if (warehouseInventory != null)
+            {
+                item.Variant_Id = warehouseInventory.ProductVariantId;
+            }
+
+            contains += $"{item.Title} - {item.Sku}:{item.Quantity};";
+        }
+
+        var createOrderDto = new CreateOrderDto
+        {
+            StoreId = 1,
+            ClientFirstName = shopifyOrderDto.Customer.First_Name,
+            ClientLastName = shopifyOrderDto.Customer.Last_Name,
+            ClientEmail = shopifyOrderDto.Customer.Email,
+            ClientPhone = shopifyOrderDto.Customer.Phone,
+            ClientAddress = shopifyOrderDto.Shipping_Address.Address1,
+            ClientAddressComplement = shopifyOrderDto.Shipping_Address.Address2,
+            CityId = 1,
+            PostalCode = shopifyOrderDto.Shipping_Address.Zip,
+            Latitude = shopifyOrderDto.Shipping_Address.Latitude,
+            Longitude = shopifyOrderDto.Shipping_Address.Longitude,
+            OrderItems = shopifyOrderDto.Line_Items.Select(x => new OrderItemDto
+            {
+                ProductVariantId = x.Variant_Id ?? 0,
+                Quantity = x.Quantity
+            }).ToList(),
+            Code = shopifyOrderDto.Name,
+            TotalAmount = decimal.Parse(shopifyOrderDto.Total_Price),
+            CurrencyId = 1,
+            Notes = "Orden creada desde Shopify: " + shopifyOrderDto.Note,
+            CreatedAt = shopifyOrderDto.Created_At,
+            Contains = contains
+        };
+
+        return await AddOrderAsync(createOrderDto);
+    }
+
     public async Task<ApiResponse<OrderDto>> AddOrderAsync(CreateOrderDto createOrderDto)
     {
         try
         {
+            int? userId = _userContext.UserId;
             await _unitOfWork.BeginTransactionAsync();
 
-            var createdAt = DateTime.UtcNow;
+            var createdAt = createOrderDto.CreatedAt ?? DateTime.UtcNow;
 
             // Create new client
             var client = new Client
@@ -313,15 +384,16 @@ public class OrderService : IOrderService
                 OrderStatusId = defaultOrderStatus.Id,
                 DeliveryFee = createOrderDto.DeliveryFee ?? 0,
                 CurrencyId = createOrderDto.CurrencyId,
-                Client = client,  // ← Referencia de navegación
-                ClientAddress = clientAddress,  // ← Referencia de navegación
+                Client = client,
+                ClientAddress = clientAddress,  
                 CityId = createOrderDto.CityId,
                 Code = createOrderDto.Code,
                 TotalAmount = createOrderDto.TotalAmount,
                 Notes = createOrderDto.Notes,
                 CreatedAt = createdAt,
-                CreatorId = _userContext.UserId,
+                CreatorId = userId,
                 IsEnabled = true,
+                Contains = createOrderDto.Contains,
             };
             await _unitOfWork.Orders.AddAsync(order);
 
@@ -348,7 +420,7 @@ public class OrderService : IOrderService
             {
                 CreatedAt = createdAt,
                 Order = order,  // ← Referencia de navegación
-                CreatorId = _userContext.UserId,
+                CreatorId = userId,
                 NewStatusId = defaultOrderStatus.Id
             };
             await _unitOfWork.OrderStatusHistories.AddAsync(orderStatusHistory);
@@ -561,7 +633,7 @@ public class OrderService : IOrderService
             }
 
             order.UpdatedAt = DateTime.UtcNow;
-            order.CreatorId = _userContext.UserId;
+            order.CreatorId = _userContext.UserId.Value;
 
             await _unitOfWork.ClientAddresses.UpdateAsync(order.ClientAddress);
             await _unitOfWork.Clients.UpdateAsync(order.Client);

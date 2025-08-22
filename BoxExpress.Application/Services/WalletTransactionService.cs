@@ -70,7 +70,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.SuccessfulDeliveryPrefix, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = _userContext.UserId,
+            CreatorId = _userContext.UserId.Value,
         });
 
         // Register the delivery fee transaction
@@ -82,7 +82,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.DeliveredOrderDiscountPrefix, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = _userContext.UserId,
+            CreatorId = _userContext.UserId.Value,
         });
     }
 
@@ -114,7 +114,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.DiscountForOrderStatusCorrection, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = _userContext.UserId,
+            CreatorId = _userContext.UserId.Value,
         });
 
         // Register the refund transaction
@@ -126,7 +126,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.RefundForOrderStatusCorrection, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = _userContext.UserId,
+            CreatorId = _userContext.UserId.Value,
         });
     }
 
@@ -157,7 +157,7 @@ public class WalletTransactionService : IWalletTransactionService
             Amount = withdrawalRequest.Amount,
             Description = string.Format(WalletDescriptionConstants.WithdrawalRequestAccepted, withdrawalRequest.Id),
             RelatedWithdrawalRequestId = withdrawalRequest.Id,
-            CreatorId = _userContext.UserId,
+            CreatorId = _userContext.UserId.Value,
         });
     }
 }
