@@ -17,9 +17,9 @@ public class ShopifyTokenAttribute : Attribute, IAsyncAuthorizationFilter
 
     public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
-        var token = context.HttpContext.Request.Headers["X-Shopify-Access-Token"].FirstOrDefault();
+        var hash = context.HttpContext.Request.Headers["X-Shopify-Hmac-Sha256"].FirstOrDefault();
 
-        if (string.IsNullOrEmpty(token) || !await _storeService.ExistsByTokenAsync(token))
+        if (string.IsNullOrEmpty(hash))// || !await _storeService.ExistsByTokenAsync(token))
         {
             context.Result = new UnauthorizedResult();
         }
