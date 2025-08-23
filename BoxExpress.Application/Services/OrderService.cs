@@ -379,15 +379,15 @@ public class OrderService : IOrderService
             }
 
             //Check if order code already exists
-            if (!string.IsNullOrEmpty(createOrderDto.Code))
-            {
-                var orderExist = await _repository.GetByCodeAsync(createOrderDto.Code, createOrderDto.StoreId);
-                if (orderExist != null)
-                {
-                    await _unitOfWork.RollbackAsync();
-                    return ApiResponse<OrderDto>.Fail($"Orden {orderExist.Code} ya existe", _mapper.Map<OrderDto>(orderExist));
-                }
-            }
+            // if (!string.IsNullOrEmpty(createOrderDto.Code))
+            // {
+            //     var orderExist = await _repository.GetByCodeAsync(createOrderDto.Code, createOrderDto.StoreId);
+            //     if (orderExist != null)
+            //     {
+            //         await _unitOfWork.RollbackAsync();
+            //         return ApiResponse<OrderDto>.Fail($"Orden {orderExist.Code} ya existe", _mapper.Map<OrderDto>(orderExist));
+            //     }
+            // }
 
             decimal deliveryFee = createOrderDto.DeliveryFee ?? 0;
             if(deliveryFee == 0)
