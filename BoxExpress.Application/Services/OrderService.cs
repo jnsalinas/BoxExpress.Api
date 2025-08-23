@@ -324,7 +324,7 @@ public class OrderService : IOrderService
                 ProductVariantId = x.Variant_Id ?? 0,
                 Quantity = x.Quantity
             }).ToList(),
-            Code = shopifyOrderDto.Name,
+            Code = shopifyOrderDto.Id.ToString() + "-" + shopifyOrderDto.Name,
             TotalAmount = decimal.Parse(shopifyOrderDto.Total_Price),
             CurrencyId = 1,
             Notes = "Orden creada desde Shopify: " + shopifyOrderDto.Note,
@@ -378,7 +378,7 @@ public class OrderService : IOrderService
                 return ApiResponse<OrderDto>.Fail("Estado de orden por defecto no encontrado");
             }
 
-            // Check if order code already exists
+            //Check if order code already exists
             if (!string.IsNullOrEmpty(createOrderDto.Code))
             {
                 var orderExist = await _repository.GetByCodeAsync(createOrderDto.Code, createOrderDto.StoreId);
@@ -388,7 +388,6 @@ public class OrderService : IOrderService
                     return ApiResponse<OrderDto>.Fail($"Orden {orderExist.Code} ya existe", _mapper.Map<OrderDto>(orderExist));
                 }
             }
-
 
             decimal deliveryFee = createOrderDto.DeliveryFee ?? 0;
             if(deliveryFee == 0)

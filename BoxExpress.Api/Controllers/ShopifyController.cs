@@ -42,7 +42,7 @@ namespace BoxExpress.Api.Controllers
             var storeDomain = Request.Headers["X-Shopify-Shop-Domain"].FirstOrDefault();
             orderDto.Store_Domain = storeDomain;
             var result = await _orderService.AddOrderAsync(orderDto);
-            return Ok(orderDto);
+            return Ok(result);
         }
     }
 }
