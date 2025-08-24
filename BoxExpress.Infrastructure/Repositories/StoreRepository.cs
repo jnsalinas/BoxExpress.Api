@@ -18,6 +18,7 @@ public class StoreRepository : Repository<Store>, IStoreRepository
     public async Task<Store?> GetByIdWithDetailsAsync(int storeId)
     {
         return await _context.Stores.Include(x => x.Wallet)
+        .Include(x => x.Country)
                         .FirstOrDefaultAsync(x => x.Id == storeId);
 
     }
@@ -33,6 +34,11 @@ public class StoreRepository : Repository<Store>, IStoreRepository
        .Include(w => w.City)
        .OrderByDescending(w => w.CreatedAt)
        .AsQueryable();
+
+        if (filter.StoreId.HasValue)
+        {
+            storesQuery = storesQuery.Where(x => x.Id == filter.StoreId.Value);
+        }
 
         if (!string.IsNullOrEmpty(filter.Name))
         {

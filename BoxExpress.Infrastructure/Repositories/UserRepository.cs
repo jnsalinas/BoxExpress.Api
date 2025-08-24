@@ -24,7 +24,14 @@ namespace BoxExpress.Infrastructure.Repositories
                 .AsNoTracking()
                 .Include(w => w.Role)
                 .Include(w => w.Warehouse)
-                .FirstOrDefaultAsync(w => w.Email.Equals(email));
+                .FirstOrDefaultAsync(w => w.Email.ToLower().Equals(email.ToLower()));
+        }
+
+        public async Task<User?> GetByStoreIdAsync(int id)
+        {
+            return await _context.Set<User>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(w => w.StoreId == id);
         }
     }
 }

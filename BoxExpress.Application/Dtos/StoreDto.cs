@@ -11,4 +11,6 @@ public class StoreDto
     public decimal? PendingWithdrawals { get; set; }
     public decimal? Balance { get; set; }
     public decimal AvailableToWithdraw => (Balance ?? 0) - (PendingWithdrawals ?? 0);
+    public string? ShopifyShopDomain { get; set; }
+    public string? Username { get; set; }
 }

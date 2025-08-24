@@ -11,4 +11,5 @@ public interface IStoreService
     Task<ApiResponse<AuthResponseDto>> AddStoreAsync(CreateStoreDto createStoreDto);
     Task<ApiResponse<StoreDto?>> GetBalanceSummary();
     Task<bool> ExistsByTokenAsync(string token);
+    Task<ApiResponse<bool>> UpdateAsync(int storeId, UpdateStoreDto dto);
 }

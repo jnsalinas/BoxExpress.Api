@@ -36,7 +36,7 @@ public class StoresController : ControllerBase
                 return BadRequest("StoreId is required for store users");
             }
 
-            id = int.Parse(storeValue); 
+            id = int.Parse(storeValue);
         }
 
         var result = await _storeService.GetByIdAsync(id);
@@ -47,6 +47,12 @@ public class StoresController : ControllerBase
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] StoreFilterDto filter)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Store)
+        {
+            filter.StoreId = int.Parse(User.FindFirst("StoreId")?.Value ?? "0");
+        }
+
         var result = await _storeService.GetAllAsync(filter);
         return Ok(result);
     }
@@ -75,5 +81,12 @@ public class StoresController : ControllerBase
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             $"Orders_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx"
         );
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateStoreDto dto)
+    {
+        var result = await _storeService.UpdateAsync(id, dto);
+        return Ok(result);
     }
 }
