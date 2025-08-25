@@ -37,8 +37,9 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         .Include(x => x.Warehouse)
         .Include(x => x.TimeSlot)
         .Include(x => x.Currency)
-        .OrderByDescending(x => x.CreatedAt)
-        .ThenByDescending(x => x.UpdatedAt).AsQueryable();
+        .OrderByDescending(x => x.Id)
+        //.ThenByDescending(x => x.UpdatedAt)
+        .AsQueryable();
 
         if (!filter.IsAll)
         {
@@ -47,6 +48,8 @@ public class OrderRepository : Repository<Order>, IOrderRepository
                 .Take(filter.PageSize);
         }
 
+        var testquery = orderQuery.ToQueryString();
+        Console.WriteLine(testquery);
         return (await orderQuery.ToListAsync(), totalCount);
     }
 

@@ -309,10 +309,10 @@ public class OrderService : IOrderService
         var createOrderDto = new CreateOrderDto
         {
             StoreId = storeId,
-            ClientFirstName = shopifyOrderDto.Customer.First_Name,
-            ClientLastName = shopifyOrderDto.Customer.Last_Name,
-            ClientEmail = shopifyOrderDto.Customer.Email,
-            ClientPhone = shopifyOrderDto.Customer.Phone,
+            ClientFirstName = shopifyOrderDto.Shipping_Address.First_Name,
+            ClientLastName = shopifyOrderDto.Shipping_Address.Last_Name,
+            ClientEmail = shopifyOrderDto.Email,
+            ClientPhone = shopifyOrderDto.Shipping_Address.Phone,
             ClientAddress = shopifyOrderDto.Shipping_Address.Address1,
             ClientAddressComplement = shopifyOrderDto.Shipping_Address.Address2,
             CityId = cityId?.Id ?? 1,

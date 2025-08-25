@@ -13,6 +13,7 @@ public class ShopifyOrderDto
     public string? Order_Status_Url { get; set; }
     public string? Tags { get; set; }
     public string? Note { get; set; }
+    public string? Email { get; set; }
     public ShopifyCustomerDto? Customer { get; set; }
     public ShopifyShippingAddressDto? Shipping_Address { get; set; }
     public List<ShopifyLineItemDto>? Line_Items { get; set; }
