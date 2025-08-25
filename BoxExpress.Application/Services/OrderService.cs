@@ -295,7 +295,7 @@ public class OrderService : IOrderService
             var warehouseInventory = warehouseInventoroies.FirstOrDefault(x => x.ProductVariant.Sku == item.Sku);
             if (warehouseInventory != null)
             {
-                item.Variant_Id = warehouseInventory.ProductVariantId;
+                item.ProductVariantId = warehouseInventory.ProductVariantId;
             }
 
             contains += $"Producto: {item.Title} - SKU: {item.Sku} - Cantidad: {item.Quantity};";
@@ -321,7 +321,7 @@ public class OrderService : IOrderService
             Longitude = shopifyOrderDto.Shipping_Address.Longitude,
             OrderItems = shopifyOrderDto.Line_Items.Select(x => new OrderItemDto
             {
-                ProductVariantId = x.Variant_Id ?? 0,
+                ProductVariantId = x.ProductVariantId ?? 0,
                 Quantity = x.Quantity
             }).ToList(),
             Code = shopifyOrderDto.Id.ToString() + "-" + shopifyOrderDto.Name,
