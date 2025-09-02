@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - boxexpress-service
+name: Build and Deploy BoxExpress API to Azure WebApp
 
 on:
   push:
@@ -10,56 +10,39 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read #This is required for actions/checkout
 
     steps:
-      - uses: actions/checkout@v4
+      # 1. Checkout repo
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v4
 
-      - name: Set up .NET Core
+      # 2. Setup .NET 8
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: '8.0.x'
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      # 3. Restore dependencies (usa tu csproj principal)
+      - name: Restore
+        run: dotnet restore ./BoxExpress.Sol.Api/BoxExpress.Sol.Api.csproj
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+      # 4. Build
+      - name: Build
+        run: dotnet build ./BoxExpress.Sol.Api/BoxExpress.Sol.Api.csproj --configuration Release --no-restore
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+      # 5. Publish
+      - name: Publish
+        run: dotnet publish ./BoxExpress.Sol.Api/BoxExpress.Sol.Api.csproj -c Release -o ./publish_output
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: .net-app
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_DF4B0F0E65C84C2FB7CB92BE896EC183 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_CCE70E6C6CC84C888099413CAA765DF2 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_735027CC381A4A7A8A75A60D1F843E26 }}
-
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
+      # 6. Deploy to Azure WebApp
+      - name: 'Deploy to Azure WebApp'
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'boxexpress-service'
-          slot-name: 'Production'
-          package: .
+          app-name: "boxexpress-service"  # 👈 reemplázalo si tu App Service se llama diferente
+          slot-name: "production"
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./publish_output
+
           
