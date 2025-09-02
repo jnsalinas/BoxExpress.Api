@@ -1,48 +1,41 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and Deploy BoxExpress API to Azure WebApp
+name: Build and deploy .NET API to Azure Web App
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repo
-      - name: 'Checkout GitHub Action'
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      # 2. Setup .NET 8
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
 
-      # 3. Restore dependencies (usa tu csproj principal)
-      - name: Restore
-        run: dotnet restore ./BoxExpress.Sol.Api/BoxExpress.Sol.Api.csproj
+      - name: Restore dependencies
+        run: dotnet restore ./BoxExpress.Api/BoxExpress.Api.csproj
 
-      # 4. Build
       - name: Build
-        run: dotnet build ./BoxExpress.Sol.Api/BoxExpress.Sol.Api.csproj --configuration Release --no-restore
+        run: dotnet build ./BoxExpress.Api/BoxExpress.Api.csproj --configuration Release --no-restore
 
-      # 5. Publish
       - name: Publish
-        run: dotnet publish ./BoxExpress.Sol.Api/BoxExpress.Sol.Api.csproj -c Release -o ./publish_output
+        run: dotnet publish ./BoxExpress.Api/BoxExpress.Api.csproj --configuration Release --no-build -o ./publish
 
-      # 6. Deploy to Azure WebApp
-      - name: 'Deploy to Azure WebApp'
-        uses: azure/webapps-deploy@v3
+      - name: Deploy to Azure WebApp
+        uses: azure/webapps-deploy@v2
         with:
-          app-name: "boxexpress-service"  # 👈 reemplázalo si tu App Service se llama diferente
-          slot-name: "production"
+          app-name: <TU_APP_SERVICE_NAME>
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./publish_output
+          package: ./publish
 
           
+
