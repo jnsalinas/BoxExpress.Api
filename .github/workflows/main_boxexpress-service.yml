@@ -49,6 +49,18 @@ jobs:
           name: published-app
           path: ./published-app
       
+      - name: Verificar artefacto
+        run: |
+          ls -la ./published-app | cat
+          test -f ./published-app/BoxExpress.Api.dll || echo "BoxExpress.Api.dll no encontrado en ./published-app"
+
+      - name: Crear paquete ZIP
+        run: |
+          cd ./published-app
+          zip -r ../published-app.zip .
+          cd ..
+          ls -la | cat
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -62,5 +74,5 @@ jobs:
         with:
           app-name: 'boxexpress-service'
           slot-name: 'Production'
-          package: ./published-app
+          package: ./published-app.zip
           
