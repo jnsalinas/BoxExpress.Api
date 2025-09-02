@@ -88,6 +88,24 @@ jobs:
         run: |
           az webapp config set -g rg-boxexpress-prod -n boxexpress-service --startup-file ""
 
+      - name: Inspeccionar Access Restrictions y Autenticación
+        run: |
+          echo "Access Restrictions (antes):"
+          az webapp show -g rg-boxexpress-prod -n boxexpress-service --query siteConfig.{DefaultAction:ipSecurityRestrictionsDefaultAction,Rules:ipSecurityRestrictions} -o json || true
+          echo "Auth (antes):"
+          az webapp auth show -g rg-boxexpress-prod -n boxexpress-service -o json || true
+
+      - name: Forzar Access Restrictions a Allow y deshabilitar EasyAuth
+        run: |
+          az webapp config set -g rg-boxexpress-prod -n boxexpress-service --generic-configurations '{"ipSecurityRestrictionsDefaultAction":"Allow"}'
+          az webapp auth set -g rg-boxexpress-prod -n boxexpress-service --enabled false
+
+      - name: Eliminar ASPNETCORE_URLS/WEBSITES_PORT
+        run: |
+          az webapp config appsettings delete --resource-group rg-boxexpress-prod --name boxexpress-service --setting-names ASPNETCORE_URLS WEBSITES_PORT || true
+          echo "App Settings (post-cleanup):"
+          az webapp config appsettings list -g rg-boxexpress-prod -n boxexpress-service -o table | sed -n '1,200p'
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
