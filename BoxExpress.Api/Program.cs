@@ -15,6 +15,8 @@ using Microsoft.IdentityModel.Tokens;
 using BoxExpress.Api.Extensions;
 using Microsoft.OpenApi.Models;
 using BoxExpress.Api.Attributes;
+using Microsoft.Extensions.Logging;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +57,24 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+// Aplicar migraciones de EF Core al iniciar en Producción
+if (app.Environment.IsProduction())
+{
+    using var scope = app.Services.CreateScope();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Migrations");
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<BoxExpressDbContext>();
+        dbContext.Database.Migrate();
+        logger.LogInformation("Migraciones aplicadas correctamente al iniciar.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error aplicando migraciones al iniciar la aplicación.");
+        throw;
+    }
+}
 
 // Swagger (solo para dev/prod)
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
