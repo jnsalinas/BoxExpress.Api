@@ -73,7 +73,7 @@ jobs:
           az webapp config appsettings set \
             --resource-group rg-boxexpress-prod \
             --name boxexpress-service \
-            --settings WEBSITE_RUN_FROM_PACKAGE=1 SCM_DO_BUILD_DURING_DEPLOYMENT=false ASPNETCORE_URLS=http://0.0.0.0:8080 WEBSITES_PORT=8080
+            --settings WEBSITE_RUN_FROM_PACKAGE=1 SCM_DO_BUILD_DURING_DEPLOYMENT=false
 
       - name: Verificar y forzar runtime .NET 8 en Linux
         run: |
@@ -83,9 +83,10 @@ jobs:
           echo "linuxFxVersion después:" \
           && az webapp show -g rg-boxexpress-prod -n boxexpress-service --query siteConfig.linuxFxVersion -o tsv || true
 
-      - name: Configurar Startup Command (Linux)
+      # Eliminamos cualquier Startup Command previo que pueda interferir con .NET (Code)
+      - name: Limpiar Startup Command
         run: |
-          az webapp config set -g rg-boxexpress-prod -n boxexpress-service --startup-file "dotnet BoxExpress.Api.dll"
+          az webapp config set -g rg-boxexpress-prod -n boxexpress-service --startup-file ""
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -97,4 +98,11 @@ jobs:
 
       - name: Reiniciar App Service
         run: az webapp restart -g rg-boxexpress-prod -n boxexpress-service
+
+      - name: Verificar estado del sitio
+        run: |
+          az webapp show -g rg-boxexpress-prod -n boxexpress-service --query state -o tsv | sed 's/.*/App Service state: &/'
+          echo "Esperando 15s a que arranque..." && sleep 15
+          echo "HEAD /" && curl -skI https://boxexpress-service.azurewebsites.net/ | cat || true
+          echo "HEAD /swagger" && curl -skI https://boxexpress-service.azurewebsites.net/swagger | cat || true
           
