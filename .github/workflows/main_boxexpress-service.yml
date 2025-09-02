@@ -68,6 +68,13 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_3F0D5039DFC84A2B93B7461BA7FE0F0B }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B47EFB57D0B54EB7AE9C6E7B9BFA156F }}
 
+      - name: Configurar App Settings para Linux (Run-From-Package)
+        run: |
+          az webapp config appsettings set \
+            --resource-group rg-boxexpress-prod \
+            --name boxexpress-service \
+            --settings WEBSITE_RUN_FROM_PACKAGE=1 SCM_DO_BUILD_DURING_DEPLOYMENT=false
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
