@@ -73,7 +73,19 @@ jobs:
           az webapp config appsettings set \
             --resource-group rg-boxexpress-prod \
             --name boxexpress-service \
-            --settings WEBSITE_RUN_FROM_PACKAGE=1 SCM_DO_BUILD_DURING_DEPLOYMENT=false
+            --settings WEBSITE_RUN_FROM_PACKAGE=1 SCM_DO_BUILD_DURING_DEPLOYMENT=false ASPNETCORE_URLS=http://0.0.0.0:8080 WEBSITES_PORT=8080
+
+      - name: Verificar y forzar runtime .NET 8 en Linux
+        run: |
+          echo "linuxFxVersion actual:" \
+          && az webapp show -g rg-boxexpress-prod -n boxexpress-service --query siteConfig.linuxFxVersion -o tsv || true
+          az webapp config set -g rg-boxexpress-prod -n boxexpress-service --linux-fx-version "DOTNET|8.0"
+          echo "linuxFxVersion después:" \
+          && az webapp show -g rg-boxexpress-prod -n boxexpress-service --query siteConfig.linuxFxVersion -o tsv || true
+
+      - name: Configurar Startup Command (Linux)
+        run: |
+          az webapp config set -g rg-boxexpress-prod -n boxexpress-service --startup-file "dotnet BoxExpress.Api.dll"
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -82,4 +94,7 @@ jobs:
           app-name: 'boxexpress-service'
           slot-name: 'Production'
           package: ./published-app.zip
+
+      - name: Reiniciar App Service
+        run: az webapp restart -g rg-boxexpress-prod -n boxexpress-service
           
