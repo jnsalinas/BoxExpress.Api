@@ -87,6 +87,12 @@ jobs:
       - name: Limpiar Startup Command
         run: |
           az webapp config set -g rg-boxexpress-prod -n boxexpress-service --startup-file ""
+          # Asegurar limpieza a nivel de siteConfig
+          az resource update \
+            --resource-group rg-boxexpress-prod \
+            --name boxexpress-service \
+            --resource-type Microsoft.Web/sites \
+            --set siteConfig.appCommandLine=""
 
       - name: Inspeccionar Access Restrictions y Autenticación
         run: |
@@ -95,10 +101,19 @@ jobs:
           echo "Auth (antes):"
           az webapp auth show -g rg-boxexpress-prod -n boxexpress-service -o json || true
 
-      - name: Forzar Access Restrictions a Allow y deshabilitar EasyAuth
+      - name: Forzar Access Restrictions a Allow
         run: |
           az webapp config set -g rg-boxexpress-prod -n boxexpress-service --generic-configurations '{"ipSecurityRestrictionsDefaultAction":"Allow"}'
-          az webapp auth set -g rg-boxexpress-prod -n boxexpress-service --enabled false
+
+      - name: Deshabilitar EasyAuth (authsettingsV2)
+        run: |
+          az resource update \
+            --resource-group rg-boxexpress-prod \
+            --name boxexpress-service/config/authsettingsV2 \
+            --resource-type Microsoft.Web/sites/config \
+            --set properties.platform.enabled=false properties.globalValidation.requireAuthentication=false
+          echo "Auth (después):"
+          az webapp auth show -g rg-boxexpress-prod -n boxexpress-service -o json || true
 
       - name: Eliminar ASPNETCORE_URLS/WEBSITES_PORT
         run: |
