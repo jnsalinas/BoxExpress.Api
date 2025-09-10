@@ -302,10 +302,15 @@ public class OrderService : IOrderService
         }
 
         var (stores, totalCount) = await _storeRepository.GetFilteredAsync(new StoreFilter { ShopifyShopDomain = shopifyOrderDto.Store_Domain });
+        if(stores.Count == 0)
+        {
+            return ApiResponse<OrderDto>.Fail("Store not found");
+        }
+
         int storeId = stores.FirstOrDefault()?.Id ?? 1;
-
         var cityId = await _cityRepository.GetByNameAsync(shopifyOrderDto.Shipping_Address.City ?? "Ciudad de México");
-
+        string colonia = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower() == "nombre de la calle")?.Value;
+        
         var createOrderDto = new CreateOrderDto
         {
             StoreId = storeId,
@@ -313,7 +318,7 @@ public class OrderService : IOrderService
             ClientLastName = shopifyOrderDto.Shipping_Address.Last_Name,
             ClientEmail = shopifyOrderDto.Email,
             ClientPhone = shopifyOrderDto.Shipping_Address.Phone,
-            ClientAddress = shopifyOrderDto.Shipping_Address.Address1,
+            ClientAddress = shopifyOrderDto.Shipping_Address.City + ", " + (colonia != null ? colonia + ", " : "") + shopifyOrderDto.Shipping_Address.Address1,
             ClientAddressComplement = shopifyOrderDto.Shipping_Address.Address2,
             CityId = cityId?.Id ?? 1,
             PostalCode = shopifyOrderDto.Shipping_Address.Zip,
