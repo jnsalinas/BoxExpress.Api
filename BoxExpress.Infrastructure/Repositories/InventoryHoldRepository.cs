@@ -96,7 +96,8 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
 
         if (filter.CreatedAt.HasValue)
         {
-            query = query.Where(w => w.CreatedAt.Date == filter.CreatedAt.Value.Date);
+            var localDate = filter.CreatedAt.Value.Date;
+            query = query.Where(w => w.CreatedAt.AddHours(-5).Date == localDate);
         }
 
         var total = query.Count();
