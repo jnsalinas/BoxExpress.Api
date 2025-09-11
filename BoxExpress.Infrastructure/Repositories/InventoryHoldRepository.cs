@@ -94,6 +94,11 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
             query = query.Where(w => w.ProductLoanDetail != null && w.ProductLoanDetail.ProductLoanId == filter.ProductLoanId.Value);
         }
 
+        if (filter.CreatedAt.HasValue)
+        {
+            query = query.Where(w => w.CreatedAt.Date == filter.CreatedAt.Value.Date);
+        }
+
         var total = query.Count();
         if (!filter.IsAll)
         {
