@@ -170,7 +170,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
     {
         return await _context.WarehouseInventories
             .Include(x => x.ProductVariant)
-            .Where(x => x.ProductVariant != null && x.ProductVariant.Sku != null
+            .Where(x => x.ProductVariant != null && x.ProductVariant.Sku != null && x.ProductVariant.Sku != string.Empty
              && skus.Contains(x.ProductVariant.Sku) && (storeId == null || x.StoreId == storeId))
             .ToListAsync();
     }
