@@ -287,8 +287,19 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<OrderDto>> AddOrderAsync(ShopifyOrderDto shopifyOrderDto)
     {
-        var warehouseInventoroies = await _warehouseInventoryRepository.GetBySkusAsync(shopifyOrderDto.Line_Items.Select(x => x.Sku).ToList().ToHashSet());
+        int storeId = shopifyOrderDto.StoreId ?? 0;
+        if (shopifyOrderDto.StoreId == null)
+        {
+            var (stores, totalCount) = await _storeRepository.GetFilteredAsync(new StoreFilter { ShopifyShopDomain = shopifyOrderDto.Store_Domain });
+            if (stores.Count == 0)
+            {
+                return ApiResponse<OrderDto>.Fail("Store not found");
+            }
+            
+            storeId = stores.First().Id;
+        }
 
+        var warehouseInventoroies = await _warehouseInventoryRepository.GetBySkusAsync(shopifyOrderDto.Line_Items.Select(x => x.Sku).ToList().ToHashSet(), storeId);
         var contains = shopifyOrderDto.Order_Status_Url ?? string.Empty;
         foreach (var item in shopifyOrderDto.Line_Items)
         {
@@ -301,16 +312,9 @@ public class OrderService : IOrderService
             contains += $"Producto: {item.Title} - SKU: {item.Sku} - Cantidad: {item.Quantity};";
         }
 
-        var (stores, totalCount) = await _storeRepository.GetFilteredAsync(new StoreFilter { ShopifyShopDomain = shopifyOrderDto.Store_Domain });
-        if(stores.Count == 0)
-        {
-            return ApiResponse<OrderDto>.Fail("Store not found");
-        }
-
-        int storeId = stores.FirstOrDefault()?.Id ?? 1;
         var cityId = await _cityRepository.GetByNameAsync(shopifyOrderDto.Shipping_Address.City ?? "Ciudad de México");
         string colonia = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower() == "nombre de la calle")?.Value;
-        
+
         var createOrderDto = new CreateOrderDto
         {
             StoreId = storeId,
@@ -395,7 +399,7 @@ public class OrderService : IOrderService
             // }
 
             decimal deliveryFee = createOrderDto.DeliveryFee ?? 0;
-            if(deliveryFee == 0)
+            if (deliveryFee == 0)
             {
                 var countryCode = "MX"; //todo cambiar a la ciudad de la direccion
                 var deliveryFeeSection = _configuration.GetSection($"{countryCode}:DeliveryFee");

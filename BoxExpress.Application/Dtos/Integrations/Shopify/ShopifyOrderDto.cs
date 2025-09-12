@@ -21,4 +21,5 @@ public class ShopifyOrderDto
     public string[]? Payment_Gateway_Names { get; set; }
     public List<ShopifyShippingLineDto>? Shipping_Lines { get; set; }
     public string? Store_Domain { get; set; }
+    public int? StoreId { get; set; }
 }

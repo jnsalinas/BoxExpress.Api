@@ -44,5 +44,17 @@ namespace BoxExpress.Api.Controllers
             var result = await _orderService.AddOrderAsync(orderDto);
             return Ok(result);
         }
+
+        [HttpPost("webhook/{storeId:int}")]
+        [ServiceFilter(typeof(ShopifyTokenAttribute))]
+        public async Task<IActionResult> CreateWebhook(
+            [FromRoute] int storeId,
+            [FromBody] ShopifyOrderDto orderDto
+        )
+        {
+            orderDto.StoreId = storeId;
+            var result = await _orderService.AddOrderAsync(orderDto);
+            return Ok(result);
+        }
     }
 }
