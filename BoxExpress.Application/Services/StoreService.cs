@@ -7,6 +7,7 @@ using BoxExpress.Domain.Entities;
 using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Utilities;
 using BoxExpress.Domain.Constants;
+using Microsoft.Extensions.Configuration;
 
 namespace BoxExpress.Application.Services;
 
@@ -18,14 +19,15 @@ public class StoreService : IStoreService
     private readonly IRoleRepository _roleRepository;
     private readonly IAuthService _authService;
     private readonly IUserRepository _userRepository;
-
+    private readonly IConfiguration _configuration;
     public StoreService(
         IUnitOfWork unitOfWork,
     IStoreRepository repository,
     IMapper mapper,
     IRoleRepository roleRepository,
     IAuthService authService,
-    IUserRepository userRepository)
+    IUserRepository userRepository, 
+    IConfiguration configuration)
     {
         _authService = authService;
         _unitOfWork = unitOfWork;
@@ -33,6 +35,7 @@ public class StoreService : IStoreService
         _mapper = mapper;
         _roleRepository = roleRepository;
         _userRepository = userRepository;
+        _configuration = configuration;
     }
 
     public async Task<ApiResponse<StoreDto?>> GetByIdAsync(int storeId)
@@ -74,6 +77,18 @@ public class StoreService : IStoreService
             var store = _mapper.Map<Store>(createStoreDto);
             store.CreatedAt = createdAt;
             store.WalletId = wallet.Id;
+            store.PublicId = Guid.NewGuid();
+
+            var countryCode = "MX"; //todo cambiar a la ciudad de la direccion
+            var deliveryFeeSection = _configuration.GetSection($"{countryCode}:DeliveryFee");
+            if (deliveryFeeSection.Exists() && decimal.TryParse(deliveryFeeSection.Value, out var fee))
+            {
+                store.DeliveryFee = fee;
+            }
+            else
+            {
+                store.DeliveryFee = 150;
+            }
 
             await _unitOfWork.Stores.AddAsync(store);
 
@@ -136,6 +151,7 @@ public class StoreService : IStoreService
 
             store.Name = dto.Name ?? store.Name;
             store.ShopifyShopDomain = dto.ShopifyShopDomain ?? store.ShopifyShopDomain;
+            store.DeliveryFee = dto.DeliveryFee ?? store.DeliveryFee;
             user.Email = dto.Username ?? user.Email;
             if (!string.IsNullOrEmpty(dto.Password))
                 user.PasswordHash = BcryptHelper.Hash(dto.Password);

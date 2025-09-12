@@ -8,4 +8,5 @@ public class StoreFilter : BaseFilter
     public DateTime? EndDate { get; set; }
     public string? ShopifyAccessToken { get; set; }
     public string? ShopifyShopDomain { get; set; }
+    public Guid? PublicId { get; set; }
 }

@@ -288,7 +288,7 @@ public class OrderService : IOrderService
     public async Task<ApiResponse<OrderDto>> AddOrderAsync(ShopifyOrderDto shopifyOrderDto)
     {
         int storeId = shopifyOrderDto.StoreId ?? 0;
-        if (shopifyOrderDto.StoreId == null)
+        if (shopifyOrderDto.StoreId == null && !string.IsNullOrEmpty(shopifyOrderDto.Store_Domain))
         {
             var (stores, totalCount) = await _storeRepository.GetFilteredAsync(new StoreFilter { ShopifyShopDomain = shopifyOrderDto.Store_Domain });
             if (stores.Count == 0)
@@ -296,6 +296,15 @@ public class OrderService : IOrderService
                 return ApiResponse<OrderDto>.Fail("Store not found");
             }
             
+            storeId = stores.First().Id;
+        }
+        else if(shopifyOrderDto.PublicId.HasValue)
+        {
+            var (stores, totalCount) = await _storeRepository.GetFilteredAsync(new StoreFilter { PublicId = shopifyOrderDto.PublicId });
+            if (stores.Count == 0)
+            {
+                return ApiResponse<OrderDto>.Fail("Store not found");
+            }
             storeId = stores.First().Id;
         }
 
@@ -398,7 +407,13 @@ public class OrderService : IOrderService
             //     }
             // }
 
-            decimal deliveryFee = createOrderDto.DeliveryFee ?? 0;
+            var store = await _storeRepository.GetByIdAsync(createOrderDto.StoreId);
+            if(store == null)
+            {
+                return ApiResponse<OrderDto>.Fail("Store not found");
+            }
+
+            decimal deliveryFee = store.DeliveryFee ?? 0;
             if (deliveryFee == 0)
             {
                 var countryCode = "MX"; //todo cambiar a la ciudad de la direccion

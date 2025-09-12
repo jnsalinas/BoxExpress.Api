@@ -22,4 +22,5 @@ public class ShopifyOrderDto
     public List<ShopifyShippingLineDto>? Shipping_Lines { get; set; }
     public string? Store_Domain { get; set; }
     public int? StoreId { get; set; }
+    public Guid? PublicId { get; set; }
 }

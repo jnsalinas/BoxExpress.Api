@@ -7,4 +7,5 @@ public class UpdateStoreDto
     public string? ShopifyShopDomain { get; set; }
     public string? Username { get; set; }
     public string? Password { get; set; }
+    public decimal? DeliveryFee { get; set; }
 }

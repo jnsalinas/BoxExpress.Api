@@ -10,7 +10,7 @@ namespace BoxExpress.Infrastructure.Persistence
     //Correr migrations:
     //dotnet ef migrations add ShopifyData --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
-    //dotnet ef migrations add RemoveNotesDetailProductLoan --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add AddGuidToStore --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     
     //ASPNETCORE_ENVIRONMENT=Development && dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //export ASPNETCORE_ENVIRONMENT=qa && dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api

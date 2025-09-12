@@ -13,4 +13,6 @@ public class StoreDto
     public decimal AvailableToWithdraw => (Balance ?? 0) - (PendingWithdrawals ?? 0);
     public string? ShopifyShopDomain { get; set; }
     public string? Username { get; set; }
+    public decimal? DeliveryFee { get; set; }
+    public Guid? PublicId { get; set; }
 }
