@@ -300,7 +300,7 @@ public class OrderService : IOrderService
         }
 
         var warehouseInventoroies = await _warehouseInventoryRepository.GetBySkusAsync(shopifyOrderDto.Line_Items.Select(x => x.Sku).ToList().ToHashSet(), storeId);
-        var contains = string.Empty; //shopifyOrderDto.Order_Status_Url
+        var contains = string.Empty; //shopifyOrderDto.Order_Status_Url 
         foreach (var item in shopifyOrderDto.Line_Items)
         {
             var warehouseInventory = warehouseInventoroies.FirstOrDefault(x => x.ProductVariant.Sku == item.Sku);

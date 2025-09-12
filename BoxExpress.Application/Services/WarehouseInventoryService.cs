@@ -55,6 +55,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                         PendingReturnQuantity = variantGroup.Sum(q => q.PendingReturnQuantity),
                         AvailableQuantity = variantGroup.Sum(q => q.AvailableQuantity),
                         ReservedQuantity = variantGroup.Sum(q => q.ReservedQuantity),
+                        DeliveredQuantity = variantGroup.Sum(q => q.DeliveredQuantity),
                     }).ToList()
             }).OrderBy(x => x.Name).ToList();
 
