@@ -50,6 +50,11 @@ public class StoreRepository : Repository<Store>, IStoreRepository
             storesQuery = storesQuery.Where(x => x.ShopifyShopDomain == filter.ShopifyShopDomain);
         }
 
+        if(filter.PublicId.HasValue)
+        {
+            storesQuery = storesQuery.Where(x => x.PublicId == filter.PublicId.Value);
+        }
+
         if (!filter.IsAll)
         {
             storesQuery = storesQuery

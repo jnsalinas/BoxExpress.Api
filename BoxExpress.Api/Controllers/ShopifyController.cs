@@ -57,7 +57,7 @@ namespace BoxExpress.Api.Controllers
             return Ok(result);
         }
 
-        [HttpPost("webhooksspending/{publicId:guid}")]
+        [HttpPost("webhook/{publicId:guid}")]
         [ServiceFilter(typeof(ShopifyTokenAttribute))]
         public async Task<IActionResult> CreateWebhook(
             [FromRoute] Guid publicId,
