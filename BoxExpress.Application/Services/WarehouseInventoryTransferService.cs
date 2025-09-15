@@ -107,7 +107,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
                     ProductVariantId = item.ProductVariantId,
                     Quantity = item.Quantity,
                     CreatedAt = DateTime.UtcNow,
-                    StoreId = inventoryOrigin.StoreId, 
+                    StoreId = inventoryOrigin.StoreId,
                 };
                 await _unitOfWork.Inventories.AddAsync(inventoryDestination);
             }
@@ -240,5 +240,96 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
     public async Task<ApiResponse<int>> GetPendingTransfersAsync(WarehouseInventoryTransferFilterDto filter)
     {
         return ApiResponse<int>.Success(await _warehouseInventoryTransferRepository.GetPendingTransfersAsync(_mapper.Map<WarehouseInventoryTransferFilter>(filter)));
+    }
+
+    public async Task<ApiResponse<bool>> TransferStoreAsync(int warehouseId, List<WarehouseInventoryTransferStoreDto> dto)
+    {
+        var inventories = await _warehouseInventoryRepository.GetByWarehouseIdAndProductVariantsIdAndStoresId(warehouseId, dto.Select(x => x.ProductVariantId).ToList(), dto.Select(x => x.StoreId).ToList());
+
+        await _unitOfWork.BeginTransactionAsync();
+        foreach (var item in dto)
+        {
+            var inventoryToDiscount = inventories.FirstOrDefault(x => x.ProductVariantId == item.ProductVariantId);
+            if(item.StoreId == inventoryToDiscount.StoreId){
+                continue;
+            }
+
+            if (inventoryToDiscount == null)
+            {
+                return ApiResponse<bool>.Fail($"No se encontró inventario para el producto variante {item.ProductVariantId} en la bodega {warehouseId}");
+            }
+
+            var inventoryToAdd = inventories.FirstOrDefault(x => x.ProductVariant.ProductId == inventoryToDiscount.ProductVariant.ProductId && x.ProductVariant.Name == inventoryToDiscount.ProductVariant.Name && x.StoreId == item.StoreId);
+            if (inventoryToAdd == null)
+            {
+                var newProductVariant = new ProductVariant()
+                {
+                    ProductId = inventoryToDiscount.ProductVariant.ProductId,
+                    Name = inventoryToDiscount.ProductVariant.Name,
+                    ShopifyVariantId = inventoryToDiscount.ProductVariant.ShopifyVariantId,
+                    Sku = inventoryToDiscount.ProductVariant.Sku + "-" + item.StoreId,
+                    Price = inventoryToDiscount.ProductVariant.Price,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+                await _unitOfWork.Variants.AddAsync(newProductVariant);
+
+                inventoryToAdd = new WarehouseInventory
+                {
+                    WarehouseId = warehouseId,
+                    ProductVariant = newProductVariant,
+                    StoreId = item.StoreId,
+                    Quantity = item.Quantity,
+                    CreatedAt = DateTime.UtcNow,
+                    ReservedQuantity = 0,
+                    PendingReturnQuantity = 0,
+                    DeliveredQuantity = 0,
+                };
+
+                await _unitOfWork.Inventories.AddAsync(inventoryToAdd);
+
+                var newMovement = new InventoryMovement
+                {
+                    CreatorId = _userContext.UserId,
+                    Notes = "Transferencia entre tiendas recibida",
+                    CreatedAt = DateTime.UtcNow,
+                    Reference = "Tienda origen: " + inventoryToDiscount.Store?.Name + " Tienda destino: " + inventoryToAdd.Store?.Name,
+                    ProductVariant = newProductVariant,
+                    Quantity = item.Quantity,
+                    WarehouseId = warehouseId,
+                    MovementType = InventoryMovementType.TransferStoreReceived,
+                };
+                await _unitOfWork.InventoryMovements.AddAsync(newMovement);
+            }
+            else
+            {
+                await _inventoryMovementService.AdjustInventoryAsync(new InventoryMovement
+                {
+                    ProductVariantId = inventoryToAdd.ProductVariantId,
+                    Quantity = item.Quantity,
+                    WarehouseId = warehouseId,
+                    MovementType = InventoryMovementType.TransferStoreReceived,
+                    CreatedAt = DateTime.UtcNow,
+                    Reference = "Tienda origen: " + inventoryToDiscount.Store?.Name + " Tienda destino: " + inventoryToAdd.Store?.Name,
+                    Notes = "Transferencia entre tiendas recibida",
+                }, false, false);
+            }
+
+            await _inventoryMovementService.AdjustInventoryAsync(new InventoryMovement
+            {
+                WarehouseId = warehouseId,
+                MovementType = InventoryMovementType.TransferStoreSent,
+                CreatedAt = DateTime.UtcNow,
+                Reference = "Tienda origen: " + inventoryToDiscount.Store?.Name + " Tienda destino: " + item.StoreId,
+                ProductVariantId = item.ProductVariantId,
+                Quantity = item.Quantity * -1,
+                Notes = "Transferencia entre tiendas enviada",
+                CreatorId = _userContext.UserId,
+            }, false, false);
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.CommitAsync();
+        return ApiResponse<bool>.Success(true, null, "Inventario transferido exitosamente");
     }
 }

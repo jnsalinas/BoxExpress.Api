@@ -174,4 +174,15 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
              && skus.Contains(x.ProductVariant.Sku) && (storeId == null || x.StoreId == storeId))
             .ToListAsync();
     }
+
+    public async Task<List<WarehouseInventory>> GetByWarehouseIdAndProductVariantsIdAndStoresId(int warehouseId, List<int> productVariantsId, List<int>? storesId)
+    {
+        return await _context.WarehouseInventories
+            .Include(wi => wi.ProductVariant)
+            .ThenInclude(pv => pv.Product)
+            .Include(wi => wi.Store)
+            .Where(wi => wi.WarehouseId == warehouseId &&
+                (productVariantsId.Contains(wi.ProductVariantId) || (storesId != null && storesId.Contains(wi.StoreId ?? 0))))
+            .ToListAsync();
+    }
 }

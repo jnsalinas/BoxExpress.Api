@@ -138,6 +138,8 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ProductVariant.Id))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.ProductVariant.Name))
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductVariant.Product.Name))
+            .ForMember(dest => dest.StoreName, opt => opt.MapFrom(src => src.Store != null ? src.Store.Name : string.Empty))
+            .ForMember(dest => dest.StoreId, opt => opt.MapFrom(src => src.StoreId))
             .ForMember(dest => dest.AvailableUnits, opt => opt.MapFrom(src => src.AvailableQuantity));
 
         CreateMap<OrderStatusHistory, OrderStatusHistoryDto>()

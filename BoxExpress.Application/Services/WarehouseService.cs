@@ -114,7 +114,7 @@ public class WarehouseService : IWarehouseService
                         }
                         else
                         {
-                            productVariant = new()
+                            productVariant = new ProductVariant()
                             {
                                 CreatedAt = DateTime.UtcNow,
                                 Name = variantDto.Name,
@@ -125,7 +125,7 @@ public class WarehouseService : IWarehouseService
                             };
                             await _unitOfWork.Variants.AddAsync(productVariant);
 
-                            await _unitOfWork.Inventories.AddAsync(new()
+                            await _unitOfWork.Inventories.AddAsync(new WarehouseInventory()
                             {
                                 CreatedAt = DateTime.UtcNow,
                                 WarehouseId = warehouseId,

@@ -66,11 +66,19 @@ public class WarehousesController : ControllerBase
         return Ok(result);
     }
 
+
     [HttpPost("create")]
     public async Task<IActionResult> CreateWarehouse([FromBody] CreateWarehouseDto createWarehouseDto)
     {
         var result = await _warehouseService.CreateAsync(createWarehouseDto);
         if (result.Equals(null)) return NotFound();
+        return Ok(result);
+    }
+
+    [HttpPost("{warehouseId}/transferstore")]
+    public async Task<IActionResult> TransferStoreAsync(int warehouseId, [FromBody] List<WarehouseInventoryTransferStoreDto> transferDetails)
+    {
+        var result = await _warehouseInventoryTransferService.TransferStoreAsync(warehouseId, transferDetails);
         return Ok(result);
     }
 }

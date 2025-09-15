@@ -14,4 +14,6 @@ public enum InventoryMovementType
     Loan = 10,
     LoanReturned = 11,
     LoanDelivered = 12,
+    TransferStoreSent = 13,
+    TransferStoreReceived = 14,
 }

@@ -44,10 +44,9 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                 TotalQuantity = group.Sum(x => x.Quantity),
                 Name = group.Key.ProductName ?? string.Empty,
                 Variants = group
-                    .GroupBy(v => new { v.Name, v.Sku, v.ShopifyVariantId, v.Price, v.warehouseId })
+                    .GroupBy(v => new { v.Name, v.Sku, v.ShopifyVariantId, v.Price })
                     .Select(variantGroup => new ProductVariantDto
                     {
-                        warehouseId = variantGroup.Key.warehouseId,
                         Name = variantGroup.Key.Name,
                         Sku = variantGroup.Key.Sku,
                         ShopifyVariantId = variantGroup.Key.ShopifyVariantId,

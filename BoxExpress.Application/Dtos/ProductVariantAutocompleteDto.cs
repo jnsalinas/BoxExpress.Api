@@ -9,4 +9,6 @@ public class ProductVariantAutocompleteDto
     public int? AvailableUnits { get; set; }
     public int ReservedQuantity { get; set; }
     public int Quantity { get; set; }
+    public string? StoreName { get; set; }
+    public int? StoreId { get; set; }
 }
