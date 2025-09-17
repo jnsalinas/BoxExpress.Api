@@ -13,7 +13,7 @@ namespace BoxExpress.Application.Dtos
         public string Address { get; set; } = string.Empty;
         public string? Address2 { get; set; } = string.Empty;
         public string? Complement { get; set; }
-        public int CityId { get; set; }
+        public int? CityId { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
         public bool IsDefault { get; set; } = false;

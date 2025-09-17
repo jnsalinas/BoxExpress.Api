@@ -73,6 +73,30 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             query = query.Where(w => w.ScheduledDate.HasValue && w.ScheduledDate.Value.Date == filter.ScheduledDate.Value.Date);
         if (filter.WarehouseId.HasValue)
             query = query.Where(w => w.WarehouseId.HasValue && w.WarehouseId.Value == filter.WarehouseId.Value);
+        if (filter.StatusId.HasValue)
+            query = query.Where(w => w.OrderStatusId.Equals(filter.StatusId));
+        if (!string.IsNullOrEmpty(filter.Query))
+        {
+            query = query.Where(w =>
+            w.Id.ToString().Contains(filter.Query) ||
+             (
+                w.Client != null
+                && (w.Client.FirstName + " " + w.Client.LastName).Contains(filter.Query)
+                || w.Client.Email.Contains(filter.Query)
+                || w.Client.Phone.Contains(filter.Query)
+                || w.Client.Document.Contains(filter.Query)
+                || w.Client.Phone.Contains(filter.Query)
+            )
+            ||
+            (
+                w.ClientAddress != null && (
+                w.ClientAddress.Address.Contains(filter.Query)
+                || w.ClientAddress.Address2.Contains(filter.Query)
+                || w.ClientAddress.Complement.Contains(filter.Query)
+                || w.ClientAddress.PostalCode.Contains(filter.Query)
+            )
+            ));
+        }
 
         //todo quitar, es por pruebas
         query = query.Where(w => w.IsEnabled.HasValue && w.IsEnabled.Value);
