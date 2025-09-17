@@ -321,9 +321,15 @@ public class OrderService : IOrderService
             contains += $"Producto: {item.Title} - SKU: {item.Sku} - Cantidad: {item.Quantity};";
         }
 
-        var cityId = await _cityRepository.GetByNameAsync(shopifyOrderDto.Shipping_Address.City ?? "Ciudad de México");
-        string colonia = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower() == "nombre de la calle")?.Value;
 
+        int? cityId = null;
+        if(!string.IsNullOrEmpty(shopifyOrderDto.Shipping_Address.City))
+        {
+            var city = await _cityRepository.GetByNameAsync(shopifyOrderDto.Shipping_Address.City);
+            cityId = city?.Id;
+        }
+        string colonia = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower() == "nombre de la calle")?.Value;
+        //todo agregar a notas Colocar día y entre que horario puede recibir
         var createOrderDto = new CreateOrderDto
         {
             StoreId = storeId,
@@ -333,7 +339,7 @@ public class OrderService : IOrderService
             ClientPhone = shopifyOrderDto.Shipping_Address.Phone,
             ClientAddress = shopifyOrderDto.Shipping_Address.City + ", " + (colonia != null ? colonia + ", " : "") + shopifyOrderDto.Shipping_Address.Address1,
             ClientAddressComplement = shopifyOrderDto.Shipping_Address.Address2,
-            CityId = cityId?.Id ?? 1,
+            CityId = cityId,
             PostalCode = shopifyOrderDto.Shipping_Address.Zip,
             Latitude = shopifyOrderDto.Shipping_Address.Latitude,
             Longitude = shopifyOrderDto.Shipping_Address.Longitude,

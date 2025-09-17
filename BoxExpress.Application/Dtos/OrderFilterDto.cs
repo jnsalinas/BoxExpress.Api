@@ -14,4 +14,6 @@ public class OrderFilterDto : BaseFilter
     public DateTime? EndDate { get; set; }
     public DateTime? ScheduledDate { get; set; }
     public int? WarehouseId { get; set; }
+    public string? Query { get; set; }
+    public int? StatusId { get; set; }
 }

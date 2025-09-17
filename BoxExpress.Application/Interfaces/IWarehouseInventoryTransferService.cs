@@ -13,4 +13,5 @@ public interface IWarehouseInventoryTransferService
     Task<ApiResponse<bool>> AcceptTransferAsync(int transferId, int userId);
     Task<ApiResponse<bool>> RejectTransferAsync(int transferId, int userId, string rejectionReason);
     Task<ApiResponse<int>> GetPendingTransfersAsync(WarehouseInventoryTransferFilterDto filter);
+    Task<ApiResponse<bool>> TransferStoreAsync(int warehouseId, List<WarehouseInventoryTransferStoreDto> dto);
 }
