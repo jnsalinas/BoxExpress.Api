@@ -321,7 +321,6 @@ public class OrderService : IOrderService
             contains += $"Producto: {item.Title} - SKU: {item.Sku} - Cantidad: {item.Quantity};";
         }
 
-
         int? cityId = null;
         if(!string.IsNullOrEmpty(shopifyOrderDto.Shipping_Address.City))
         {
@@ -329,6 +328,8 @@ public class OrderService : IOrderService
             cityId = city?.Id;
         }
         string colonia = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower() == "nombre de la calle")?.Value;
+        string scheduleDate = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower() == "colocar día y entre que horario puede recibir")?.Value;
+
         //todo agregar a notas Colocar día y entre que horario puede recibir
         var createOrderDto = new CreateOrderDto
         {
@@ -351,7 +352,7 @@ public class OrderService : IOrderService
             Code = shopifyOrderDto.Id.ToString() + "-" + shopifyOrderDto.Name,
             TotalAmount = decimal.Parse(shopifyOrderDto.Total_Price),
             CurrencyId = 1,
-            Notes = "Orden creada desde Shopify: " + shopifyOrderDto.Note,
+            Notes = "Orden creada desde Shopify: " + shopifyOrderDto.Note + (scheduleDate != null ? " - " + scheduleDate : ""),
             CreatedAt = shopifyOrderDto.Created_At,
             Contains = contains
         };
