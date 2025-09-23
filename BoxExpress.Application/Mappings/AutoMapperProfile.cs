@@ -117,7 +117,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems))
             .ForMember(dest => dest.Client, opt => opt.MapFrom(src => src.Client));
 
-        CreateMap<CreateOrderDto, Order>(); 
+        CreateMap<CreateOrderDto, Order>();
         CreateMap<CreateWarehouseDto, Warehouse>();
         CreateMap<OrderItemDto, OrderItem>();
 
@@ -145,7 +145,8 @@ public class AutoMapperProfile : Profile
         CreateMap<OrderStatusHistory, OrderStatusHistoryDto>()
             .ForMember(dest => dest.Creator, opt => opt.MapFrom(src => src.Creator.FirstName + " " + src.Creator.LastName))
             .ForMember(dest => dest.OldStatus, opt => opt.MapFrom(src => src.OldStatus.Name))
-            .ForMember(dest => dest.NewStatus, opt => opt.MapFrom(src => src.NewStatus.Name));
+            .ForMember(dest => dest.NewStatus, opt => opt.MapFrom(src => src.NewStatus.Name))
+            .ForMember(dest => dest.DeliveryProviderName, opt => opt.MapFrom(src => src.DeliveryProvider != null ? src.DeliveryProvider.Name : string.Empty));
 
         CreateMap<OrderCategoryHistory, OrderCategoryHistoryDto>()
             .ForMember(dest => dest.Creator, opt => opt.MapFrom(src => src.Creator.FirstName + " " + src.Creator.LastName))
@@ -190,7 +191,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.ClientFullName, opt => opt.MapFrom(src => src.OrderItem != null ? src.OrderItem.Order.Client.FirstName + " " + src.OrderItem.Order.Client.LastName : string.Empty))
             .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.WarehouseInventory != null && src.WarehouseInventory.Warehouse != null ? src.WarehouseInventory.Warehouse.Name : string.Empty))
             .ForMember(dest => dest.WarehouseInventoryTransferId, opt => opt.MapFrom(src => src.WarehouseInventoryTransferDetail != null ? src.WarehouseInventoryTransferDetail.WarehouseInventoryTransferId : (int?)null))
-            .ForMember(dest => dest.ProductLoanId, opt => opt.MapFrom(src => src.ProductLoanDetail != null ? src.ProductLoanDetail.ProductLoanId : (int?)null)) ;
+            .ForMember(dest => dest.ProductLoanId, opt => opt.MapFrom(src => src.ProductLoanDetail != null ? src.ProductLoanDetail.ProductLoanId : (int?)null));
 
         // ProductLoan mappings
         CreateMap<ProductLoan, ProductLoanDto>()
@@ -236,6 +237,8 @@ public class AutoMapperProfile : Profile
         // CreateMap<WarehouseCreateDto, Warehouse>();
         // CreateMap<WarehouseUpdateDto, Warehouse>();
 
+        CreateMap<DeliveryProvider, DeliveryProviderDto>();
+        CreateMap<DeliveryProviderFilterDto, DeliveryProviderFilter>();
 
         // Orden principal
         CreateMap<ShopifyOrderDto, Order>()

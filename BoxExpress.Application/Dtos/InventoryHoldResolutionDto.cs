@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Http;
+
 namespace BoxExpress.Application.Dtos;
 
 public class InventoryHoldResolutionDto
 {
     public int InventoryHoldId { get; set; }
     public string? Notes { get; set; }
+    public IFormFile? Photo { get; set; }
 }

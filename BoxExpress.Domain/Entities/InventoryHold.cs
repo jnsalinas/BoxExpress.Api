@@ -19,5 +19,8 @@ public class InventoryHold : BaseEntity
     public string? Notes { get; set; }
     public int? ProductLoanDetailId { get; set; }
     public ProductLoanDetail? ProductLoanDetail { get; set; } = null!;
+    public int? OrderStatusHistoryId { get; set; }
+    public OrderStatusHistory? OrderStatusHistory { get; set; }
+    public string? OnRouteEvidenceUrl { get; set; }
 }
 

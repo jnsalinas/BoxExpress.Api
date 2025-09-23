@@ -47,6 +47,8 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
                 .ThenInclude(wi => wi.Warehouse)
             .Include(w => w.WarehouseInventoryTransferDetail)
             .Include(w => w.ProductLoanDetail)
+            .Include(w => w.OrderStatusHistory)
+                .ThenInclude(w => w.DeliveryProvider)
             .AsQueryable();
 
         if (filter.WarehouseInventoryId.HasValue)

@@ -34,7 +34,7 @@ public class InventoryHoldsController : ControllerBase
     }
 
     [HttpPost("acceptreturn")]
-    public async Task<IActionResult> AcceptReturn([FromBody] InventoryHoldResolutionDto dto)
+    public async Task<IActionResult> AcceptReturn([FromForm] InventoryHoldResolutionDto dto)
     {
         var result = await _inventoryHoldservice.AcceptReturnAsync(dto);
         return Ok(result);

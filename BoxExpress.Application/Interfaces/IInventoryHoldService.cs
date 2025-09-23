@@ -18,5 +18,6 @@ public interface IInventoryHoldService
     InventoryHoldStatus holdStatus,
     int? orderItemId = null,
     int? warehouseInventoryTransferDetailId = null,
-    int? productLoanDetailId = null);
+    int? productLoanDetailId = null,
+    int? orderStatusHistoryId = null);
 }

@@ -41,6 +41,7 @@ public class OrderService : IOrderService
     private readonly IUserContext _userContext;
     private readonly IStoreRepository _storeRepository;
     private readonly ICityRepository _cityRepository;
+    private readonly IFileService _fileService;
 
     public OrderService(
         IOrderRepository repository,
@@ -65,7 +66,8 @@ public class OrderService : IOrderService
         IConfiguration configuration,
         IUserContext userContext,
         IStoreRepository storeRepository,
-        ICityRepository cityRepository
+        ICityRepository cityRepository,
+        IFileService fileService
     )
     {
         _warehouseInventoryTransferService = warehouseInventoryTransferService;
@@ -91,6 +93,7 @@ public class OrderService : IOrderService
         _userContext = userContext;
         _storeRepository = storeRepository;
         _cityRepository = cityRepository;
+        _fileService = fileService;
     }
 
     public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter)
@@ -144,7 +147,7 @@ public class OrderService : IOrderService
         return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
     }
 
-    public async Task<ApiResponse<OrderDto>> UpdateStatusAsync(int orderId, int statusId)
+    public async Task<ApiResponse<OrderDto>> UpdateStatusAsync(int orderId, int statusId, ChangeStatusDto? changeStatusDto)
     {
         #region validations 
         Order? order = await _repository.GetByIdWithDetailsAsync(orderId);
@@ -207,13 +210,22 @@ public class OrderService : IOrderService
                 break;
         }
 
+        string? photoUrl = null;
+        if (changeStatusDto != null && changeStatusDto.Photo != null)
+        {
+            photoUrl = await _fileService.UploadFileAsync(changeStatusDto.Photo);
+        }
+
         await _orderStatusHistoryRepository.AddAsync(new()
         {
             OrderId = order.Id,
             OldStatusId = order.OrderStatusId,
             NewStatusId = statusId,
             CreatedAt = DateTime.UtcNow,
-            CreatorId = _userContext.UserId.Value
+            CreatorId = _userContext?.UserId.Value,
+            CourierName = changeStatusDto?.CourierName,
+            DeliveryProviderId = changeStatusDto?.DeliveryProviderId,
+            OnRouteEvidenceUrl = photoUrl,
         });
 
         order.Status = orderStatus;
@@ -228,7 +240,7 @@ public class OrderService : IOrderService
     {
         if (orderScheduleUpdateDto.StatusId.HasValue)
         {
-            await UpdateStatusAsync(orderId, orderScheduleUpdateDto.StatusId.Value);
+            await UpdateStatusAsync(orderId, orderScheduleUpdateDto.StatusId.Value, null);
         }
 
         Order? order = await _repository.GetByIdWithDetailsAsync(orderId);
@@ -245,7 +257,21 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<List<OrderStatusHistoryDto>>> GetStatusHistoryAsync(int orderId)
     {
-        var listHistory = _mapper.Map<List<OrderStatusHistoryDto>>(await _orderStatusHistoryRepository.GetByOrderIdAsync(orderId));
+        var listOrderStatusHistory = await _orderStatusHistoryRepository.GetByOrderIdAsync(orderId);
+        List<OrderStatusHistoryDto> listHistory = new List<OrderStatusHistoryDto>();
+        foreach (var item in listOrderStatusHistory)
+        {
+            var historyDto = _mapper.Map<OrderStatusHistoryDto>(item);
+            if (!string.IsNullOrEmpty(item.OnRouteEvidenceUrl))
+            {
+                var fileResult = await _fileService.GetTempUrlAsync(item.OnRouteEvidenceUrl, TimeSpan.FromMinutes(30));
+                if (!string.IsNullOrEmpty(fileResult))
+                {
+                    historyDto.PhotoUrl = fileResult;
+                }
+            }
+            listHistory.Add(historyDto);
+        }
         return ApiResponse<List<OrderStatusHistoryDto>>.Success(listHistory);
     }
 
@@ -295,10 +321,10 @@ public class OrderService : IOrderService
             {
                 return ApiResponse<OrderDto>.Fail("Store not found");
             }
-            
+
             storeId = stores.First().Id;
         }
-        else if(shopifyOrderDto.PublicId.HasValue)
+        else if (shopifyOrderDto.PublicId.HasValue)
         {
             var (stores, totalCount) = await _storeRepository.GetFilteredAsync(new StoreFilter { PublicId = shopifyOrderDto.PublicId });
             if (stores.Count == 0)
@@ -323,7 +349,7 @@ public class OrderService : IOrderService
 
 
         int? cityId = null;
-        if(!string.IsNullOrEmpty(shopifyOrderDto.Shipping_Address.City))
+        if (!string.IsNullOrEmpty(shopifyOrderDto.Shipping_Address.City))
         {
             var city = await _cityRepository.GetByNameAsync(shopifyOrderDto.Shipping_Address.City);
             cityId = city?.Id;
@@ -414,7 +440,7 @@ public class OrderService : IOrderService
             // }
 
             var store = await _storeRepository.GetByIdAsync(createOrderDto.StoreId);
-            if(store == null)
+            if (store == null)
             {
                 return ApiResponse<OrderDto>.Fail("Store not found");
             }

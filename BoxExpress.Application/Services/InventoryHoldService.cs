@@ -6,6 +6,7 @@ using AutoMapper;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Domain.Enums;
+using BoxExpress.Domain.Constants;
 
 namespace BoxExpress.Application.Services;
 
@@ -17,13 +18,19 @@ public class InventoryHoldService : IInventoryHoldService
     private readonly IMapper _mapper;
     private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IUserContext _userContext;
+    private readonly IOrderStatusHistoryRepository _orderStatusHistoryRepository;
+    private readonly IOrderStatusRepository _orderStatusRepository;
+    private readonly IFileService _fileService;
 
     public InventoryHoldService(IInventoryHoldRepository repository,
     IInventoryMovementService inventoryMovementService,
     IMapper mapper,
     IWarehouseInventoryRepository warehouseInventoryRepository,
     IUnitOfWork unitOfWork,
-    IUserContext userContext)
+    IUserContext userContext,
+    IOrderStatusHistoryRepository orderStatusHistoryRepository,
+    IOrderStatusRepository orderStatusRepository,
+    IFileService fileService)
     {
         _inventoryMovementService = inventoryMovementService;
         _repository = repository;
@@ -31,6 +38,9 @@ public class InventoryHoldService : IInventoryHoldService
         _warehouseInventoryRepository = warehouseInventoryRepository;
         _unitOfWork = unitOfWork;
         _userContext = userContext;
+        _orderStatusHistoryRepository = orderStatusHistoryRepository;
+        _orderStatusRepository = orderStatusRepository;
+        _fileService = fileService;
     }
 
     public async Task<ApiResponse<IEnumerable<InventoryHoldDto>>> GetAllAsync(InventoryHoldFilterDto filter)
@@ -63,17 +73,30 @@ public class InventoryHoldService : IInventoryHoldService
         if (warehouseInventories == null || !warehouseInventories.Any())
             return ApiResponse<bool>.Fail("No se encontró inventario en la bodega.");
 
+        var orderStatusHistory = await _orderStatusHistoryRepository.GetFilteredAsync(new OrderStatusHistoryFilter
+        {
+            OrderId = orderItems.First().OrderId,
+            NewStatusId = _orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay).Result?.Id ?? 0,
+        });
+
+        int? orderStatusHistoryId = null;
+        if (orderStatusHistory != null && orderStatusHistory.Any())
+        {
+            orderStatusHistoryId = orderStatusHistory.OrderByDescending(x => x.CreatedAt).First().Id;
+        }
+
         await _unitOfWork.BeginTransactionAsync();
         foreach (var item in orderItems)
         {
             if (warehouseInventories.Any(x => x.ProductVariantId == item.ProductVariantId))
             {
                 var holdResult = await CreateInventoryHoldAsync(
-                   warehouseInventories.First(x => x.ProductVariantId == item.ProductVariantId),
-                   item.Quantity,
-                   InventoryHoldType.Order,
-                   status,
-                   item.Id
+                   warehouseInventory: warehouseInventories.First(x => x.ProductVariantId == item.ProductVariantId),
+                   quantity: item.Quantity,
+                   holdType: InventoryHoldType.Order,
+                   holdStatus: status,
+                   orderItemId: item.Id,
+                   orderStatusHistoryId: orderStatusHistoryId
                );
 
                 if (!holdResult.IsSuccess)
@@ -96,8 +119,9 @@ public class InventoryHoldService : IInventoryHoldService
     InventoryHoldType holdType,
     InventoryHoldStatus holdStatus,
     int? orderItemId = null,
-    int? warehouseInventoryTransferDetailId = null, 
-    int? productLoanDetailId = null)
+    int? warehouseInventoryTransferDetailId = null,
+    int? productLoanDetailId = null,
+    int? orderStatusHistoryId = null)
     {
         // Validación según el tipo de holdStatus
         if (holdStatus == InventoryHoldStatus.Active)
@@ -150,7 +174,8 @@ public class InventoryHoldService : IInventoryHoldService
             Type = holdType,
             Status = holdStatus,
             CreatorId = _userContext.UserId.Value,
-            ProductLoanDetailId = productLoanDetailId
+            ProductLoanDetailId = productLoanDetailId,
+            OrderStatusHistoryId = holdStatus == InventoryHoldStatus.PendingReturn ? orderStatusHistoryId : null
         });
         return ApiResponse<bool>.Success(true);
     }
@@ -173,7 +198,9 @@ public class InventoryHoldService : IInventoryHoldService
         hold.Status = InventoryHoldStatus.Returned;
         hold.Notes = dto.Notes;
         hold.UpdatedAt = DateTime.UtcNow;
-
+        if(dto.Photo != null)
+            hold.OnRouteEvidenceUrl = await _fileService.UploadFileAsync(dto.Photo);
+    
         await _warehouseInventoryRepository.UpdateAsync(inventory);
         await _repository.UpdateAsync(hold);
         return ApiResponse<bool>.Success(true);

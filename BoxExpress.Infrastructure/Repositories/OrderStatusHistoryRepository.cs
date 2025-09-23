@@ -26,4 +26,25 @@ public class OrderStatusHistoryRepository : Repository<OrderStatusHistory>, IOrd
             .ToListAsync();
     }
 
+    public async Task<List<OrderStatusHistory>> GetFilteredAsync(OrderStatusHistoryFilter filter)
+    {
+        var query = _context.OrderStatusHistories.AsQueryable();
+
+        if (filter.OrderId.HasValue)
+        {
+            query = query.Where(x => x.OrderId == filter.OrderId.Value);
+        }
+
+        if (filter.OldStatusId.HasValue)
+        {
+            query = query.Where(x => x.OldStatusId == filter.OldStatusId.Value);
+        }
+
+        if (filter.NewStatusId.HasValue)
+        {
+            query = query.Where(x => x.NewStatusId == filter.NewStatusId.Value);
+        }
+        
+        return query.ToList();
+    }
 }

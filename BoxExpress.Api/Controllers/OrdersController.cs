@@ -19,14 +19,17 @@ public class OrdersController : ControllerBase
 {
     private readonly IExcelExporter<OrderDto> _excelExporter;
     private readonly IOrderService _orderService;
+    private readonly IFileService _fileService;
 
     public OrdersController(
         IOrderService orderService,
-        IExcelExporter<OrderDto> excelStatusExporter
+        IExcelExporter<OrderDto> excelStatusExporter,
+        IFileService fileService
     )
     {
         _orderService = orderService;
         _excelExporter = excelStatusExporter;
+        _fileService = fileService;
     }
 
     [HttpGet("{id}")]
@@ -91,9 +94,14 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPatch("{orderId}/status/{statusId}")]
-    public async Task<IActionResult> UpdateStatus(int orderId, int statusId)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UpdateStatus(
+        int orderId,
+        int statusId,
+        [FromForm] ChangeStatusDto changeStatusDto
+    )
     {
-        return Ok(await _orderService.UpdateStatusAsync(orderId, statusId));
+        return Ok(await _orderService.UpdateStatusAsync(orderId, statusId, changeStatusDto));
     }
 
     [HttpPatch("{orderId}/schedule")]
@@ -211,4 +219,11 @@ public class OrdersController : ControllerBase
         var result = await _orderService.UpdateOrderAsync(id, createOrderDto);
         return Ok(result);
     }
+
+    // [HttpPost("delivery-provider")]
+    // public async Task<IActionResult> CreateDeliveryProvider([FromBody] OrderDeliveryProviderDto orderDeliveryProviderDto)
+    // {
+    //     var result = await _orderService.AssignDeliveryProviderAsync(orderDeliveryProviderDto);
+    //     return Ok(result);
+    // }
 }
