@@ -13,7 +13,9 @@ public class OrderExporter : IExcelExporter<OrderDto>
 
         int row = 1;
         worksheet.Cell(1, row++).Value = "Guía";
-        worksheet.Cell(1, row++).Value = "Creacion";
+        worksheet.Cell(1, row++).Value = "Fechad de creación";
+        worksheet.Cell(1, row++).Value = "Fecha de programación";
+        worksheet.Cell(1, row++).Value = "Hora de programación";
         worksheet.Cell(1, row++).Value = "Tienda";
         worksheet.Cell(1, row++).Value = "Estado";
         worksheet.Cell(1, row++).Value = "Categoría";
@@ -35,6 +37,8 @@ public class OrderExporter : IExcelExporter<OrderDto>
             rowAux = 1;
             worksheet.Cell(i + 2, rowAux++).Value = data[i].Id;
             worksheet.Cell(i + 2, rowAux++).Value = data[i].CreatedAt;
+            worksheet.Cell(i + 2, rowAux++).Value = data[i].ScheduledDate;
+            worksheet.Cell(i + 2, rowAux++).Value = data[i].TimeSlotStartTime + " - " + data[i].TimeSlotEndTime;
             worksheet.Cell(i + 2, rowAux++).Value = data[i].StoreName;
             worksheet.Cell(i + 2, rowAux++).Value = data[i].Status;
             worksheet.Cell(i + 2, rowAux++).Value = data?[i].Category;

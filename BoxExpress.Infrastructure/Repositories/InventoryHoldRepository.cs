@@ -102,6 +102,17 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
             query = query.Where(w => w.CreatedAt.AddHours(-5).Date == localDate);
         }
 
+        if (filter.DeliveryProviderId.HasValue)
+        {
+            query = query.Where(w => w.OrderStatusHistory != null && w.OrderStatusHistory.DeliveryProviderId == filter.DeliveryProviderId.Value);
+        }
+
+        if (!string.IsNullOrEmpty(filter.CourierName))
+        {
+            var courierName = filter.CourierName.Trim().ToLower();
+            query = query.Where(w => w.OrderStatusHistory != null && w.OrderStatusHistory.CourierName != null && w.OrderStatusHistory.CourierName.ToLower().Contains(courierName));
+        }
+
         var total = query.Count();
         if (!filter.IsAll)
         {

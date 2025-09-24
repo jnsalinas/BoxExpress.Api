@@ -250,7 +250,7 @@ public class OrderService : IOrderService
         }
 
         order.ScheduledDate = orderScheduleUpdateDto.ScheduledDate ?? order.ScheduledDate;
-        order.TimeSlotId = orderScheduleUpdateDto.TimeSlotId ?? order.TimeSlotId;
+        order.TimeSlotId = orderScheduleUpdateDto.TimeSlotId;
         await _repository.UpdateAsync(order);
         return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
     }

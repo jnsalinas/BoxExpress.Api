@@ -75,6 +75,10 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             query = query.Where(w => w.WarehouseId.HasValue && w.WarehouseId.Value == filter.WarehouseId.Value);
         if (filter.StatusId.HasValue)
             query = query.Where(w => w.OrderStatusId.Equals(filter.StatusId));
+        if (filter.TimeSlotId.HasValue && filter.TimeSlotId > 0)
+            query = query.Where(w => w.TimeSlotId.Equals(filter.TimeSlotId));
+        if (filter.TimeSlotId.HasValue && filter.TimeSlotId == 0)
+            query = query.Where(w => w.TimeSlotId == null);
         if (!string.IsNullOrEmpty(filter.Query))
         {
             query = query.Where(w =>

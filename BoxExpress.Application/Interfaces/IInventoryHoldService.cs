@@ -20,4 +20,7 @@ public interface IInventoryHoldService
     int? warehouseInventoryTransferDetailId = null,
     int? productLoanDetailId = null,
     int? orderStatusHistoryId = null);
+
+    Task<ApiResponse<bool>> BulkAcceptReturnAsync(List<InventoryHoldResolutionDto> dto);
+    Task<ApiResponse<bool>> BulkRejectReturnAsync(List<InventoryHoldResolutionDto> dto);
 }

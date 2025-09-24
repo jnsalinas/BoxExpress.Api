@@ -8,3 +8,8 @@ public class InventoryHoldResolutionDto
     public string? Notes { get; set; }
     public IFormFile? Photo { get; set; }
 }
+
+public class InventoryHoldMassiveResolutionDto
+{
+    public List<InventoryHoldResolutionDto> InventoryHoldResolutions { get; set; }
+}

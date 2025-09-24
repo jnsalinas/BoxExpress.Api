@@ -198,9 +198,9 @@ public class InventoryHoldService : IInventoryHoldService
         hold.Status = InventoryHoldStatus.Returned;
         hold.Notes = dto.Notes;
         hold.UpdatedAt = DateTime.UtcNow;
-        if(dto.Photo != null)
+        if (dto.Photo != null)
             hold.OnRouteEvidenceUrl = await _fileService.UploadFileAsync(dto.Photo);
-    
+
         await _warehouseInventoryRepository.UpdateAsync(inventory);
         await _repository.UpdateAsync(hold);
         return ApiResponse<bool>.Success(true);
@@ -230,5 +230,25 @@ public class InventoryHoldService : IInventoryHoldService
         hold.Notes = dto.Notes;
         await _repository.UpdateAsync(hold);
         return ApiResponse<bool>.Success(true);
+    }
+
+    public async Task<ApiResponse<bool>> BulkAcceptReturnAsync(List<InventoryHoldResolutionDto> dto)
+    {
+        var itemResults = new List<ApiResponse<bool>>();
+        foreach (var item in dto)
+        {
+            itemResults.Add(await AcceptReturnAsync(item));
+        }
+        return ApiResponse<bool>.Success(itemResults.Any(x => !x.IsSuccess));
+    }
+
+    public async Task<ApiResponse<bool>> BulkRejectReturnAsync(List<InventoryHoldResolutionDto> dto)
+    {
+        var itemResults = new List<ApiResponse<bool>>();
+        foreach (var item in dto)
+        {
+            itemResults.Add(await RejectReturnAsync(item));
+        }
+        return ApiResponse<bool>.Success(itemResults.Any(x => !x.IsSuccess));
     }
 }
