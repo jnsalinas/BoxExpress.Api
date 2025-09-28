@@ -35,4 +35,7 @@ public class OrderDto
     public int? StoreId { get; internal set; }
     public DateTime? CreatedAt { get; set; }
     public ClientDto? Client { get; set; }
+    public string DeliveryProviderName { get; set; }
+    public int? DeliveryProviderId { get; set; }
+    public string? CourierName { get; set; }
 }

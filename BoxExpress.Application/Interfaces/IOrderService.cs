@@ -22,5 +22,6 @@ public interface IOrderService
     Task<ApiResponse<OrderDto>> UpdateOrderAsync(int id, CreateOrderDto createOrderDto);
     Task<ApiResponse<OrderDto>> AddOrderAsync(ShopifyOrderDto shopifyOrderDto);
     Task<ApiResponse<OrderDto>> AddOrderMockAsync(string objShopifyOrderDto);
+    Task<ApiResponse<List<OrderExcelUploadResponseDto>>> BulkChangeStatusAsync(BulkChangeOrdersStatusDto bulkChangeStatusDto);
     // Task<ApiResponse<OrderDto>> AssignDeliveryProviderAsync(OrderDeliveryProviderDto orderDeliveryProviderDto);
 }

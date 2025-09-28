@@ -3,13 +3,16 @@ using BoxExpress.Domain.Interfaces;
 using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using BoxExpress.Domain.Filters;
+using BoxExpress.Domain.Constants;
 
 namespace BoxExpress.Infrastructure.Repositories;
 
 public class OrderRepository : Repository<Order>, IOrderRepository
 {
-    public OrderRepository(BoxExpressDbContext context) : base(context)
+    private readonly IOrderStatusRepository _orderStatusRepository;
+    public OrderRepository(BoxExpressDbContext context, IOrderStatusRepository orderStatusRepository) : base(context)
     {
+        _orderStatusRepository = orderStatusRepository;
     }
 
     public async Task<(List<Order> Orders, int TotalCount)> GetFilteredAsync(OrderFilter filter)
@@ -22,21 +25,21 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             .Include(w => w.OrderItems)
                 .ThenInclude(w => w.ProductVariant)
                 .ThenInclude(w => w.Product)
-            .AsQueryable();
+        .AsQueryable();
 
         query = GetQueryFiltered(filter, query);
 
         var totalCount = await query.CountAsync();
 
         var orderQuery = query.Include(x => x.Client)
-        .Include(x => x.Category)
-        .Include(x => x.ClientAddress)
-        .Include(x => x.Status)
-        .Include(x => x.City)
-        .Include(x => x.Country)
-        .Include(x => x.Warehouse)
-        .Include(x => x.TimeSlot)
-        .Include(x => x.Currency)
+            .Include(x => x.Category)
+            .Include(x => x.ClientAddress)
+            .Include(x => x.Status)
+            .Include(x => x.City)
+            .Include(x => x.Country)
+            .Include(x => x.Warehouse)
+            .Include(x => x.TimeSlot)
+            .Include(x => x.Currency)
         .OrderByDescending(x => x.Id)
         //.ThenByDescending(x => x.UpdatedAt)
         .AsQueryable();
@@ -48,8 +51,6 @@ public class OrderRepository : Repository<Order>, IOrderRepository
                 .Take(filter.PageSize);
         }
 
-        var testquery = orderQuery.ToQueryString();
-        Console.WriteLine(testquery);
         return (await orderQuery.ToListAsync(), totalCount);
     }
 

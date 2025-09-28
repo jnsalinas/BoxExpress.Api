@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using BoxExpress.Api.Dtos.Upload;
 using BoxExpress.Application.Dtos;
+using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Application.Interfaces;
 using BoxExpress.Application.Services;
 using BoxExpress.Domain.Constants;
@@ -172,7 +173,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost("bulk-upload")]
-    public async Task<IActionResult> BulkUpload([FromForm] UploadFileRequest dto)
+    public async Task<IActionResult> BulkUpload([FromForm] UploadFileRequestDto dto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
@@ -217,6 +218,13 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> Update(int id, [FromBody] CreateOrderDto createOrderDto)
     {
         var result = await _orderService.UpdateOrderAsync(id, createOrderDto);
+        return Ok(result);
+    }
+
+    [HttpPost("bulk-change-status")]
+    public async Task<IActionResult> BulkChangeStatus([FromBody] BulkChangeOrdersStatusDto bulkChangeStatusDto)
+    {
+        var result = await _orderService.BulkChangeStatusAsync(bulkChangeStatusDto);
         return Ok(result);
     }
 

@@ -92,6 +92,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                     Price = wi.ProductVariant.Price,
                     Quantity = wi.Quantity,
                     PendingReturnQuantity = wi.PendingReturnQuantity,
+                    OnTheWayQuantity = wi.OnTheWayQuantity,
                     StoreId = wi.StoreId,
                     DeliveredQuantity = wi.DeliveredQuantity ?? 0,
                     Store = wi.Store != null ? new StoreDto { Id = wi.Store.Id, Name = wi.Store.Name } : null,
@@ -176,6 +177,17 @@ public class WarehouseInventoryService : IWarehouseInventoryService
             await _unitOfWork.RollbackAsync();
             return ApiResponse<WarehouseInventoryDto?>.Fail($"Error updating warehouse inventory: {ex.Message}");
         }
+    }
 
+    public async Task<ApiResponse<bool>> ManageOnTheWayInventoryAsync(int warehouseId, List<OrderItem> orderItems)
+    {
+        var warehouseInventory = await _repository.GetByWarehouseAndProductVariants(warehouseId, orderItems.Select(x => x.ProductVariantId).ToList());
+        foreach (var item in warehouseInventory)
+        {
+            item.OnTheWayQuantity += orderItems.First(x => x.ProductVariantId == item.ProductVariantId).Quantity;
+            item.ReservedQuantity -= orderItems.First(x => x.ProductVariantId == item.ProductVariantId).Quantity;
+            await _repository.UpdateAsync(item);
+        }
+        return ApiResponse<bool>.Success(true);
     }
 }

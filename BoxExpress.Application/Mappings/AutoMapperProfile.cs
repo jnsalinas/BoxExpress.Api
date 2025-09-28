@@ -126,6 +126,10 @@ public class AutoMapperProfile : Profile
         CreateMap<Product, ProductDto>();
 
         CreateMap<ProductVariant, ProductVariantDto>()
+            .ForMember(dest => dest.OnTheWayQuantity, opt => opt.MapFrom(src => src.WarehouseInventories.Sum(w => w.OnTheWayQuantity)))
+            .ForMember(dest => dest.ReservedQuantity, opt => opt.MapFrom(src => src.WarehouseInventories.Sum(w => w.ReservedQuantity)))
+            .ForMember(dest => dest.PendingReturnQuantity, opt => opt.MapFrom(src => src.WarehouseInventories.Sum(w => w.PendingReturnQuantity)))
+            .ForMember(dest => dest.AvailableQuantity, opt => opt.MapFrom(src => src.WarehouseInventories.Sum(w => w.AvailableQuantity)))
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
             .ForMember(dest => dest.ProductSku, opt => opt.MapFrom(src => src.Product.Sku))
             .ForMember(dest => dest.ProductPrice, opt => opt.MapFrom(src => src.Product.Price))

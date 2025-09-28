@@ -8,7 +8,7 @@ namespace BoxExpress.Infrastructure.Persistence
 
 
     //Correr migrations:
-    //dotnet ef migrations add AddOnRouteEvidenceUrl --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add UpdateModelQuantity --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef migrations add AddGuidToStore --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     

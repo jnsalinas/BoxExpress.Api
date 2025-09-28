@@ -98,8 +98,12 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
 
         if (filter.CreatedAt.HasValue)
         {
-            var localDate = filter.CreatedAt.Value.Date;
-            query = query.Where(w => w.CreatedAt.AddHours(-5).Date == localDate);
+            query = query.Where(w => w.CreatedAt >= filter.CreatedAt);
+        }
+
+         if (filter.EndCreatedAt.HasValue)
+        {
+            query = query.Where(w => w.CreatedAt <= filter.EndCreatedAt);
         }
 
         if (filter.DeliveryProviderId.HasValue)

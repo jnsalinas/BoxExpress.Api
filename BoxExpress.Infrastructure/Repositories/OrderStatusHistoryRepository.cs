@@ -22,13 +22,16 @@ public class OrderStatusHistoryRepository : Repository<OrderStatusHistory>, IOrd
             .Include(x => x.OldStatus)
             .Include(x => x.NewStatus)
             .Include(x => x.Creator)
+            .Include(x => x.DeliveryProvider)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
     }
 
     public async Task<List<OrderStatusHistory>> GetFilteredAsync(OrderStatusHistoryFilter filter)
     {
-        var query = _context.OrderStatusHistories.AsQueryable();
+        var query = _context.OrderStatusHistories
+        .Include(x => x.DeliveryProvider)
+        .AsQueryable();
 
         if (filter.OrderId.HasValue)
         {
@@ -44,7 +47,12 @@ public class OrderStatusHistoryRepository : Repository<OrderStatusHistory>, IOrd
         {
             query = query.Where(x => x.NewStatusId == filter.NewStatusId.Value);
         }
-        
+
+        if (filter.OrderIds != null && filter.OrderIds.Any())
+        {
+            query = query.Where(x => filter.OrderIds.Contains(x.OrderId));
+        }
+
         return query.ToList();
     }
 }
