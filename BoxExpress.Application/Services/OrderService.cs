@@ -210,34 +210,30 @@ public class OrderService : IOrderService
                         return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
                 }
             }
-
             //si la orden estaba en programado y pasa a sin programar, se libera el hold
-            if (previousStatus.Name.Equals(OrderStatusConstants.Scheduled) && orderStatus.Name.Equals(OrderStatusConstants.Unscheduled))
+            else if (previousStatus.Name.Equals(OrderStatusConstants.Scheduled) && orderStatus.Name.Equals(OrderStatusConstants.Unscheduled))
             {
                 var ReverseInventory = await _inventoryHoldService.ReverseInventoryHoldAsync(order.WarehouseId!.Value, order.OrderItems);
                 if (!ReverseInventory.IsSuccess)
                     return ApiResponse<OrderDto>.Fail(ReverseInventory.Message ?? "Inventory not available");
             }
-
             //si la orden es progrmaada deve validar inventario y crear el hold en active
-            if (orderStatus.Name.Equals(OrderStatusConstants.Scheduled))
+            else if (orderStatus.Name.Equals(OrderStatusConstants.Scheduled))
             {
                 var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
                 if (!ReserveInventory.IsSuccess)
                     return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
             }
-
             //se cambio a Scheduled la logica de hold
-            if (orderStatus.Name.Equals(OrderStatusConstants.OnTheWay))
+            else if (orderStatus.Name.Equals(OrderStatusConstants.OnTheWay))
             {
                 await _warehouseInventoryService.ManageOnTheWayInventoryAsync(order.WarehouseId!.Value, order.OrderItems);
                 // var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
                 // if (!ReserveInventory.IsSuccess)
                 //     return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
             }
-
             //si la orden es cancelada y tiene bodega asignada, se reserva el hold en PendingReturn el inventario
-            if (isCanceled)
+            else if (isCanceled)
             {
                 var reserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.PendingReturn);
                 if (!reserveInventory.IsSuccess)
