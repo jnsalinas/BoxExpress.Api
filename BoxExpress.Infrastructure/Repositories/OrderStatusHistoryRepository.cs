@@ -27,6 +27,29 @@ public class OrderStatusHistoryRepository : Repository<OrderStatusHistory>, IOrd
             .ToListAsync();
     }
 
+    public async Task<List<OrderStatusCountResult>> GetOrderStatusCountByStatusesAsync(OrderStatusHistoryFilter filter)
+    {
+        var query = _context.OrderStatusHistories.AsQueryable();
+
+        if (filter.NewStatusesId != null && filter.NewStatusesId.Any())
+            query = query.Where(x => filter.NewStatusesId.Contains(x.NewStatusId));
+
+        if (filter.OrderIds != null && filter.OrderIds.Any())
+            query = query.Where(x => filter.OrderIds.Contains(x.OrderId));
+
+        var result = await query
+            .GroupBy(x => new { x.OrderId, x.NewStatusId })
+            .Select(g => new OrderStatusCountResult
+            {
+                OrderId = g.Key.OrderId,
+                NewStatusId = g.Key.NewStatusId,
+                Count = g.Count()
+            })
+            .ToListAsync();
+
+        return result;
+    }
+
     public async Task<List<OrderStatusHistory>> GetFilteredAsync(OrderStatusHistoryFilter filter)
     {
         var query = _context.OrderStatusHistories
@@ -46,6 +69,16 @@ public class OrderStatusHistoryRepository : Repository<OrderStatusHistory>, IOrd
         if (filter.NewStatusId.HasValue)
         {
             query = query.Where(x => x.NewStatusId == filter.NewStatusId.Value);
+        }
+
+        if (filter.NewStatusId.HasValue)
+        {
+            query = query.Where(x => x.NewStatusId == filter.NewStatusId.Value);
+        }
+
+        if (filter.NewStatusesId != null && filter.NewStatusesId.Any())
+        {
+            query = query.Where(x => filter.NewStatusesId.Contains(x.NewStatusId));
         }
 
         if (filter.OrderIds != null && filter.OrderIds.Any())

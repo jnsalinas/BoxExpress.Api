@@ -185,7 +185,7 @@ public class InventoryHoldService : IInventoryHoldService
 
     public async Task<ApiResponse<bool>> AcceptReturnAsync(InventoryHoldResolutionDto dto)
     {
-        InventoryHold? hold = await _repository.GetByIdAsync(dto.InventoryHoldId);
+        InventoryHold? hold = await _repository.GetByIdWithDetailsAsync(dto.InventoryHoldId);
         if (hold == null || hold.Status != InventoryHoldStatus.PendingReturn)
             return ApiResponse<bool>.Fail("Devolución no encontrada o ya procesada.");
 
@@ -203,6 +203,19 @@ public class InventoryHoldService : IInventoryHoldService
         hold.UpdatedAt = DateTime.UtcNow;
         if (dto.Photo != null)
             hold.OnRouteEvidenceUrl = await _fileService.UploadFileAsync(dto.Photo);
+
+        var orderStatusHistoryCanceled = (await _orderStatusHistoryRepository.GetFilteredAsync(new OrderStatusHistoryFilter
+        {
+            OrderId = hold.OrderItem.OrderId,
+            NewStatusId = _orderStatusRepository.GetByNameAsync(OrderStatusConstants.Cancelled).Result?.Id ?? 0,
+        })).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+
+        if (orderStatusHistoryCanceled != null)
+        {
+            orderStatusHistoryCanceled.UpdatedAt = DateTime.UtcNow;
+            orderStatusHistoryCanceled.Notes = !string.IsNullOrEmpty(orderStatusHistoryCanceled.Notes) ? $"{orderStatusHistoryCanceled.Notes} - {dto.Notes}" : dto.Notes;
+            await _orderStatusHistoryRepository.UpdateAsync(orderStatusHistoryCanceled);
+        }
 
         await _warehouseInventoryRepository.UpdateAsync(inventory);
         await _repository.UpdateAsync(hold);

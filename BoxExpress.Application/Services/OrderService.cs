@@ -104,22 +104,37 @@ public class OrderService : IOrderService
     {
         var (orders, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<OrderFilter>(filter));
         var onTheWayStatus = await _orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay);
+        var canceledStatus = await _orderStatusRepository.GetByNameAsync(OrderStatusConstants.Cancelled);
         var ordersDto = _mapper.Map<List<OrderDto>>(orders);
 
-        if (onTheWayStatus != null && orders.Any(x => x.OrderStatusId == onTheWayStatus.Id))
+        if (onTheWayStatus != null && canceledStatus != null && orders.Any(x => x.OrderStatusId == onTheWayStatus.Id || x.OrderStatusId == canceledStatus.Id))
         {
             var ordersIds = orders.Where(x => x.OrderStatusId == onTheWayStatus.Id).Select(x => x.Id).ToList();
             var ordersStatusHistories = await _orderStatusHistoryRepository.GetFilteredAsync(new OrderStatusHistoryFilter
             {
                 OrderIds = ordersIds,
-                NewStatusId = onTheWayStatus.Id
+                NewStatusId = onTheWayStatus.Id,
             });
 
+            var ordersCanceledIds = orders.Where(x => x.OrderStatusId == canceledStatus.Id).Select(x => x.Id).ToList();
+             var orderCanceledCount = await _orderStatusHistoryRepository.GetOrderStatusCountByStatusesAsync(new OrderStatusHistoryFilter
+            {
+                OrderIds = ordersCanceledIds,
+                NewStatusesId = new List<int> { canceledStatus.Id }
+            });
+
+
+            var ordersStatusHistoryOnTheWayAux = new OrderStatusHistory();
+            var ordersStatusHistoryOnCanceledAux = new OrderStatusHistory();
             foreach (var order in ordersDto)
             {
-                order.DeliveryProviderName = ordersStatusHistories.OrderByDescending(x => x.CreatedAt).FirstOrDefault(x => x.OrderId == order.Id)?.DeliveryProvider?.Name ?? string.Empty;
-                order.DeliveryProviderId = ordersStatusHistories.OrderByDescending(x => x.CreatedAt).FirstOrDefault(x => x.OrderId == order.Id)?.DeliveryProviderId;
-                order.CourierName = ordersStatusHistories.OrderByDescending(x => x.CreatedAt).FirstOrDefault(x => x.OrderId == order.Id)?.CourierName ?? string.Empty;
+                ordersStatusHistoryOnTheWayAux = ordersStatusHistories.OrderByDescending(x => x.CreatedAt).FirstOrDefault(x => x.OrderId == order.Id && x.NewStatusId == onTheWayStatus.Id);
+                order.DeliveryProviderName = ordersStatusHistoryOnTheWayAux?.DeliveryProvider?.Name ?? string.Empty;
+                order.DeliveryProviderId = ordersStatusHistoryOnTheWayAux?.DeliveryProviderId;
+                order.CourierName = ordersStatusHistoryOnTheWayAux?.CourierName ?? string.Empty;
+
+                //Cantidad de cancelaciones
+                order.CanceledCount = orderCanceledCount.FirstOrDefault(x => x.OrderId == order.Id)?.Count ?? 0;
             }
         }
 

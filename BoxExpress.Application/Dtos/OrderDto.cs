@@ -38,4 +38,6 @@ public class OrderDto
     public string DeliveryProviderName { get; set; }
     public int? DeliveryProviderId { get; set; }
     public string? CourierName { get; set; }
+    public int? CanceledCount { get; set; }
+
 }

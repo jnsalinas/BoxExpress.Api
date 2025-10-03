@@ -8,4 +8,5 @@ public interface IOrderStatusHistoryRepository : IRepository<OrderStatusHistory>
 {
     Task<List<OrderStatusHistory>> GetByOrderIdAsync(int orderId);
     Task<List<OrderStatusHistory>> GetFilteredAsync(OrderStatusHistoryFilter filter);
+    Task<List<OrderStatusCountResult>> GetOrderStatusCountByStatusesAsync(OrderStatusHistoryFilter filter);
 }

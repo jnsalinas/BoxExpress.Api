@@ -10,4 +10,5 @@ public class OrderStatusHistoryDto
     public string? DeliveryProviderName { get; set; }
     public string? PhotoUrl { get; set; }
     public string? CourierName { get; set; }
+    public string? Notes { get; set; }
 }

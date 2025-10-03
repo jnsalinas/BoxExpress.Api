@@ -15,4 +15,5 @@ public class OrderStatusHistory : BaseEntity
     public DeliveryProvider? DeliveryProvider { get; set; }
     public string? OnRouteEvidenceUrl { get; set; }
     public string? CourierName { get; set; }
+    public string? Notes { get; set; }
 }
