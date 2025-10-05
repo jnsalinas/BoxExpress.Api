@@ -11,4 +11,9 @@ public class OrderStatusHistory : BaseEntity
     public OrderStatus OldStatus { get; set; } = null!;
     public int NewStatusId { get; set; }
     public OrderStatus NewStatus { get; set; } = null!;
+    public int? DeliveryProviderId { get; set; }
+    public DeliveryProvider? DeliveryProvider { get; set; }
+    public string? OnRouteEvidenceUrl { get; set; }
+    public string? CourierName { get; set; }
+    public string? Notes { get; set; }
 }

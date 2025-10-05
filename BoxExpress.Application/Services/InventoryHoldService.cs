@@ -6,6 +6,7 @@ using AutoMapper;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Domain.Enums;
+using BoxExpress.Domain.Constants;
 
 namespace BoxExpress.Application.Services;
 
@@ -17,13 +18,19 @@ public class InventoryHoldService : IInventoryHoldService
     private readonly IMapper _mapper;
     private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IUserContext _userContext;
+    private readonly IOrderStatusHistoryRepository _orderStatusHistoryRepository;
+    private readonly IOrderStatusRepository _orderStatusRepository;
+    private readonly IFileService _fileService;
 
     public InventoryHoldService(IInventoryHoldRepository repository,
     IInventoryMovementService inventoryMovementService,
     IMapper mapper,
     IWarehouseInventoryRepository warehouseInventoryRepository,
     IUnitOfWork unitOfWork,
-    IUserContext userContext)
+    IUserContext userContext,
+    IOrderStatusHistoryRepository orderStatusHistoryRepository,
+    IOrderStatusRepository orderStatusRepository,
+    IFileService fileService)
     {
         _inventoryMovementService = inventoryMovementService;
         _repository = repository;
@@ -31,6 +38,9 @@ public class InventoryHoldService : IInventoryHoldService
         _warehouseInventoryRepository = warehouseInventoryRepository;
         _unitOfWork = unitOfWork;
         _userContext = userContext;
+        _orderStatusHistoryRepository = orderStatusHistoryRepository;
+        _orderStatusRepository = orderStatusRepository;
+        _fileService = fileService;
     }
 
     public async Task<ApiResponse<IEnumerable<InventoryHoldDto>>> GetAllAsync(InventoryHoldFilterDto filter)
@@ -63,17 +73,33 @@ public class InventoryHoldService : IInventoryHoldService
         if (warehouseInventories == null || !warehouseInventories.Any())
             return ApiResponse<bool>.Fail("No se encontró inventario en la bodega.");
 
+        int? orderStatusHistoryId = null;
+        if (status == InventoryHoldStatus.PendingReturn)
+        {
+            var orderStatusHistory = await _orderStatusHistoryRepository.GetFilteredAsync(new OrderStatusHistoryFilter
+            {
+                OrderId = orderItems.First().OrderId,
+                NewStatusId = _orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay).Result?.Id ?? 0,
+            });
+
+            if (orderStatusHistory != null && orderStatusHistory.Any())
+            {
+                orderStatusHistoryId = orderStatusHistory.OrderByDescending(x => x.CreatedAt).First().Id;
+            }
+        }
+
         await _unitOfWork.BeginTransactionAsync();
         foreach (var item in orderItems)
         {
             if (warehouseInventories.Any(x => x.ProductVariantId == item.ProductVariantId))
             {
                 var holdResult = await CreateInventoryHoldAsync(
-                   warehouseInventories.First(x => x.ProductVariantId == item.ProductVariantId),
-                   item.Quantity,
-                   InventoryHoldType.Order,
-                   status,
-                   item.Id
+                   warehouseInventory: warehouseInventories.First(x => x.ProductVariantId == item.ProductVariantId),
+                   quantity: item.Quantity,
+                   holdType: InventoryHoldType.Order,
+                   holdStatus: status,
+                   orderItemId: item.Id,
+                   orderStatusHistoryId: orderStatusHistoryId
                );
 
                 if (!holdResult.IsSuccess)
@@ -96,8 +122,9 @@ public class InventoryHoldService : IInventoryHoldService
     InventoryHoldType holdType,
     InventoryHoldStatus holdStatus,
     int? orderItemId = null,
-    int? warehouseInventoryTransferDetailId = null, 
-    int? productLoanDetailId = null)
+    int? warehouseInventoryTransferDetailId = null,
+    int? productLoanDetailId = null,
+    int? orderStatusHistoryId = null)
     {
         // Validación según el tipo de holdStatus
         if (holdStatus == InventoryHoldStatus.Active)
@@ -112,7 +139,7 @@ public class InventoryHoldService : IInventoryHoldService
         }
         else if (holdStatus == InventoryHoldStatus.PendingReturn)
         {
-            if (warehouseInventory.ReservedQuantity < quantity)
+            if (warehouseInventory.OnTheWayQuantity < quantity)
             {
                 var variant = warehouseInventory.ProductVariant?.Name ?? warehouseInventory.ProductVariantId.ToString();
                 return ApiResponse<bool>.Fail($"No hay suficiente cantidad reservada para revertir la devolución del producto variante {variant}.");
@@ -134,7 +161,7 @@ public class InventoryHoldService : IInventoryHoldService
             }
 
             if (quantityToRelease > 0)
-                warehouseInventory.ReservedQuantity -= quantity;
+                warehouseInventory.OnTheWayQuantity -= quantity;
 
             warehouseInventory.PendingReturnQuantity += quantity;
         }
@@ -150,14 +177,15 @@ public class InventoryHoldService : IInventoryHoldService
             Type = holdType,
             Status = holdStatus,
             CreatorId = _userContext.UserId.Value,
-            ProductLoanDetailId = productLoanDetailId
+            ProductLoanDetailId = productLoanDetailId,
+            OrderStatusHistoryId = orderStatusHistoryId
         });
         return ApiResponse<bool>.Success(true);
     }
 
     public async Task<ApiResponse<bool>> AcceptReturnAsync(InventoryHoldResolutionDto dto)
     {
-        InventoryHold? hold = await _repository.GetByIdAsync(dto.InventoryHoldId);
+        InventoryHold? hold = await _repository.GetByIdWithDetailsAsync(dto.InventoryHoldId);
         if (hold == null || hold.Status != InventoryHoldStatus.PendingReturn)
             return ApiResponse<bool>.Fail("Devolución no encontrada o ya procesada.");
 
@@ -173,6 +201,21 @@ public class InventoryHoldService : IInventoryHoldService
         hold.Status = InventoryHoldStatus.Returned;
         hold.Notes = dto.Notes;
         hold.UpdatedAt = DateTime.UtcNow;
+        if (dto.Photo != null)
+            hold.OnRouteEvidenceUrl = await _fileService.UploadFileAsync(dto.Photo);
+
+        var orderStatusHistoryCanceled = (await _orderStatusHistoryRepository.GetFilteredAsync(new OrderStatusHistoryFilter
+        {
+            OrderId = hold.OrderItem.OrderId,
+            NewStatusId = _orderStatusRepository.GetByNameAsync(OrderStatusConstants.Cancelled).Result?.Id ?? 0,
+        })).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+
+        if (orderStatusHistoryCanceled != null)
+        {
+            orderStatusHistoryCanceled.UpdatedAt = DateTime.UtcNow;
+            orderStatusHistoryCanceled.Notes = !string.IsNullOrEmpty(orderStatusHistoryCanceled.Notes) ? $"{orderStatusHistoryCanceled.Notes} - {dto.Notes}" : dto.Notes;
+            await _orderStatusHistoryRepository.UpdateAsync(orderStatusHistoryCanceled);
+        }
 
         await _warehouseInventoryRepository.UpdateAsync(inventory);
         await _repository.UpdateAsync(hold);
@@ -202,6 +245,50 @@ public class InventoryHoldService : IInventoryHoldService
         hold.Status = InventoryHoldStatus.NotReturned;
         hold.Notes = dto.Notes;
         await _repository.UpdateAsync(hold);
+        return ApiResponse<bool>.Success(true);
+    }
+
+    public async Task<ApiResponse<bool>> BulkAcceptReturnAsync(List<InventoryHoldResolutionDto> dto)
+    {
+        var itemResults = new List<ApiResponse<bool>>();
+        foreach (var item in dto)
+        {
+            itemResults.Add(await AcceptReturnAsync(item));
+        }
+        return ApiResponse<bool>.Success(itemResults.Any(x => !x.IsSuccess));
+    }
+
+    public async Task<ApiResponse<bool>> BulkRejectReturnAsync(List<InventoryHoldResolutionDto> dto)
+    {
+        var itemResults = new List<ApiResponse<bool>>();
+        foreach (var item in dto)
+        {
+            itemResults.Add(await RejectReturnAsync(item));
+        }
+        return ApiResponse<bool>.Success(itemResults.Any(x => !x.IsSuccess));
+    }
+
+    public async Task<ApiResponse<bool>> ReverseInventoryHoldAsync(int warehouseId, List<OrderItem> orderItems)
+    {
+        var warehouseInventories = await _warehouseInventoryRepository.GetByWarehouseAndProductVariants(warehouseId, orderItems.Select(x => x.ProductVariantId).ToList());
+        if (warehouseInventories == null || !warehouseInventories.Any())
+            return ApiResponse<bool>.Fail("No se encontró inventario en la bodega.");
+
+        var holds = await _repository.GetByOrderItemIdsAndStatus(orderItems.Select(x => x.Id).ToList(), InventoryHoldStatus.Active);
+
+        foreach (var orderItem in orderItems)
+        {
+            var warehouseInventory = warehouseInventories.First(x => x.ProductVariantId == orderItem.ProductVariantId);
+            warehouseInventory.ReservedQuantity -= orderItem.Quantity;
+            await _warehouseInventoryRepository.UpdateAsync(warehouseInventory);
+
+            var hold = holds.First(x => x.OrderItemId == orderItem.Id);
+            hold.Status = InventoryHoldStatus.Reverted;
+            hold.Notes = !string.IsNullOrEmpty(hold.Notes) ? $"{hold.Notes} - Reversión de bloqueo" : "Reversión de bloqueo";
+            hold.UpdatedAt = DateTime.UtcNow;
+            await _repository.UpdateAsync(hold);
+        }
+
         return ApiResponse<bool>.Success(true);
     }
 }

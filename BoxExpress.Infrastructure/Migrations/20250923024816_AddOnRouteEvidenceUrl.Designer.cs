@@ -4,6 +4,7 @@ using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoxExpress.Infrastructure.Migrations
 {
     [DbContext(typeof(BoxExpressDbContext))]
-    partial class BoxExpressDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250923024816_AddOnRouteEvidenceUrl")]
+    partial class AddOnRouteEvidenceUrl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -654,9 +657,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<int>("NewStatusId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int?>("OldStatusId")
                         .HasColumnType("int");
 
@@ -1170,9 +1170,6 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("DeliveredQuantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OnTheWayQuantity")
                         .HasColumnType("int");
 
                     b.Property<int>("PendingReturnQuantity")

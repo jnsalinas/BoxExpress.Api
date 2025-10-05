@@ -47,6 +47,8 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
                 .ThenInclude(wi => wi.Warehouse)
             .Include(w => w.WarehouseInventoryTransferDetail)
             .Include(w => w.ProductLoanDetail)
+            .Include(w => w.OrderStatusHistory)
+                .ThenInclude(w => w.DeliveryProvider)
             .AsQueryable();
 
         if (filter.WarehouseInventoryId.HasValue)
@@ -96,8 +98,23 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
 
         if (filter.CreatedAt.HasValue)
         {
-            var localDate = filter.CreatedAt.Value.Date;
-            query = query.Where(w => w.CreatedAt.AddHours(-5).Date == localDate);
+            query = query.Where(w => w.CreatedAt >= filter.CreatedAt);
+        }
+
+         if (filter.EndCreatedAt.HasValue)
+        {
+            query = query.Where(w => w.CreatedAt <= filter.EndCreatedAt);
+        }
+
+        if (filter.DeliveryProviderId.HasValue)
+        {
+            query = query.Where(w => w.OrderStatusHistory != null && w.OrderStatusHistory.DeliveryProviderId == filter.DeliveryProviderId.Value);
+        }
+
+        if (!string.IsNullOrEmpty(filter.CourierName))
+        {
+            var courierName = filter.CourierName.Trim().ToLower();
+            query = query.Where(w => w.OrderStatusHistory != null && w.OrderStatusHistory.CourierName != null && w.OrderStatusHistory.CourierName.ToLower().Contains(courierName));
         }
 
         var total = query.Count();

@@ -4,6 +4,7 @@ using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoxExpress.Infrastructure.Migrations
 {
     [DbContext(typeof(BoxExpressDbContext))]
-    partial class BoxExpressDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250921235800_AddDeliveryProviders")]
+    partial class AddDeliveryProviders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -287,13 +290,7 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("OnRouteEvidenceUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int?>("OrderItemId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("OrderStatusHistoryId")
                         .HasColumnType("int");
 
                     b.Property<int?>("ProductLoanDetailId")
@@ -325,8 +322,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.HasIndex("CreatorId");
 
                     b.HasIndex("OrderItemId");
-
-                    b.HasIndex("OrderStatusHistoryId");
 
                     b.HasIndex("ProductLoanDetailId");
 
@@ -653,9 +648,6 @@ namespace BoxExpress.Infrastructure.Migrations
 
                     b.Property<int>("NewStatusId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("OldStatusId")
                         .HasColumnType("int");
@@ -1172,9 +1164,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Property<int?>("DeliveredQuantity")
                         .HasColumnType("int");
 
-                    b.Property<int>("OnTheWayQuantity")
-                        .HasColumnType("int");
-
                     b.Property<int>("PendingReturnQuantity")
                         .HasColumnType("int");
 
@@ -1402,11 +1391,6 @@ namespace BoxExpress.Infrastructure.Migrations
                         .HasForeignKey("OrderItemId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("BoxExpress.Domain.Entities.OrderStatusHistory", "OrderStatusHistory")
-                        .WithMany()
-                        .HasForeignKey("OrderStatusHistoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("BoxExpress.Domain.Entities.ProductLoanDetail", "ProductLoanDetail")
                         .WithMany()
                         .HasForeignKey("ProductLoanDetailId")
@@ -1426,8 +1410,6 @@ namespace BoxExpress.Infrastructure.Migrations
                     b.Navigation("Creator");
 
                     b.Navigation("OrderItem");
-
-                    b.Navigation("OrderStatusHistory");
 
                     b.Navigation("ProductLoanDetail");
 

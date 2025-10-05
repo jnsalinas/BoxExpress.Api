@@ -9,12 +9,13 @@ public class ProductVariantDto
     public decimal? Price { get; set; }
     public string? Sku { get; set; }
     public int ReservedQuantity { get; set; }
-    public int AvailableQuantity { get; set; }
+    public int AvailableQuantity { get; set; } 
     public int? WarehouseInventoryId { get; set; }
     public List<InventoryMovementDto> InventoryMovements { get; set; } = new();
     public int PendingReturnQuantity { get; set; }
     public int? StoreId { get; set; }
     public int? DeliveredQuantity { get; set; }
+    public int? OnTheWayQuantity { get; set; }
     public StoreDto? Store { get; set; }
     public string? ProductName { get; set; }
     public string? ProductSku { get; set; }

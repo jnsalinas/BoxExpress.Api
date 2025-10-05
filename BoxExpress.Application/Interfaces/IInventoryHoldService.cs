@@ -18,5 +18,10 @@ public interface IInventoryHoldService
     InventoryHoldStatus holdStatus,
     int? orderItemId = null,
     int? warehouseInventoryTransferDetailId = null,
-    int? productLoanDetailId = null);
+    int? productLoanDetailId = null,
+    int? orderStatusHistoryId = null);
+
+    Task<ApiResponse<bool>> BulkAcceptReturnAsync(List<InventoryHoldResolutionDto> dto);
+    Task<ApiResponse<bool>> BulkRejectReturnAsync(List<InventoryHoldResolutionDto> dto);
+    Task<ApiResponse<bool>> ReverseInventoryHoldAsync(int warehouseId, List<OrderItem> orderItems);
 }

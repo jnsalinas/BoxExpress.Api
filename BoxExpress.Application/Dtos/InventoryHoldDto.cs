@@ -25,7 +25,7 @@ namespace BoxExpress.Application.Dtos
         public string? ClientFullName { get; set; }
         public string? WarehouseName { get; set; }
         public int? ItemIndex { get; set; }
-
+        public OrderStatusHistoryDto? OrderStatusHistory { get; set; }
     }
 }
 

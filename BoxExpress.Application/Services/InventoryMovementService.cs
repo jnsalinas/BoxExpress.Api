@@ -234,10 +234,10 @@ public class InventoryMovementService : IInventoryMovementService
         return inventory;
     }
 
-    private async Task ProcessInventoryAdjustmentAsync(InventoryMovement movement, bool moveReserved, bool movePendingReturn, WarehouseInventory inventory)
+    private async Task ProcessInventoryAdjustmentAsync(InventoryMovement movement, bool moveOntheWay, bool movePendingReturn, WarehouseInventory inventory)
     {
         // Validar que hay inventario suficiente
-        if (inventory.Quantity + movement.Quantity < 0)
+        if (inventory.AvailableQuantity + movement.Quantity < 0)
         {
             throw new Exception($"Inventario insuficiente para el producto {movement.ProductVariantId} en la bodega {movement.WarehouseId}");
         }
@@ -247,8 +247,8 @@ public class InventoryMovementService : IInventoryMovementService
         inventory.UpdatedAt = DateTime.UtcNow;
 
         // Ajustar cantidades reservadas si corresponde
-        if (moveReserved)
-            inventory.ReservedQuantity += movement.Quantity;
+        if (moveOntheWay)
+            inventory.OnTheWayQuantity += movement.Quantity;
 
         // Ajustar cantidades pendientes de devolución si corresponde
         if (movePendingReturn)
@@ -287,4 +287,6 @@ public class InventoryMovementService : IInventoryMovementService
         hold.UpdatedAt = now;
         await _unitOfWork.InventoryHolds.UpdateAsync(hold);
     }
+
+    
 }

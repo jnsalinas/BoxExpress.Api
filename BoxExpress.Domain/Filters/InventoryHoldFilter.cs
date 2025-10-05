@@ -15,4 +15,7 @@ public class InventoryHoldFilter : BaseFilter
     public int? ProductLoanDetailId { get; set; }
     public int? ProductLoanId { get; set; }
     public DateTime? CreatedAt { get; set; }
+    public DateTime? EndCreatedAt { get; set; }
+    public int? DeliveryProviderId { get; set; }
+    public string? CourierName { get; set; }
 }

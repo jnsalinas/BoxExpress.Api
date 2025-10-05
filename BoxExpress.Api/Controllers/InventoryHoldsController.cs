@@ -34,7 +34,7 @@ public class InventoryHoldsController : ControllerBase
     }
 
     [HttpPost("acceptreturn")]
-    public async Task<IActionResult> AcceptReturn([FromBody] InventoryHoldResolutionDto dto)
+    public async Task<IActionResult> AcceptReturn([FromForm] InventoryHoldResolutionDto dto)
     {
         var result = await _inventoryHoldservice.AcceptReturnAsync(dto);
         return Ok(result);
@@ -44,6 +44,20 @@ public class InventoryHoldsController : ControllerBase
     public async Task<IActionResult> RejectReturn([FromBody] InventoryHoldResolutionDto dto)
     {
         var result = await _inventoryHoldservice.RejectReturnAsync(dto);
+        return Ok(result);
+    }
+
+    [HttpPost("bulk-acceptreturn")]
+    public async Task<IActionResult> BulkAcceptReturn([FromBody] InventoryHoldMassiveResolutionDto dto)
+    {
+        var result = await _inventoryHoldservice.BulkAcceptReturnAsync(dto.InventoryHoldResolutions);
+        return Ok(result);
+    }
+
+    [HttpPost("bulk-rejectreturn")]
+    public async Task<IActionResult> BulkRejectReturn([FromBody] InventoryHoldMassiveResolutionDto dto)
+    {
+        var result = await _inventoryHoldservice.BulkRejectReturnAsync(dto.InventoryHoldResolutions);
         return Ok(result);
     }
 }

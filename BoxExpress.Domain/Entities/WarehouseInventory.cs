@@ -10,7 +10,8 @@ public class WarehouseInventory : BaseEntity
     public Store? Store { get; set; }
     public int Quantity { get; set; }
     public int ReservedQuantity { get; set; }
+    public int OnTheWayQuantity { get; set; }
     public int PendingReturnQuantity { get; set; }
     public int? DeliveredQuantity { get; set; }
-    public int AvailableQuantity => Quantity - ReservedQuantity - PendingReturnQuantity;
+    public int AvailableQuantity => Quantity - ReservedQuantity - PendingReturnQuantity - OnTheWayQuantity;
 }

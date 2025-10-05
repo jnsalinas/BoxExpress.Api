@@ -8,7 +8,7 @@ namespace BoxExpress.Infrastructure.Persistence
 
 
     //Correr migrations:
-    //dotnet ef migrations add AddCities --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add AddNotesToOrderStatusHistory --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef migrations add AddGuidToStore --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     
@@ -46,7 +46,7 @@ namespace BoxExpress.Infrastructure.Persistence
         public DbSet<InventoryHold> InventoryHolds { get; set; }
         public DbSet<ProductLoan> ProductLoans { get; set; }
         public DbSet<ProductLoanDetail> ProductLoanDetails { get; set; }
-
+        public DbSet<DeliveryProvider> DeliveryProviders { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Aplica DeleteBehavior.Restrict a todas las foreign keys

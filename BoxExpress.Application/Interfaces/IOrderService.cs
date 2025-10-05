@@ -11,7 +11,7 @@ public interface IOrderService
     Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter);
     Task<ApiResponse<OrderDto?>> GetByIdAsync(int id);
     Task<ApiResponse<OrderDto>> UpdateWarehouseAsync(int orderId, int warehouseId);
-    Task<ApiResponse<OrderDto>> UpdateStatusAsync(int orderId, int warehouseId);
+    Task<ApiResponse<OrderDto>> UpdateStatusAsync(int orderId, int warehouseId, ChangeStatusDto? changeStatusDto);
     Task<ApiResponse<OrderDto>> UpdateScheduleAsync(int orderId, OrderScheduleUpdateDto orderScheduleUpdateDto);
     Task<ApiResponse<List<OrderStatusHistoryDto>>> GetStatusHistoryAsync(int orderId);
     Task<ApiResponse<List<OrderCategoryHistoryDto>>> GetCategoryHistoryAsync(int orderId);
@@ -22,4 +22,6 @@ public interface IOrderService
     Task<ApiResponse<OrderDto>> UpdateOrderAsync(int id, CreateOrderDto createOrderDto);
     Task<ApiResponse<OrderDto>> AddOrderAsync(ShopifyOrderDto shopifyOrderDto);
     Task<ApiResponse<OrderDto>> AddOrderMockAsync(string objShopifyOrderDto);
+    Task<ApiResponse<List<OrderExcelUploadResponseDto>>> BulkChangeStatusAsync(BulkChangeOrdersStatusDto bulkChangeStatusDto);
+    // Task<ApiResponse<OrderDto>> AssignDeliveryProviderAsync(OrderDeliveryProviderDto orderDeliveryProviderDto);
 }

@@ -16,4 +16,5 @@ public class OrderFilterDto : BaseFilter
     public int? WarehouseId { get; set; }
     public string? Query { get; set; }
     public int? StatusId { get; set; }
+    public int? TimeSlotId { get; set; }
 }

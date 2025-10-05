@@ -47,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IProductLoanRepository, ProductLoanRepository>();
         services.AddScoped<IProductLoanDetailRepository, ProductLoanDetailRepository>();
+        services.AddScoped<IDeliveryProviderRepository, DeliveryProviderRepository>();
         services.AddScoped<IUserContext, UserContext>();
 
         return services;
