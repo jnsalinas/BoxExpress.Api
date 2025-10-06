@@ -56,6 +56,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
                         AvailableQuantity = variantGroup.Sum(q => q.AvailableQuantity),
                         ReservedQuantity = variantGroup.Sum(q => q.ReservedQuantity),
                         DeliveredQuantity = variantGroup.Sum(q => q.DeliveredQuantity),
+                        OnTheWayQuantity = variantGroup.Sum(q => q.OnTheWayQuantity),
                     }).ToList()
             }).OrderBy(x => x.Name).ToList();
 
@@ -65,7 +66,10 @@ public class WarehouseInventoryService : IWarehouseInventoryService
     public async Task<ApiResponse<IEnumerable<ProductDto>>> GetWarehouseProductSummaryAsync(WarehouseInventoryFilterDto filter)
     {
         var (products, totalCount) = await _repository.GetFilteredGroupedByProductAsync(_mapper.Map<WarehouseInventoryFilter>(filter));
-        var variants = await _repository.GetByWarehouseAndProductsId(filter.WarehouseId, products.Select(p => p.Id).ToList());
+        var variants = await _repository.GetByWarehouseAndProductsId(filter.WarehouseId, products.Select(p => p.Id).ToList(), new WarehouseInventoryFilter()
+        {
+            StoreId = filter.StoreId,
+        });
 
         //todo mirar si se puede pasar a automapper 
         var groupedProducts = products.Select(product => new ProductDto
@@ -169,6 +173,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
             if (dto.Price != null)
                 warehouseInventory.ProductVariant.Price = dto.Price;
 
+            await _unitOfWork.Inventories.UpdateAsync(warehouseInventory);
             await _unitOfWork.Variants.UpdateAsync(warehouseInventory.ProductVariant);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();

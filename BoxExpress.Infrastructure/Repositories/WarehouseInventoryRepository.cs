@@ -141,7 +141,7 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
         var query = _context.WarehouseInventories
             .Where(x => (warehouseId == null || x.WarehouseId == warehouseId) && productIds.Contains(x.ProductVariant.ProductId));
 
-        if (filter != null)
+        if (filter != null && filter.Query != null)
         {
             query = query.Where(x =>
                 filter.Query == null ||
@@ -151,6 +151,10 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
                         | (!string.IsNullOrEmpty(x.ProductVariant.ShopifyVariantId) && x.ProductVariant.ShopifyVariantId.Contains(filter.Query))
                     )
             ).AsQueryable();
+        }
+        else if(filter != null && filter.StoreId != null)
+        {
+            query = query.Where(x => x.StoreId == filter.StoreId).AsQueryable();
         }
 
         return await query.Include(x => x.ProductVariant).Include(x => x.Warehouse).Include(x => x.Store).ToListAsync();
