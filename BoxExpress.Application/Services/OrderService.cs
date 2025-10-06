@@ -212,6 +212,7 @@ public class OrderService : IOrderService
         else
         {
             bool isCanceled = orderStatus.Name.Equals(OrderStatusConstants.Cancelled) || orderStatus.Name.Equals(OrderStatusConstants.CancelledAlt) && order.WarehouseId.HasValue;
+             
             if (previousStatus.Name.Equals(OrderStatusConstants.Delivered))
             {
                 await _inventoryMovementService.RevertDeliveryAsync(order);
@@ -232,7 +233,7 @@ public class OrderService : IOrderService
                 if (!ReverseInventory.IsSuccess)
                     return ApiResponse<OrderDto>.Fail(ReverseInventory.Message ?? "Inventory not available");
             }
-            //si la orden es progrmaada deve validar inventario y crear el hold en active
+            //si la orden es progrmaada debe validar inventario y crear el hold en active
             else if (orderStatus.Name.Equals(OrderStatusConstants.Scheduled))
             {
                 var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);

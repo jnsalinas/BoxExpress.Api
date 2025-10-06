@@ -9,5 +9,6 @@ public enum InventoryHoldStatus
     Returned = 5, // Producto volvió a bodega
     NotReturned = 6, // Producto NO volvió (se pierde o daña)
     Reverted = 7,
-    PartialReturned = 8
+    PartialReturned = 8, 
+    ProgrammingToUnscheduled = 9
 }

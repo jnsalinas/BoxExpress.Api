@@ -114,6 +114,8 @@ public class WarehouseInventoryService : IWarehouseInventoryService
     {
         try
         {
+            await _unitOfWork.BeginTransactionAsync();
+
             var warehouseInventory = await _repository.GetByIdWithDetailsAsync(id);
             if (warehouseInventory == null)
                 return ApiResponse<WarehouseInventoryDto?>.Fail("Warehouse inventory not found.");
@@ -167,6 +169,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
             if (dto.Price != null)
                 warehouseInventory.ProductVariant.Price = dto.Price;
 
+            await _unitOfWork.Variants.UpdateAsync(warehouseInventory.ProductVariant);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
 

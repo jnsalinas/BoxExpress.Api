@@ -1,5 +1,6 @@
 using BoxExpress.Application.Dtos;
 using BoxExpress.Application.Dtos.Common;
+using BoxExpress.Domain.Constants;
 using BoxExpress.Domain.Entities;
 using BoxExpress.Domain.Enums;
 
