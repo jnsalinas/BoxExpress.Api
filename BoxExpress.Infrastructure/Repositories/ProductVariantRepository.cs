@@ -25,6 +25,7 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
                 .Include(pv => pv.Product)
                 .Include(pv => pv.WarehouseInventories
                     .Where(wi => wi.StoreId == filter.StoreId.Value))
+                .ThenInclude(wi => wi.Warehouse)
                 .Where(pv => pv.WarehouseInventories.Any(wi => wi.StoreId == filter.StoreId.Value));
         }
 
@@ -46,5 +47,13 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
     public async Task<List<ProductVariant>> GetByIdsAsync(List<int> ids)
     {
         return await _context.ProductVariants.Where(x => ids.Contains(x.Id)).ToListAsync();
-    }   
+    }
+
+    public async Task<ProductVariant?> GetByProductNameVariantNameAndStoreId(string productName, string productVariantName, int storeId)
+    {
+        return await _context.ProductVariants
+        .Where(pv => pv.Name == productVariantName && pv.Product.Name == productName && pv.WarehouseInventories.Any(wi => wi.StoreId == storeId))
+        .OrderBy(x => x.CreatedAt)
+            .FirstOrDefaultAsync();
+    }
 }

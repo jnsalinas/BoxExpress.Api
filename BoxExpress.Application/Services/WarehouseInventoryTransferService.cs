@@ -20,6 +20,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
     private readonly IInventoryMovementService _inventoryMovementService;
     private readonly IInventoryHoldService _inventoryHoldService;
     private readonly IUserContext _userContext;
+    private readonly IProductVariantRepository _productVariantRepository;
     public WarehouseInventoryTransferService(
         IWarehouseInventoryRepository warehouseInventoryRepository,
         IInventoryHoldRepository inventoryHoldRepository,
@@ -29,7 +30,8 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
         IInventoryMovementService inventoryMovementService,
         IWarehouseInventoryTransferRepository warehouseInventoryTransferRepository,
         IInventoryHoldService inventoryHoldService,
-        IUserContext userContext)
+        IUserContext userContext,
+        IProductVariantRepository productVariantRepository)
     {
         _warehouseInventoryTransferRepository = warehouseInventoryTransferRepository;
         _warehouseInventoryRepository = warehouseInventoryRepository;
@@ -40,6 +42,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _userContext = userContext;
+        _productVariantRepository = productVariantRepository;
     }
 
     public async Task<ApiResponse<IEnumerable<WarehouseInventoryTransferDto>>> GetAllAsync(WarehouseInventoryTransferFilterDto filter)
@@ -244,13 +247,16 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
 
     public async Task<ApiResponse<bool>> TransferStoreAsync(int warehouseId, List<WarehouseInventoryTransferStoreDto> dto)
     {
+        //valida si el inventario esta en la bodega
         var inventories = await _warehouseInventoryRepository.GetByWarehouseIdAndProductVariantsIdAndStoresId(warehouseId, dto.Select(x => x.ProductVariantId).ToList(), dto.Select(x => x.StoreId).ToList());
 
+        //valida si el item en esta en otra bodega para no permitir crear otro product variant 
         await _unitOfWork.BeginTransactionAsync();
         foreach (var item in dto)
         {
             var inventoryToDiscount = inventories.FirstOrDefault(x => x.ProductVariantId == item.ProductVariantId);
-            if(item.StoreId == inventoryToDiscount.StoreId){
+            if (item.StoreId == inventoryToDiscount.StoreId)
+            {
                 continue;
             }
 
@@ -262,17 +268,21 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
             var inventoryToAdd = inventories.FirstOrDefault(x => x.ProductVariant.ProductId == inventoryToDiscount.ProductVariant.ProductId && x.ProductVariant.Name == inventoryToDiscount.ProductVariant.Name && x.StoreId == item.StoreId);
             if (inventoryToAdd == null)
             {
-                var newProductVariant = new ProductVariant()
+                ProductVariant? newProductVariant = await _productVariantRepository.GetByProductNameVariantNameAndStoreId(inventoryToDiscount.ProductVariant.Product.Name, inventoryToDiscount.ProductVariant.Name, item.StoreId);
+                if (newProductVariant == null)
                 {
-                    ProductId = inventoryToDiscount.ProductVariant.ProductId,
-                    Name = inventoryToDiscount.ProductVariant.Name,
-                    ShopifyVariantId = inventoryToDiscount.ProductVariant.ShopifyVariantId,
-                    Sku = inventoryToDiscount.ProductVariant.Sku + "-" + item.StoreId,
-                    Price = inventoryToDiscount.ProductVariant.Price,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                };
-                await _unitOfWork.Variants.AddAsync(newProductVariant);
+                    newProductVariant = new ProductVariant()
+                    {
+                        ProductId = inventoryToDiscount.ProductVariant.ProductId,
+                        Name = inventoryToDiscount.ProductVariant.Name,
+                        ShopifyVariantId = inventoryToDiscount.ProductVariant.ShopifyVariantId,
+                        Sku = inventoryToDiscount.ProductVariant.Sku + "-" + item.StoreId,
+                        Price = inventoryToDiscount.ProductVariant.Price,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                    };
+                    await _unitOfWork.Variants.AddAsync(newProductVariant);
+                }
 
                 inventoryToAdd = new WarehouseInventory
                 {

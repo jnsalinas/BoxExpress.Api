@@ -167,16 +167,24 @@ public class WarehouseInventoryService : IWarehouseInventoryService
             if (dto.ShopifyVariantId != null)
                 warehouseInventory.ProductVariant.ShopifyVariantId = dto.ShopifyVariantId;
 
-            if (dto.StoreId.HasValue)
-                warehouseInventory.StoreId = dto.StoreId;
+
 
             if (dto.Price != null)
                 warehouseInventory.ProductVariant.Price = dto.Price;
 
-            await _unitOfWork.Inventories.UpdateAsync(warehouseInventory);
             await _unitOfWork.Variants.UpdateAsync(warehouseInventory.ProductVariant);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
+
+            if (dto.StoreId.HasValue) //todo optimizar esto
+            {
+                warehouseInventory.StoreId = dto.StoreId;
+                await _unitOfWork.BeginTransactionAsync();
+                await _unitOfWork.Inventories.UpdateAsync(warehouseInventory);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+
 
             return ApiResponse<WarehouseInventoryDto?>.Success(_mapper.Map<WarehouseInventoryDto>(warehouseInventory));
         }
