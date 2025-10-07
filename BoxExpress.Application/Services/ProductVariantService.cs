@@ -12,11 +12,12 @@ public class ProductVariantService : IProductVariantService
 {
     private readonly IProductVariantRepository _repository;
     private readonly IMapper _mapper;
-
-    public ProductVariantService(IProductVariantRepository repository, IMapper mapper)
+    private readonly IInventoryMovementService _inventoryMovementService;
+    public ProductVariantService(IProductVariantRepository repository, IMapper mapper, IInventoryMovementService inventoryMovementService)
     {
         _repository = repository;
         _mapper = mapper;
+        _inventoryMovementService = inventoryMovementService;
     }
 
     public async Task<ApiResponse<List<ProductVariantDto>>> GetAllAsync(ProductVariantFilterDto filter)
@@ -27,4 +28,23 @@ public class ProductVariantService : IProductVariantService
 
     public async Task<ApiResponse<ProductVariantDto?>> GetByIdAsync(int id) =>
         ApiResponse<ProductVariantDto?>.Success(_mapper.Map<ProductVariantDto>(await _repository.GetByIdWithDetailsAsync(id)));
+
+         public async Task<ApiResponse<List<ProductVariantDto?>>> GetByNameAsync(string name, int storeId)
+    {
+        var productVariants = await _repository.GetByVariantNameAndStoreId(name, storeId);
+        var response = ApiResponse<List<ProductVariantDto?>>.Success(_mapper.Map<List<ProductVariantDto>>(productVariants));
+
+        if(response.Data.Any())
+        {
+            foreach (var item in response.Data)
+            {
+                item.InventoryMovements = (await _inventoryMovementService.GetAllAsync(new InventoryMovementFilterDto()
+                {
+                    ProductVariantId = item.Id,
+                })).Data.ToList();
+            }
+        }
+
+        return response;
+    }
 }

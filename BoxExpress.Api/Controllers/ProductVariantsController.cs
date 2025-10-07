@@ -43,4 +43,17 @@ public class ProductVariantsController : ControllerBase
     //     var result = await _productVariantService.GetVariantsAutocompleteAsync(query, warehouseOriginId);
     //     return Ok(result);
     // }
+
+    [HttpGet("name/{name}")]
+    public async Task<IActionResult> GetByName(string name)
+    {
+        var storeId = User.FindFirst("StoreId")?.Value;
+        if (storeId == null)
+        {
+            return BadRequest("StoreId is required for store role.");
+        }
+
+        var result = await _productVariantService.GetByNameAsync(name, int.Parse(storeId));
+        return Ok(result);
+    }
 }

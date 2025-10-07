@@ -8,5 +8,5 @@ public interface IProductVariantService
 {
     Task<ApiResponse<List<ProductVariantDto>>> GetAllAsync(ProductVariantFilterDto filter);
     Task<ApiResponse<ProductVariantDto?>> GetByIdAsync(int id);
-    // Task<ApiResponse<List<ProductVariantAutocompleteDto>>> GetVariantsAutocompleteAsync(string query, int WarehouseOriginId);
+    Task<ApiResponse<List<ProductVariantDto?>>> GetByNameAsync(string name, int storeId);
 }

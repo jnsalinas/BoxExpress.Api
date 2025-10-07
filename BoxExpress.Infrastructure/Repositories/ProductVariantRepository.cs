@@ -56,4 +56,14 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
         .OrderBy(x => x.CreatedAt)
             .FirstOrDefaultAsync();
     }
+
+    //todo mirar si puewdo unificar las dos funciones de arriba y esta 
+    public async Task<List<ProductVariant?>> GetByVariantNameAndStoreId(string productVariantName, int storeId)
+    {
+        return await _context.ProductVariants
+        .Where(pv => pv.Name == productVariantName && pv.WarehouseInventories.Any(wi => wi.StoreId == storeId))
+        .OrderBy(x => x.CreatedAt)
+            .ToListAsync();
+    }
+
 }
