@@ -4,6 +4,7 @@ namespace BoxExpress.Domain.Filters;
 
 public class InventoryHoldFilter : BaseFilter
 {
+    public string? Query { get; set; }
     public int? ProductVariantId { get; set; }
     public int? WarehouseInventoryId { get; set; }
     public InventoryHoldStatus? Status { get; set; }

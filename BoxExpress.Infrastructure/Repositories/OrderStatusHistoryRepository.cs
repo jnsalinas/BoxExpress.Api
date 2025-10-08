@@ -43,10 +43,32 @@ public class OrderStatusHistoryRepository : Repository<OrderStatusHistory>, IOrd
             {
                 OrderId = g.Key.OrderId,
                 NewStatusId = g.Key.NewStatusId,
+                Notes = GetNotesText(g.OrderByDescending(x => x.CreatedAt).ToList()),
                 Count = g.Count()
             })
             .ToListAsync();
 
+        return result;
+       
+    }
+
+    //todo mejor tal vez devolver toda la info en una lista al front y ahi mostrar la info como la queremos
+    private static string? GetNotesText(List<OrderStatusHistory> notes)
+    {
+        string result = string.Empty;
+        foreach (var note in notes)
+        {
+            if (!string.IsNullOrEmpty(note.Notes))
+            {
+                result += "• Fecha: " + note.CreatedAt.ToString("dd/MM/yyyy HH:mm") + "\n";
+                result += "Mensajero: " + note.CourierName + "\n";
+                result += "Motivo: " + note.Notes + "\n\n";
+            }
+        }
+        if (string.IsNullOrEmpty(result))
+        {
+            return null;
+        }
         return result;
     }
 

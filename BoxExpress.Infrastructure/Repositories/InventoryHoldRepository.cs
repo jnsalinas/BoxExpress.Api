@@ -101,7 +101,7 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
             query = query.Where(w => w.CreatedAt >= filter.CreatedAt);
         }
 
-         if (filter.EndCreatedAt.HasValue)
+        if (filter.EndCreatedAt.HasValue)
         {
             query = query.Where(w => w.CreatedAt <= filter.EndCreatedAt);
         }
@@ -111,10 +111,15 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
             query = query.Where(w => w.OrderStatusHistory != null && w.OrderStatusHistory.DeliveryProviderId == filter.DeliveryProviderId.Value);
         }
 
-        if (!string.IsNullOrEmpty(filter.CourierName))
+        if (!string.IsNullOrEmpty(filter.Query))
         {
-            var courierName = filter.CourierName.Trim().ToLower();
-            query = query.Where(w => w.OrderStatusHistory != null && w.OrderStatusHistory.CourierName != null && w.OrderStatusHistory.CourierName.ToLower().Contains(courierName));
+            query = query.Where(w =>
+            w.OrderItem != null
+                && (w.OrderItem.Order.Client.FirstName + " " + w.OrderItem.Order.Client.LastName).Contains(filter.Query)
+                || w.OrderItem.Order.Client.Phone.Contains(filter.Query)
+                || w.OrderItem.Order.Client.Document.Contains(filter.Query)
+                || (w.OrderStatusHistory != null && !string.IsNullOrEmpty(w.OrderStatusHistory.CourierName) && w.OrderStatusHistory.CourierName.Contains(filter.Query))
+            );
         }
 
         var total = query.Count();

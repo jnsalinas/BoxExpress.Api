@@ -123,7 +123,6 @@ public class OrderService : IOrderService
                 NewStatusesId = new List<int> { canceledStatus.Id }
             });
 
-
             var ordersStatusHistoryOnTheWayAux = new OrderStatusHistory();
             var ordersStatusHistoryOnCanceledAux = new OrderStatusHistory();
             foreach (var order in ordersDto)
@@ -134,6 +133,7 @@ public class OrderService : IOrderService
                 order.CourierName = ordersStatusHistoryOnTheWayAux?.CourierName ?? string.Empty;
 
                 //Cantidad de cancelaciones
+                order.CanceledNotes = orderCanceledCount.FirstOrDefault(x => x.OrderId == order.Id)?.Notes ?? string.Empty;
                 order.CanceledCount = orderCanceledCount.FirstOrDefault(x => x.OrderId == order.Id)?.Count ?? 0;
             }
         }

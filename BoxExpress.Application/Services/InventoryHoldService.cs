@@ -131,8 +131,8 @@ public class InventoryHoldService : IInventoryHoldService
         {
             if (warehouseInventory.AvailableQuantity < quantity)
             {
-                var variant = warehouseInventory.ProductVariant?.Name ?? warehouseInventory.ProductVariantId.ToString();
-                return ApiResponse<bool>.Fail($"Inventario insuficiente para el producto variante {variant}.");
+                var variant = warehouseInventory.ProductVariant.Product.Name + " - " + warehouseInventory.ProductVariant?.Name ?? warehouseInventory.ProductVariantId.ToString();
+                return ApiResponse<bool>.Fail($"Inventario insuficiente para el producto {variant}.");
             }
 
             warehouseInventory.ReservedQuantity += quantity;
