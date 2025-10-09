@@ -117,7 +117,7 @@ public class OrderService : IOrderService
             });
 
             var ordersCanceledIds = orders.Where(x => x.OrderStatusId == canceledStatus.Id).Select(x => x.Id).ToList();
-             var orderCanceledCount = await _orderStatusHistoryRepository.GetOrderStatusCountByStatusesAsync(new OrderStatusHistoryFilter
+            var orderCanceledCount = await _orderStatusHistoryRepository.GetOrderStatusCountByStatusesAsync(new OrderStatusHistoryFilter
             {
                 OrderIds = ordersCanceledIds,
                 NewStatusesId = new List<int> { canceledStatus.Id }
@@ -150,25 +150,11 @@ public class OrderService : IOrderService
     public async Task<ApiResponse<OrderDto?>> GetByIdAsync(int id) =>
         ApiResponse<OrderDto?>.Success(_mapper.Map<OrderDto>(await _repository.GetByIdAsync(id)));
 
-    public async Task<ApiResponse<OrderDto>> UpdateWarehouseAsync(int orderId, int warehouseId)
+    public async Task<ApiResponse<OrderDto>> UpdateWarehouseAsync(int orderId, UpdateWarehouseRequestDto dto)
     {
         Order? order = await _repository.GetByIdWithDetailsAsync(orderId);
         if (order == null)
             return ApiResponse<OrderDto>.Fail("Order not found");
-
-        int? newCategoryId;
-        if (warehouseId.Equals(0))
-        {
-            newCategoryId = (await _orderCategoryRepository.GetByNameAsync(OrderCategoryConstants.Traditional))?.Id;
-        }
-        else
-        {
-            newCategoryId = (await _orderCategoryRepository.GetByNameAsync(OrderCategoryConstants.Express))?.Id;
-            order.WarehouseId = warehouseId;
-        }
-
-        if (!newCategoryId.HasValue)
-            return ApiResponse<OrderDto>.Fail("Order category not found");
 
         //log
         await _orderCategoryHistoryRepository.AddAsync(new()
@@ -176,11 +162,12 @@ public class OrderService : IOrderService
             CreatedAt = DateTime.UtcNow,
             OrderId = order.Id,
             OldCategoryId = order.OrderCategoryId,
-            NewCategoryId = (int)newCategoryId,
+            NewCategoryId = dto.CategoryId,
             CreatorId = _userContext.UserId.Value,
         });
 
-        order.OrderCategoryId = (int)newCategoryId;
+        order.WarehouseId = dto.WarehouseId;
+        order.OrderCategoryId = dto.CategoryId;
         order.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(order);
         return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
@@ -212,7 +199,7 @@ public class OrderService : IOrderService
         else
         {
             bool isCanceled = orderStatus.Name.Equals(OrderStatusConstants.Cancelled) || orderStatus.Name.Equals(OrderStatusConstants.CancelledAlt) && order.WarehouseId.HasValue;
-             
+
             if (previousStatus.Name.Equals(OrderStatusConstants.Delivered))
             {
                 await _inventoryMovementService.RevertDeliveryAsync(order);

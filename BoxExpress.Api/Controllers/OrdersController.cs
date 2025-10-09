@@ -88,10 +88,10 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPatch("{orderId}/warehouse/{warehouseId}")]
-    public async Task<IActionResult> UpdateWarehouse(int orderId, int warehouseId)
+    [HttpPatch("{orderId}/warehouse")]
+    public async Task<IActionResult> UpdateWarehouse(int orderId, UpdateWarehouseRequestDto dto)
     {
-        return Ok(await _orderService.UpdateWarehouseAsync(orderId, warehouseId));
+        return Ok(await _orderService.UpdateWarehouseAsync(orderId, dto));
     }
 
     [HttpPatch("{orderId}/status/{statusId}")]

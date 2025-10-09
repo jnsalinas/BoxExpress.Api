@@ -10,7 +10,7 @@ public interface IOrderService
 {
     Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter);
     Task<ApiResponse<OrderDto?>> GetByIdAsync(int id);
-    Task<ApiResponse<OrderDto>> UpdateWarehouseAsync(int orderId, int warehouseId);
+    Task<ApiResponse<OrderDto>> UpdateWarehouseAsync(int orderId, UpdateWarehouseRequestDto dto);
     Task<ApiResponse<OrderDto>> UpdateStatusAsync(int orderId, int warehouseId, ChangeStatusDto? changeStatusDto);
     Task<ApiResponse<OrderDto>> UpdateScheduleAsync(int orderId, OrderScheduleUpdateDto orderScheduleUpdateDto);
     Task<ApiResponse<List<OrderStatusHistoryDto>>> GetStatusHistoryAsync(int orderId);
