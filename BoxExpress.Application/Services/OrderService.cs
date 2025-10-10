@@ -176,6 +176,7 @@ public class OrderService : IOrderService
         });
 
 
+        bool isReset = false;
         OrderCategory? orderCategory = null;
         if (dto.CategoryId != null)
         {
@@ -185,8 +186,18 @@ public class OrderService : IOrderService
                 order.OrderStatusId = null;
                 order.Status = null;
             }
+            else
+                isReset = true;
         }
+        else
+            isReset = true;
 
+        if (isReset)
+        {
+            var orderStatusUnscheduled = await _orderStatusRepository.GetByNameAsync(OrderStatusConstants.Unscheduled);
+            order.OrderStatusId = orderStatusUnscheduled.Id;
+            order.Status = orderStatusUnscheduled;
+        }
 
         Warehouse? warehouse = null;
         if (dto.WarehouseId != null)
