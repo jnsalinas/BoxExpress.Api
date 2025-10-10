@@ -80,6 +80,8 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             query = query.Where(w => w.TimeSlotId.Equals(filter.TimeSlotId));
         if (filter.TimeSlotId.HasValue && filter.TimeSlotId == 0)
             query = query.Where(w => w.TimeSlotId == null);
+        if (filter.CityIds != null && filter.CityIds.Count > 0)
+            query = query.Where(w => filter.CityIds.Contains(w.CityId!.Value));
         if (!string.IsNullOrEmpty(filter.Query))
         {
             query = query.Where(w =>
@@ -149,13 +151,35 @@ public class OrderRepository : Repository<Order>, IOrderRepository
 
         filter.IsAll = true;
         query = GetQueryFiltered(filter, query);
+        query = query.Where(w => w.OrderStatusId != null);
 
         return await query
         .GroupBy(o => new { o.OrderStatusId, o.Status.Name })
         .Select(g => new OrderSummary
         {
-            StatusId = g.Key.OrderStatusId,
-            StatusName = g.Key.Name,
+            Id = g.Key.OrderStatusId!.Value,
+            Name = g.Key.Name!,
+            Count = g.Count()
+        })
+        .ToListAsync();
+    }
+
+     public async Task<List<OrderSummary>> GetSummaryCategoryAsync(OrderFilter filter)
+    {
+        var query = _context.Orders
+           .Include(w => w.Category)
+           .AsQueryable();
+
+        filter.IsAll = true;
+        query = GetQueryFiltered(filter, query);
+        query = query.Where(w => w.OrderCategoryId != null && w.Category.Name == OrderCategoryConstants.WithoutCoverage || w.Category.Name == OrderCategoryConstants.RepeatedOrder); // no muestra express ni tradicional, se puede cambiar a busacr por la cosntante mejor
+
+        return await query
+        .GroupBy(o => new { o.OrderCategoryId, o.Category.Name })
+        .Select(g => new OrderSummary
+        {
+            Id = g.Key.OrderCategoryId!.Value,
+            Name = g.Key.Name!,
             Count = g.Count()
         })
         .ToListAsync();

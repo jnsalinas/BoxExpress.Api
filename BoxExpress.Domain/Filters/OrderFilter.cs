@@ -15,4 +15,5 @@ public class OrderFilter : BaseFilter
     public string? Query { get; set; }
     public int? StatusId { get; set; }
     public int? TimeSlotId { get; set; }
+    public List<int>? CityIds { get; set; }
 }

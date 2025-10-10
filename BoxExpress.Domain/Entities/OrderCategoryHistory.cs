@@ -8,6 +8,6 @@ public class OrderCategoryHistory : BaseEntity
     public User Creator { get; set; } = null!;
     public int? OldCategoryId { get; set; }
     public OrderCategory OldCategory { get; set; } = null!;
-    public int NewCategoryId { get; set; }
+    public int? NewCategoryId { get; set; }
     public OrderCategory NewCategory { get; set; } = null!;
 }

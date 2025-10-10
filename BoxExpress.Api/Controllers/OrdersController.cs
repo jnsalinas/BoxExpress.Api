@@ -88,6 +88,29 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("summary-category")]
+    public async Task<IActionResult> SummaryCategory([FromBody] OrderFilterDto filter)
+    {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Warehouse)
+        {
+            filter.WarehouseId = int.Parse(User.FindFirst("WarehouseId")?.Value ?? "0");
+        }
+        else if (role?.ToLower() == RolConstants.Store)
+        {
+            var storeId = User.FindFirst("StoreId")?.Value;
+            if (storeId == null)
+            {
+                return BadRequest("StoreId is required for store role.");
+            }
+
+            filter.StoreId = int.Parse(storeId);
+        }
+
+        var result = await _orderService.GetSummaryCategoryAsync(filter);
+        return Ok(result);
+    }
+
     [HttpPatch("{orderId}/warehouse")]
     public async Task<IActionResult> UpdateWarehouse(int orderId, UpdateWarehouseRequestDto dto)
     {

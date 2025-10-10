@@ -19,7 +19,6 @@ namespace BoxExpress.Application.Services;
 public class OrderService : IOrderService
 {
     private readonly IMapper _mapper;
-
     private readonly IOrderRepository _repository;
     private readonly ITransactionTypeRepository _transactionTypeRepository;
     private readonly IOrderStatusRepository _orderStatusRepository;
@@ -44,6 +43,7 @@ public class OrderService : IOrderService
     private readonly ICityRepository _cityRepository;
     private readonly IFileService _fileService;
     private readonly IWarehouseInventoryService _warehouseInventoryService;
+    private readonly IWarehouseRepository _warehouseRepository;
 
     public OrderService(
         IOrderRepository repository,
@@ -70,7 +70,9 @@ public class OrderService : IOrderService
         IStoreRepository storeRepository,
         ICityRepository cityRepository,
         IFileService fileService,
-        IWarehouseInventoryService warehouseInventoryService
+        IWarehouseInventoryService warehouseInventoryService,
+        IWarehouseRepository warehouseRepository
+
     )
     {
         _warehouseInventoryTransferService = warehouseInventoryTransferService;
@@ -98,6 +100,7 @@ public class OrderService : IOrderService
         _cityRepository = cityRepository;
         _fileService = fileService;
         _warehouseInventoryService = warehouseInventoryService;
+        _warehouseRepository = warehouseRepository;
     }
 
     public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter)
@@ -147,6 +150,12 @@ public class OrderService : IOrderService
         return ApiResponse<IEnumerable<OrderSummaryDto>>.Success(_mapper.Map<List<OrderSummaryDto>>(summary));
     }
 
+    public async Task<ApiResponse<IEnumerable<OrderSummaryDto>>> GetSummaryCategoryAsync(OrderFilterDto filter)
+    {
+        var summary = await _repository.GetSummaryCategoryAsync(_mapper.Map<OrderFilter>(filter));
+        return ApiResponse<IEnumerable<OrderSummaryDto>>.Success(_mapper.Map<List<OrderSummaryDto>>(summary));
+    }
+
     public async Task<ApiResponse<OrderDto?>> GetByIdAsync(int id) =>
         ApiResponse<OrderDto?>.Success(_mapper.Map<OrderDto>(await _repository.GetByIdAsync(id)));
 
@@ -166,8 +175,26 @@ public class OrderService : IOrderService
             CreatorId = _userContext.UserId.Value,
         });
 
-        order.WarehouseId = dto.WarehouseId;
+
+        OrderCategory? orderCategory = null;
+        if (dto.CategoryId != null)
+        {
+            orderCategory = await _orderCategoryRepository.GetByIdAsync(dto.CategoryId.Value);
+            if (dto.CategoryId != null && orderCategory != null && (orderCategory.Name == OrderCategoryConstants.WithoutCoverage || orderCategory.Name == OrderCategoryConstants.RepeatedOrder))
+            {
+                order.OrderStatusId = null;
+                order.Status = null;
+            }
+        }
+
+
+        Warehouse? warehouse = null;
+        if (dto.WarehouseId != null)
+            warehouse = await _warehouseRepository.GetByIdAsync(dto.WarehouseId.Value);
+
+        order.Warehouse = warehouse;
         order.OrderCategoryId = dto.CategoryId;
+        order.Category = orderCategory;
         order.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(order);
         return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));

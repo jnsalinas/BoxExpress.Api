@@ -80,6 +80,8 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
             .Include(x => x.ProductVariant)
             .ThenInclude(x => x.Product)
             .Include(x => x.Store)
+            .Include(x => x.Warehouse)
+                .ThenInclude(x => x.City)
             .AsQueryable();
 
         if (!filter.IsAll)

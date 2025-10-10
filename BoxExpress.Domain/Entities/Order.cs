@@ -12,8 +12,8 @@ public class Order : BaseEntity
     public int? CreatorId { get; set; }
     public User? Creator { get; set; }
 
-    public int OrderStatusId { get; set; }
-    public OrderStatus Status { get; set; } = null!;
+    public int? OrderStatusId { get; set; }
+    public OrderStatus? Status { get; set; } = null!;
 
     public int? OrderCategoryId { get; set; }
     public OrderCategory? Category { get; set; } = null!;

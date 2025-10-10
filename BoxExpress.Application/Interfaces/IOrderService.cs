@@ -17,6 +17,7 @@ public interface IOrderService
     Task<ApiResponse<List<OrderCategoryHistoryDto>>> GetCategoryHistoryAsync(int orderId);
     Task<ApiResponse<List<OrderItemDto>>> GetProductsAsync(int orderId);
     Task<ApiResponse<IEnumerable<OrderSummaryDto>>> GetSummaryAsync(OrderFilterDto filter);
+    Task<ApiResponse<IEnumerable<OrderSummaryDto>>> GetSummaryCategoryAsync(OrderFilterDto filter);
     Task<ApiResponse<OrderDto>> AddOrderAsync(CreateOrderDto createOrderDto);
     Task<ApiResponse<List<OrderExcelUploadResponseDto>>> AddOrdersFromExcelAsync(OrderExcelUploadDto dto);
     Task<ApiResponse<OrderDto>> UpdateOrderAsync(int id, CreateOrderDto createOrderDto);

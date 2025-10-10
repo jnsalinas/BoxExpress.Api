@@ -22,4 +22,5 @@ public class ProductVariantDto
     public decimal? ProductPrice { get; set; }
     public string? WarehouseName { get; set; }
     public int? warehouseId { get; set; }
+    public string? CityName { get; set; }
 }
