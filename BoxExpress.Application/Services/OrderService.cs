@@ -141,21 +141,21 @@ public class OrderService : IOrderService
             }
         }
 
-        var (ordersPhones, totalCountPhones) = await _repository.GetFilteredAsync(new OrderFilter { Phones = ordersDto.Where(x => !string.IsNullOrEmpty(x.ClientPhone)).Select(x => x.ClientPhone).ToList(), IsAll = true });
-        foreach (var orderdto in ordersDto.Where(x => !string.IsNullOrEmpty(x.ClientPhone)))
-        {
-            var ordersPhonesDuplicate = ordersPhones.Where(x => x.Client.Phone == orderdto.Client.Phone && x.Id != orderdto.Id).OrderByDescending(x => x.UpdatedAt);
-            if (orderdto != null && ordersPhonesDuplicate.Count() > 1)
-            {
-                string notes = string.Empty;
-                foreach (var orderPhone in ordersPhonesDuplicate)
-                {
-                    notes += $"* Orden: {orderPhone.Id} \n Fecha: {orderPhone.CreatedAt.ToString("dd/MM/yyyy HH:mm")} \n Producto: {string.Join(",", orderPhone.OrderItems.Select(x => x.FullName ?? string.Empty))}\n\n";
-                }
-                orderdto.PhonesNotes = notes;
-                orderdto.PhonesCount = ordersPhonesDuplicate.Count() + 1;
-            }
-        }
+        // var (ordersPhones, totalCountPhones) = await _repository.GetFilteredAsync(new OrderFilter { Phones = ordersDto.Where(x => !string.IsNullOrEmpty(x.ClientPhone)).Select(x => x.ClientPhone).ToList(), IsAll = true });
+        // foreach (var orderdto in ordersDto.Where(x => !string.IsNullOrEmpty(x.ClientPhone)))
+        // {
+        //     var ordersPhonesDuplicate = ordersPhones.Where(x => x.Client.Phone == orderdto.Client.Phone && x.Id != orderdto.Id).OrderByDescending(x => x.UpdatedAt);
+        //     if (orderdto != null && ordersPhonesDuplicate.Count() > 1)
+        //     {
+        //         string notes = string.Empty;
+        //         foreach (var orderPhone in ordersPhonesDuplicate)
+        //         {
+        //             notes += $"* Orden: {orderPhone.Id} \n Fecha: {orderPhone.CreatedAt.ToString("dd/MM/yyyy HH:mm")} \n Producto: {string.Join(",", orderPhone.OrderItems.Select(x => x.FullName ?? string.Empty))}\n\n";
+        //         }
+        //         orderdto.PhonesNotes = notes;
+        //         orderdto.PhonesCount = ordersPhonesDuplicate.Count() + 1;
+        //     }
+        // }
 
         return ApiResponse<IEnumerable<OrderDto>>.Success(ordersDto, new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }
