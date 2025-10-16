@@ -11,4 +11,5 @@ public interface IOrderRepository : IRepository<Order>
     Task<List<OrderSummary>> GetSummaryAsync(OrderFilter filter);
     Task<Order?> GetByCodeAsync(string code, int storeId);
     Task<List<OrderSummary>> GetSummaryCategoryAsync(OrderFilter filter);
+    Task<List<Order>> GetByPhonesAsync(List<string> phones);
 }

@@ -13,6 +13,7 @@ public class WarehouseInventoryDto : BaseFilterDto
     public int ReservedQuantity { get; set; }
     public int PendingReturnQuantity { get; set; }
     public int AvailableQuantity { get; set; }
+    public int BlockedQuantity { get; set; }
     public ProductVariantDto? ProductVariant { get; set; }
     public WarehouseDto? Warehouse { get; set; }
     public StoreDto? Store { get; set; }

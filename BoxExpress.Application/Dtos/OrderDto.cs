@@ -40,4 +40,6 @@ public class OrderDto
     public string? CourierName { get; set; }
     public int? CanceledCount { get; set; }
     public string? CanceledNotes { get; set; }
+    public string? PhonesNotes { get; set; }
+    public int? PhonesCount { get; set; }
 }

@@ -4,6 +4,7 @@ using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using BoxExpress.Domain.Filters;
 using BoxExpress.Domain.Constants;
+using Microsoft.Identity.Client;
 
 namespace BoxExpress.Infrastructure.Repositories;
 
@@ -70,8 +71,10 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             query = query.Where(w => w.StoreId.Equals(filter.StoreId));
         if (filter.OrderId.HasValue && filter.OrderId > 0)
             query = query.Where(w => w.Id.Equals(filter.OrderId));
-        if (filter.ScheduledDate.HasValue)
-            query = query.Where(w => w.ScheduledDate.HasValue && w.ScheduledDate.Value.Date == filter.ScheduledDate.Value.Date);
+        if (filter.StartScheduledDate.HasValue)
+            query = query.Where(w => w.ScheduledDate.HasValue && w.ScheduledDate.Value.Date >= filter.StartScheduledDate.Value.Date);
+        if (filter.EndScheduledDate.HasValue)
+            query = query.Where(w => w.ScheduledDate.HasValue && w.ScheduledDate.Value.Date <= filter.EndScheduledDate.Value.Date);
         if (filter.WarehouseId.HasValue)
             query = query.Where(w => w.WarehouseId.HasValue && w.WarehouseId.Value == filter.WarehouseId.Value);
         if (filter.StatusId.HasValue)
@@ -103,6 +106,8 @@ public class OrderRepository : Repository<Order>, IOrderRepository
                 || w.ClientAddress.PostalCode.Contains(filter.Query)
             )
             ));
+            if (filter.Phones != null && filter.Phones.Count > 0)
+                query = query.Where(w => !string.IsNullOrEmpty(w.Client.Phone) && filter.Phones.Contains(w.Client.Phone));
         }
 
         //todo quitar, es por pruebas
@@ -164,7 +169,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         .ToListAsync();
     }
 
-     public async Task<List<OrderSummary>> GetSummaryCategoryAsync(OrderFilter filter)
+    public async Task<List<OrderSummary>> GetSummaryCategoryAsync(OrderFilter filter)
     {
         var query = _context.Orders
            .Include(w => w.Category)
@@ -188,5 +193,13 @@ public class OrderRepository : Repository<Order>, IOrderRepository
     public async Task<Order?> GetByCodeAsync(string code, int storeId)
     {
         return await _context.Orders.FirstOrDefaultAsync(w => w.Code.Equals(code) && w.StoreId.Equals(storeId));
+    }
+
+    public async Task<List<Order>> GetByPhonesAsync(List<string> phones)
+    {
+        return await _context
+            .Orders.Where(w => w.Client != null && !string.IsNullOrEmpty(w.Client.Phone) && phones.Contains(w.Client.Phone))
+        .Include(w => w.Client)
+        .ToListAsync();
     }
 }

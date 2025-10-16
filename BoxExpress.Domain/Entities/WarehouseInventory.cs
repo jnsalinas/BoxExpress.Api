@@ -14,4 +14,5 @@ public class WarehouseInventory : BaseEntity
     public int PendingReturnQuantity { get; set; }
     public int? DeliveredQuantity { get; set; }
     public int AvailableQuantity => Quantity - ReservedQuantity - PendingReturnQuantity - OnTheWayQuantity;
+    public int BlockedQuantity => ReservedQuantity + PendingReturnQuantity + OnTheWayQuantity;
 }
