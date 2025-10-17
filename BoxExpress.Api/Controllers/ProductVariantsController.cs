@@ -33,16 +33,16 @@ public class ProductVariantsController : ControllerBase
     }
 
 
-    // [HttpGet("autocomplete")]
-    // public async Task<IActionResult> Search([FromQuery] string query, [FromQuery] int warehouseOriginId)
+    [HttpGet("autocomplete")]
+    public async Task<IActionResult> Autocomplete([FromQuery] string query)
 
-    // {
-    //     if (string.IsNullOrWhiteSpace(query))
-    //         return BadRequest("Query is required.");
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return BadRequest("Query is required.");
 
-    //     var result = await _productVariantService.GetVariantsAutocompleteAsync(query, warehouseOriginId);
-    //     return Ok(result);
-    // }
+        var result = await _productVariantService.GetVariantsAutocompleteAsync(query);
+        return Ok(result);
+    }
 
     [HttpGet("name/{name}")]
     public async Task<IActionResult> GetByName(string name)

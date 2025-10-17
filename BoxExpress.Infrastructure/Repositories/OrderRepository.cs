@@ -109,6 +109,8 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             if (filter.Phones != null && filter.Phones.Count > 0)
                 query = query.Where(w => !string.IsNullOrEmpty(w.Client.Phone) && filter.Phones.Contains(w.Client.Phone));
         }
+        if (filter.ProductVariantIds != null && filter.ProductVariantIds.Count > 0)
+            query = query.Where(w => w.OrderItems.Any(oi => filter.ProductVariantIds.Contains(oi.ProductVariantId)));
 
         //todo quitar, es por pruebas
         query = query.Where(w => w.IsEnabled.HasValue && w.IsEnabled.Value);

@@ -19,4 +19,5 @@ public class OrderFilterDto : BaseFilter
     public int? StatusId { get; set; }
     public int? TimeSlotId { get; set; }
     public List<int>? CityIds { get; set; }
+    public List<int>? ProductVariantIds { get; set; }
 }

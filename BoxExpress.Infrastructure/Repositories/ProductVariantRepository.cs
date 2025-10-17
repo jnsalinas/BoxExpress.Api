@@ -3,6 +3,7 @@ using BoxExpress.Domain.Interfaces;
 using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using BoxExpress.Domain.Filters;
+using System.Linq;
 
 namespace BoxExpress.Infrastructure.Repositories;
 
@@ -66,4 +67,22 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
             .ToListAsync();
     }
 
+    public async Task<List<ProductVariant>> GetVariantsAutocompleteAsync(string query)
+    {
+        query = query.ToLower();
+        var productVariants = _context.ProductVariants
+        .Include(pv => pv.Product)
+        .Where(
+            pv => (pv.Name != null && pv.Name.ToLower().Contains(query)) || 
+            (pv.Sku != null && pv.Sku.ToLower().Contains(query)) || 
+            (pv.Product.Name != null && pv.Product.Name.ToLower().Contains(query)) || 
+            (pv.Product.Sku != null && pv.Product.Sku.ToLower().Contains(query))
+        )
+        .OrderBy(x => x.Name);
+
+        Console.WriteLine(productVariants.ToQueryString());
+
+
+        return await productVariants.ToListAsync();
+    }
 }

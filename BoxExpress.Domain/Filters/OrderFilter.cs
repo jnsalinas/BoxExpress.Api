@@ -18,4 +18,5 @@ public class OrderFilter : BaseFilter
     public int? TimeSlotId { get; set; }
     public List<int>? CityIds { get; set; }
     public List<string>? Phones { get; set; }
+    public List<int>? ProductVariantIds { get; set; }
 }

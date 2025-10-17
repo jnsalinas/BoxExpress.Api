@@ -11,4 +11,5 @@ public interface IProductVariantRepository : IRepository<ProductVariant>
     Task<ProductVariant?> GetByIdWithDetailsAsync(int id);
     Task<List<ProductVariant>> GetByIdsAsync(List<int> ids);
     Task<ProductVariant?> GetByProductNameVariantNameAndStoreId(string productName, string productVariantName, int storeId);
+    Task<List<ProductVariant>> GetVariantsAutocompleteAsync(string query);
 }
