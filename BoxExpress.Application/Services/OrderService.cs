@@ -443,8 +443,8 @@ public class OrderService : IOrderService
             var city = await _cityRepository.GetByNameAsync(shopifyOrderDto.Shipping_Address.City);
             cityId = city?.Id;
         }
-        string colonia = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower() == "nombre de la calle")?.Value;
-        string scheduleDate = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower() == "colocar día y entre que horario puede recibir")?.Value;
+        string colonia = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower().Trim() == "nombre de la calle")?.Value;
+        string scheduleDate = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower().Trim() == "colocar día y entre que horario puede recibir")?.Value;
 
         //todo agregar a notas Colocar día y entre que horario puede recibir
         var createOrderDto = new CreateOrderDto
