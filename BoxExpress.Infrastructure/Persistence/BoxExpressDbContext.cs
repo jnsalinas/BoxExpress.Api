@@ -8,7 +8,7 @@ namespace BoxExpress.Infrastructure.Persistence
 
 
     //Correr migrations:
-    //dotnet ef migrations add RemoveRequiredCategoryHistory --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add LatLongFix --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef migrations add AddGuidToStore --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     

@@ -6,6 +6,10 @@ using BoxExpress.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using BoxExpress.Application.Interfaces;
 using BoxExpress.Application.Services;
+using BoxExpress.Application.Interfaces;
+using BoxExpress.Infrastructure.External.SmartMonkey.Clients;
+using BoxExpress.Infrastructure.External.SmartMonkey.Mappers;
+using AutoMapper;
 
 namespace BoxExpress.Infrastructure.Extensions;
 
@@ -13,6 +17,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, string connectionString)
     {
+        services.AddAutoMapper(typeof(SmartMonkeyProfile));
+
         services.AddDbContext<BoxExpressDbContext>(options =>
             options.UseSqlServer(connectionString));
 
@@ -49,7 +55,7 @@ public static class DependencyInjection
         services.AddScoped<IProductLoanDetailRepository, ProductLoanDetailRepository>();
         services.AddScoped<IDeliveryProviderRepository, DeliveryProviderRepository>();
         services.AddScoped<IUserContext, UserContext>();
-
+        services.AddScoped<IRoutePlanningClient, SmartMonkeyClient>();
         return services;
     }
 }

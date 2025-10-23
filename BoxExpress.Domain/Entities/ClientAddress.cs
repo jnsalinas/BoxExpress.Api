@@ -10,8 +10,8 @@ public class ClientAddress : BaseEntity
     public string? Address2 { get; set; } = string.Empty;
     public string? Complement { get; set; }
     public int? CityId { get; set; }
-    public decimal? Latitude { get; set; }
-    public decimal? Longitude { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
     public bool IsDefault { get; set; } = false;
     public Client Client { get; set; } = null!;
     public City? City { get; set; }
