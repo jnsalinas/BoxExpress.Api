@@ -43,24 +43,25 @@ public class RoutePlanningService : IRoutePlanningService
             return ApiResponse<RoutingResponseCreatePlanDto>.Fail("No hay órdenes programadas para hoy.");
         }
 
-        ApiResponse<List<OrderExcelUploadResponseDto>> results = await _orderService.BulkChangeStatusAsync(new BulkChangeOrdersStatusDto()
-        {
-            OrderIds = orders.Select(o => o.Id).ToList(),
-            StatusId = 3//_orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay).Id// 3 //todo hacerlo por el repo buscar por name no se porque falla :( _orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay).Id
-        });
+        // ApiResponse<List<OrderExcelUploadResponseDto>> results = await _orderService.BulkChangeStatusAsync(new BulkChangeOrdersStatusDto()
+        // {
+        //     CourierName = "Mensajeros propios",
+        //     DeliveryProviderId = 2, //todo buscar por name no se porque falla :( 
+        //     OrderIds = orders.Select(o => o.Id).ToList(),
+        //     StatusId = 3//_orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay).Id// 3 //todo hacerlo por el repo buscar por name no se porque falla :( _orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay).Id
+        // });
 
-        if (results.Data != null && results.Data.Any(x => x.IsLoaded))
-        {
-            orders = orders.Where(o => results.Data.Any(x => x.Id == o.Id && x.IsLoaded)).ToList();
-        }
-        else
-        {
-            return ApiResponse<RoutingResponseCreatePlanDto>.Fail(results.Message ?? "Error al cambiar el estado de las órdenes");
-        }
+        // if (results.Data != null && results.Data.Any(x => x.IsLoaded))
+        // {
+        //     orders = orders.Where(o => results.Data.Any(x => x.Id == o.Id && x.IsLoaded)).ToList();
+        // }
+        // else
+        // {
+        //     return ApiResponse<RoutingResponseCreatePlanDto>.Fail(results.Message ?? "Error al cambiar el estado de las órdenes");
+        // }
 
         CultureInfo myCI = new CultureInfo("es-CO");
         string dayName = DateTime.Now.ToString("dddd", myCI);
-
 
         string planName = "Plan-" + DateTime.Now.ToShortDateString() + "-" + dayName;
         RoutingCreatePlanDto request = new RoutingCreatePlanDto
@@ -81,7 +82,7 @@ public class RoutePlanningService : IRoutePlanningService
                 Comments = GetProductsComments(o.OrderItems.ToList()),
                 ExternalId = o.ClientAddress.Address,
                 LocationDetails = o.ClientAddress.Complement + "-" + o.ClientAddress.PostalCode + "-" + o.ClientAddress.Zip,
-                Email = o.Client.Email,
+                Email = !string.IsNullOrEmpty(o.Client.Email) ? o.Client.Email : null,
                 ReferencePerson = o.Client.FirstName + " " + o.Client.LastName,
                 Phone = o.Client.Phone,
                 Price = o.TotalAmount.ToString(),
