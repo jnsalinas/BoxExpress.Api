@@ -34,7 +34,7 @@ public class RoutePlanningService : IRoutePlanningService
             StartScheduledDate = DateTime.Now,
             EndScheduledDate = DateTime.Now,
             StatusId = statusid,
-            TimeSlotId = 0
+            TimeSlotId = 0,
         };
 
         var (orders, totalCount) = await _orderRepository.GetFilteredAsync(filter);
@@ -78,12 +78,12 @@ public class RoutePlanningService : IRoutePlanningService
                     Label = stop.Id.ToString() + " - " + stop.Client.FirstName + " " + stop.Client.LastName + " - " + stop.Store.Name,
                     Location = new RoutingLocationDto
                     {
-                        Label = stop.ClientAddress.Address, //o.ClientAddress.Complement separado por , .ClientAddress.PostalCode esto es el pin supongo
+                        Label = stop.ClientAddress.Address + " " + stop.ClientAddress.Complement + " " + stop.ClientAddress.PostalCode,
                         Lat = stop.ClientAddress.Latitude,
                         Lng = stop.ClientAddress.Longitude,
                         City = stop.ClientAddress.City?.Name,
                         Country = stop.ClientAddress.City?.Country?.Name,
-                        PostalCode = stop.ClientAddress.PostalCode
+                        PostalCode = !string.IsNullOrEmpty(stop.ClientAddress.PostalCode) ? stop.ClientAddress.PostalCode : null,
                     },
                     Comments = stop.Notes + "\n" + GetProductsComments(stop.OrderItems.ToList()),
                     ExternalId = stop.ClientAddress.Address,
@@ -102,7 +102,6 @@ public class RoutePlanningService : IRoutePlanningService
                 Label = planName,
                 Stops = stops,
             }));
-
         }
 
         return ApiResponse<RoutingResponseCreatePlanDto>.Success(new RoutingResponseCreatePlanDto()

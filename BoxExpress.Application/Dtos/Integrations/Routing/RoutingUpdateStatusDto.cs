@@ -6,36 +6,36 @@ public class RoutingUpdateStatusDto
 {
 
     [JsonPropertyName("data")]
-    public RoutingDataDto Data { get; set; }
+    public RoutingDataDto? Data { get; set; }
 }
 
 public class RoutingDataDto
 {
     [JsonPropertyName("label")]
-    public string Label { get; set; }
+    public string? Label { get; set; }
 
     [JsonPropertyName("status")]
-    public string Status { get; set; }
+    public string? Status { get; set; }
 
     [JsonPropertyName("reports")]
-    public List<ReportDto> Reports { get; set; }
+    public List<ReportDto>? Reports { get; set; }
 }
 
 public class ReportDto
 {
     [JsonPropertyName("images")]
-    public List<object> Images { get; set; }
+    public List<object>? Images { get; set; }
 
     [JsonPropertyName("comments")]
-    public string Comments { get; set; }
+    public string? Comments { get; set; }
 
 }
 
 public class ImageDto
 {
     [JsonPropertyName("url")]
-    public string Url { get; set; }
+    public string? Url { get; set; }
 
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public string? Id { get; set; }
 }
