@@ -7,6 +7,7 @@ using BoxExpress.Domain.Constants;
 using BoxExpress.Domain.Interfaces;
 using System.Globalization;
 using BoxExpress.Application.Dtos;
+using Newtonsoft.Json;
 
 namespace BoxExpress.Application.Services;
 
@@ -60,42 +61,54 @@ public class RoutePlanningService : IRoutePlanningService
         //     return ApiResponse<RoutingResponseCreatePlanDto>.Fail(results.Message ?? "Error al cambiar el estado de las órdenes");
         // }
 
-        CultureInfo myCI = new CultureInfo("es-CO");
-        string dayName = DateTime.Now.ToString("dddd", myCI);
+        var ordersGroupByWarehouse = orders.GroupBy(o => o.WarehouseId).ToList();
+        List<RoutingStopDto> stops = new List<RoutingStopDto>();
+        List<RoutingResponseCreatePlanDto> results = new List<RoutingResponseCreatePlanDto>();
 
-        string planName = "Plan-" + DateTime.Now.ToShortDateString() + "-" + dayName;
-        RoutingCreatePlanDto request = new RoutingCreatePlanDto
+        foreach (var group in ordersGroupByWarehouse)
         {
-            Label = planName,
-            Stops = orders.Select(o => new RoutingStopDto
-            {
-                Label = o.Id.ToString() + "-" + o.Code + "-" + o.Client.FirstName + " " + o.Client.LastName,
-                Location = new RoutingLocationDto
-                {
-                    Label = o.ClientAddress.Address,
-                    Lat = o.ClientAddress.Latitude,
-                    Lng = o.ClientAddress.Longitude,
-                    City = o.ClientAddress.City?.Name,
-                    Country = o.ClientAddress.City?.Country?.Name,
-                    PostalCode = o.ClientAddress.PostalCode
-                },
-                Comments = GetProductsComments(o.OrderItems.ToList()),
-                ExternalId = o.ClientAddress.Address,
-                LocationDetails = o.ClientAddress.Complement + "-" + o.ClientAddress.PostalCode + "-" + o.ClientAddress.Zip,
-                Email = !string.IsNullOrEmpty(o.Client.Email) ? o.Client.Email : null,
-                ReferencePerson = o.Client.FirstName + " " + o.Client.LastName,
-                Phone = o.Client.Phone,
-                Price = o.TotalAmount.ToString(),
-                CustomFields = new Dictionary<string, string> { { "valor", o.TotalAmount.ToString() } },
-                Status = "pending",
-            }).ToList()
-        };
+            stops = new List<RoutingStopDto>();
+            var warehouse = group.Key;
+            string planName = group.ToList().First().Warehouse?.Name.ToUpper() + "-" + DateTime.Now.ToShortDateString() + "- Desde BoxYa";
 
-        var response = await _routePlanningClient.CreatePlanAsync(request);
+            foreach (var stop in group.ToList())
+            {
+                stops.Add(new RoutingStopDto()
+                {
+                    Label = stop.Id.ToString() + " - " + stop.Client.FirstName + " " + stop.Client.LastName + " - " + stop.Store.Name,
+                    Location = new RoutingLocationDto
+                    {
+                        Label = stop.ClientAddress.Address, //o.ClientAddress.Complement separado por , .ClientAddress.PostalCode esto es el pin supongo
+                        Lat = stop.ClientAddress.Latitude,
+                        Lng = stop.ClientAddress.Longitude,
+                        City = stop.ClientAddress.City?.Name,
+                        Country = stop.ClientAddress.City?.Country?.Name,
+                        PostalCode = stop.ClientAddress.PostalCode
+                    },
+                    Comments = stop.Notes + "\n" + GetProductsComments(stop.OrderItems.ToList()),
+                    ExternalId = stop.ClientAddress.Address,
+                    LocationDetails = stop.ClientAddress.Complement + "-" + stop.ClientAddress.PostalCode + "-" + stop.ClientAddress.Zip,
+                    Email = !string.IsNullOrEmpty(stop.Client.Email) ? stop.Client.Email : null,
+                    ReferencePerson = stop.Client.FirstName + " " + stop.Client.LastName,
+                    Phone = stop.Client.Phone,
+                    Price = stop.TotalAmount.ToString(),
+                    CustomFields = new Dictionary<string, string> { { "valor", stop.TotalAmount.ToString() } },
+                    Status = "pending",
+                });
+            }
+
+            results.Add(await _routePlanningClient.CreatePlanAsync(new RoutingCreatePlanDto
+            {
+                Label = planName,
+                Stops = stops,
+            }));
+
+        }
+
         return ApiResponse<RoutingResponseCreatePlanDto>.Success(new RoutingResponseCreatePlanDto()
         {
             OrderIds = orders.Select(o => o.Id).ToList(),
-            PlanName = planName
+            PlanNames = results.SelectMany(r => r.PlanNames).ToList(),
         }, null, "Plan creado exitosamente");
     }
 
@@ -104,8 +117,17 @@ public class RoutePlanningService : IRoutePlanningService
         string comments = string.Empty;
         foreach (var item in orderItems)
         {
-            comments += $"Producto: {item.ProductVariant.Product.Name} - SKU: {item.ProductVariant.Product.Sku} - Cantidad: {item.Quantity};";
+            comments += $"{item.Quantity} - {item.ProductVariant.Product.Name}  {item.ProductVariant.Name} - {item.ProductVariant.Sku} \n";
         }
         return comments;
+    }
+
+    public async Task<ApiResponse<bool>> UpdateStatusAsync(RoutingUpdateStatusDto dto)
+    {
+        var statuses = await _orderStatusRepository.GetAllAsync();
+        int statusId = dto.Data.Status == "completed" ? statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Delivered)?.Id ?? 0 : dto.Data.Status == "canceled" ? statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Cancelled)?.Id ?? 0 : 0;
+
+        var resultUpdateStatus = await _orderService.UpdateStatusAsync(Convert.ToInt32(dto.Data.Label.Split("-")[0]), statusId, new ChangeStatusDto() { Comments = "Desde integración SmartMoneky: " + dto.Data.Reports.FirstOrDefault()?.Comments ?? string.Empty });
+        return ApiResponse<bool>.Success(resultUpdateStatus.Data?.Id != null);
     }
 }

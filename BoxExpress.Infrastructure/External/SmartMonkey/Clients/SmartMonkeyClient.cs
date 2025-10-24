@@ -41,10 +41,6 @@ public class SmartMonkeyClient : IRoutePlanningClient
         string requestUrl = $"{baseUrl}/plan?private_key={apiKey}&project_id={projectId}";
         HttpResponseMessage response = await _httpClient.PostAsync(requestUrl, new StringContent(payloadString, Encoding.UTF8, "application/json"));
         string responseContent = await response.Content.ReadAsStringAsync();
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new Exception($"Error al crear el plan: {responseContent}");
-        }
         SmartMonkeyCreatePlanResponse? responseModel = JsonSerializer.Deserialize<SmartMonkeyCreatePlanResponse>(responseContent);
         return _mapper.Map<RoutingResponseCreatePlanDto>(responseModel);
     }

@@ -220,7 +220,7 @@ public class OrderService : IOrderService
             warehouse = await _warehouseRepository.GetByIdAsync(dto.WarehouseId.Value);
         else
             order.WarehouseId = null;
-        
+
         order.Warehouse = warehouse;
         order.OrderCategoryId = dto.CategoryId;
         order.Category = orderCategory;
@@ -312,10 +312,11 @@ public class OrderService : IOrderService
             OldStatusId = order.OrderStatusId,
             NewStatusId = statusId,
             CreatedAt = DateTime.UtcNow,
-            CreatorId = _userContext?.UserId.Value,
+            CreatorId = _userContext.UserId != null ? _userContext.UserId.Value : 1,
             CourierName = changeStatusDto?.CourierName,
             DeliveryProviderId = changeStatusDto?.DeliveryProviderId,
             OnRouteEvidenceUrl = photoUrl,
+            Notes = changeStatusDto?.Comments,
         });
 
         order.Status = orderStatus;
@@ -726,7 +727,10 @@ public class OrderService : IOrderService
             if (order == null)
                 return ApiResponse<OrderDto>.Fail("Order not found");
 
-            // _mapper.Map(createOrderDto, order);
+
+            var deliveredStatus = await _orderStatusRepository.GetByNameAsync(OrderStatusConstants.Delivered);
+            if (order.OrderStatusId == deliveredStatus?.Id)
+                return ApiResponse<OrderDto>.Fail("No se puede actualizar una orden entregada");
 
             order.Client.FirstName = createOrderDto.ClientFirstName;
             order.Client.LastName = createOrderDto.ClientLastName;

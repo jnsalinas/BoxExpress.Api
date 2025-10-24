@@ -70,7 +70,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.SuccessfulDeliveryPrefix, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = _userContext.UserId.Value,
+            CreatorId = _userContext.UserId != null ? _userContext.UserId.Value : 1,
         });
 
         // Register the delivery fee transaction
@@ -82,7 +82,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.DeliveredOrderDiscountPrefix, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = _userContext.UserId.Value,
+            CreatorId = _userContext.UserId != null ? _userContext.UserId.Value : 1,
         });
     }
 

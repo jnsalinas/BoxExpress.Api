@@ -40,6 +40,9 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
             .Include(w => w.OrderItem)
                 .ThenInclude(w => w.Order)
                     .ThenInclude(w => w.Client)
+            .Include(w => w.OrderItem)
+                .ThenInclude(w => w.Order)
+                    .ThenInclude(w => w.Store)
             .Include(w => w.WarehouseInventory)
                 .ThenInclude(wi => wi.ProductVariant)
                     .ThenInclude(pv => pv.Product)
@@ -109,6 +112,11 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
         if (filter.DeliveryProviderId.HasValue)
         {
             query = query.Where(w => w.OrderStatusHistory != null && w.OrderStatusHistory.DeliveryProviderId == filter.DeliveryProviderId.Value);
+        }
+
+        if (filter.StoreId.HasValue)
+        {
+            query = query.Where(w => w.OrderItem != null && w.OrderItem.Order.StoreId == filter.StoreId.Value);
         }
 
         if (!string.IsNullOrEmpty(filter.Query))

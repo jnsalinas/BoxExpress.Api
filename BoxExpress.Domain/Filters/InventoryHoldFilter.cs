@@ -19,4 +19,5 @@ public class InventoryHoldFilter : BaseFilter
     public DateTime? EndCreatedAt { get; set; }
     public int? DeliveryProviderId { get; set; }
     public string? CourierName { get; set; }
+    public int? StoreId { get; set; }
 }

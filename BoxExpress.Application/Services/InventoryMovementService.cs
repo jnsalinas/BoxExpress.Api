@@ -103,7 +103,7 @@ public class InventoryMovementService : IInventoryMovementService
         if (movePendingReturn)
             inventory.PendingReturnQuantity += movement.Quantity;
 
-        movement.CreatorId = _userContext.UserId.Value;
+        movement.CreatorId = _userContext.UserId != null ? _userContext.UserId.Value : 1;
         await _unitOfWork.InventoryMovements.AddAsync(movement);
         await _unitOfWork.Inventories.UpdateAsync(inventory);
     }
@@ -288,5 +288,5 @@ public class InventoryMovementService : IInventoryMovementService
         await _unitOfWork.InventoryHolds.UpdateAsync(hold);
     }
 
-    
+
 }

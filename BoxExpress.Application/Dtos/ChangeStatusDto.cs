@@ -8,5 +8,6 @@ namespace BoxExpress.Application.Dtos
         public string? CourierName { get; set; }
         public int? DeliveryProviderId { get; set; }
         public IFormFile? Photo { get; set; }
+        public string? Comments { get; set; }
     }
 }
