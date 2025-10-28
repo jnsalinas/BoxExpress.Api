@@ -291,8 +291,9 @@ public class OrderService : IOrderService
                 // if (!ReserveInventory.IsSuccess)
                 //     return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
             }
+            
             //si la orden es cancelada y tiene bodega asignada, se reserva el hold en PendingReturn el inventario
-            else if (isCanceled)
+            if (isCanceled)
             {
                 var reserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.PendingReturn);
                 if (!reserveInventory.IsSuccess)

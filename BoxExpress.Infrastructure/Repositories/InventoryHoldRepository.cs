@@ -138,7 +138,7 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
                 .Take(filter.PageSize);
         }
 
-        return (await query.ToListAsync(), total);
+        return (await query.OrderByDescending(x => x.CreatedAt).ToListAsync(), total);
     }
 
     public async Task<List<InventoryHold>> GetByOrderItemIdsAndStatus(List<int> listOrderItemIds, InventoryHoldStatus? status)
