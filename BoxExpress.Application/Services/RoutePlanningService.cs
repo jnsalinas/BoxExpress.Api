@@ -44,26 +44,25 @@ public class RoutePlanningService : IRoutePlanningService
             return ApiResponse<RoutingResponseCreatePlanDto>.Fail("No hay órdenes programadas para hoy.");
         }
 
-        // ApiResponse<List<OrderExcelUploadResponseDto>> results = await _orderService.BulkChangeStatusAsync(new BulkChangeOrdersStatusDto()
-        // {
-        //     CourierName = "Mensajeros propios",
-        //     DeliveryProviderId = 2, //todo buscar por name no se porque falla :( 
-        //     OrderIds = orders.Select(o => o.Id).ToList(),
-        //     StatusId = 3//_orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay).Id// 3 //todo hacerlo por el repo buscar por name no se porque falla :( _orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay).Id
-        // });
+        ApiResponse<List<OrderExcelUploadResponseDto>> results = await _orderService.BulkChangeStatusAsync(new BulkChangeOrdersStatusDto()
+        {
+            CourierName = "Mensajeros propios",
+            DeliveryProviderId = 2, //todo buscar por name no se porque falla :( 
+            OrderIds = orders.Select(o => o.Id).ToList(),
+            StatusId = 3//_orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay).Id// 3 //todo hacerlo por el repo buscar por name no se porque falla :( _orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay).Id
+        });
 
-        // if (results.Data != null && results.Data.Any(x => x.IsLoaded))
-        // {
-        //     orders = orders.Where(o => results.Data.Any(x => x.Id == o.Id && x.IsLoaded)).ToList();
-        // }
-        // else
-        // {
-        //     return ApiResponse<RoutingResponseCreatePlanDto>.Fail(results.Message ?? "Error al cambiar el estado de las órdenes");
-        // }
+        if (results.Data != null && results.Data.Any(x => x.IsLoaded))
+        {
+            orders = orders.Where(o => results.Data.Any(x => x.Id == o.Id && x.IsLoaded)).ToList();
+        }
+        else
+        {
+            return ApiResponse<RoutingResponseCreatePlanDto>.Fail(results.Message ?? "Error al cambiar el estado de las órdenes");
+        }
 
         var ordersGroupByWarehouse = orders.GroupBy(o => o.WarehouseId).ToList();
         List<RoutingStopDto> stops = new List<RoutingStopDto>();
-        List<RoutingResponseCreatePlanDto> results = new List<RoutingResponseCreatePlanDto>();
 
         foreach (var group in ordersGroupByWarehouse)
         {
@@ -123,6 +122,7 @@ public class RoutePlanningService : IRoutePlanningService
 
     public async Task<ApiResponse<bool>> UpdateStatusAsync(RoutingUpdateStatusDto dto)
     {
+        //hacer validacion de status entregado cancelado o en ruta par esea orden 
         var statuses = await _orderStatusRepository.GetAllAsync();
         int statusId = dto.Data.Status == "completed" ? statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Delivered)?.Id ?? 0 : dto.Data.Status == "canceled" ? statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Cancelled)?.Id ?? 0 : 0;
 
