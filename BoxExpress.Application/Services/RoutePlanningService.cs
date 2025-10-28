@@ -125,9 +125,14 @@ public class RoutePlanningService : IRoutePlanningService
     {
         //hacer validacion de status entregado cancelado o en ruta par esea orden 
         var statuses = await _orderStatusRepository.GetAllAsync();
-        int statusId = dto.Data.Status == "completed" ? statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Delivered)?.Id ?? 0 : dto.Data.Status == "canceled" ? statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Cancelled)?.Id ?? 0 : 0;
+        int? statusId = dto.Data.Status == "completed" ? statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Delivered)?.Id ?? 0 : dto.Data.Status == "canceled" ? statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Cancelled)?.Id ?? 0 : 0;
 
-        var resultUpdateStatus = await _orderService.UpdateStatusAsync(Convert.ToInt32(dto.Data.Label.Split("-")[0]), statusId, new ChangeStatusDto() { Comments = "Desde integración SmartMoneky: " + dto.Data.Reports.FirstOrDefault()?.Comments ?? string.Empty });
+        if (statusId == null || statusId == 0)
+        {
+            return ApiResponse<bool>.Fail("Estado no permitido");
+        }
+        
+        var resultUpdateStatus = await _orderService.UpdateStatusAsync(Convert.ToInt32(dto.Data.Label.Split("-")[0]), statusId.Value, new ChangeStatusDto() { Comments = "Desde integración SmartMoneky: " + dto.Data.Reports.FirstOrDefault()?.Comments ?? string.Empty });
         return ApiResponse<bool>.Success(resultUpdateStatus.Data?.Id != null);
     }
 }

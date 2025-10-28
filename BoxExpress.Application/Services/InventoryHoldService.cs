@@ -176,7 +176,7 @@ public class InventoryHoldService : IInventoryHoldService
             WarehouseInventoryTransferDetailId = warehouseInventoryTransferDetailId,
             Type = holdType,
             Status = holdStatus,
-            CreatorId = _userContext.UserId.Value,
+            CreatorId = _userContext.UserId != null ? _userContext.UserId.Value : 1,
             ProductLoanDetailId = productLoanDetailId,
             OrderStatusHistoryId = orderStatusHistoryId
         });
