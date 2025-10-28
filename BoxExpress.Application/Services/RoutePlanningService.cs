@@ -63,6 +63,7 @@ public class RoutePlanningService : IRoutePlanningService
 
         var ordersGroupByWarehouse = orders.GroupBy(o => o.WarehouseId).ToList();
         List<RoutingStopDto> stops = new List<RoutingStopDto>();
+        List<RoutingResponseCreatePlanDto> resultsRouting = new List<RoutingResponseCreatePlanDto>();
 
         foreach (var group in ordersGroupByWarehouse)
         {
@@ -96,7 +97,7 @@ public class RoutePlanningService : IRoutePlanningService
                 });
             }
 
-            results.Add(await _routePlanningClient.CreatePlanAsync(new RoutingCreatePlanDto
+            resultsRouting.Add(await _routePlanningClient.CreatePlanAsync(new RoutingCreatePlanDto
             {
                 Label = planName,
                 Stops = stops,
@@ -106,7 +107,7 @@ public class RoutePlanningService : IRoutePlanningService
         return ApiResponse<RoutingResponseCreatePlanDto>.Success(new RoutingResponseCreatePlanDto()
         {
             OrderIds = orders.Select(o => o.Id).ToList(),
-            PlanNames = results.SelectMany(r => r.PlanNames).ToList(),
+            PlanNames = resultsRouting.SelectMany(r => r.PlanNames).ToList(),
         }, null, "Plan creado exitosamente");
     }
 
