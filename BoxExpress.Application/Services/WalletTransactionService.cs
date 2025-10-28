@@ -114,7 +114,7 @@ public class WalletTransactionService : IWalletTransactionService
             Description = string.Format(WalletDescriptionConstants.DiscountForOrderStatusCorrection, order.Id),
             RelatedOrderId = order.Id,
             OrderStatusId = orderStatusId,
-            CreatorId = _userContext.UserId.Value,
+            CreatorId = _userContext.UserId != null ? _userContext.UserId.Value : 1,
         });
 
         // Register the refund transaction
