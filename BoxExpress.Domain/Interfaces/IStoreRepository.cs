@@ -8,5 +8,5 @@ public interface IStoreRepository : IRepository<Store>
 {
     Task<(List<Store> Stores, int TotalCount)> GetFilteredAsync(StoreFilter filter);
     Task<Store?> GetByIdWithDetailsAsync(int storeId);
-    Task<Store?> GetBalanceSummary();
+    Task<Store?> GetBalanceSummary(BalanceSummaryFilter filter);
 }

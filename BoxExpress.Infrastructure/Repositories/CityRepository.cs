@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BoxExpress.Domain.Entities;
+using BoxExpress.Domain.Filters;
 using BoxExpress.Domain.Interfaces;
 using BoxExpress.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,12 @@ namespace BoxExpress.Infrastructure.Repositories
         public async Task<City?> GetByNameAsync(string name)
         {
             return await _context.Cities.FirstOrDefaultAsync(x => x.Name.ToLower() == name.ToLower());
+        }
+
+
+        public async Task<List<City>> GetFilteredAsync(CityFilter? filter)
+        {
+            return await _context.Cities.Where(x => !filter.CountryId.HasValue || x.CountryId == filter.CountryId).ToListAsync();
         }
     }
 }

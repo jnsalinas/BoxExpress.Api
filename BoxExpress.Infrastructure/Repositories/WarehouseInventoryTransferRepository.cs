@@ -21,8 +21,7 @@ public class WarehouseInventoryTransferRepository : Repository<WarehouseInventor
         var query = _context.WarehouseInventoryTransfers.AsQueryable();
         query = BuildQueryFilter(filter, query);
 
-        var totalCount = await query.CountAsync();
-        var warehouseInventoryTransferQuery = query
+        query = query
             .Include(w => w.Creator)
             .Include(w => w.TransferDetails)
                 .ThenInclude(x => x.ProductVariant)
@@ -32,14 +31,19 @@ public class WarehouseInventoryTransferRepository : Repository<WarehouseInventor
             .OrderByDescending(x => x.Id)
             .AsQueryable();
 
+        if (filter.CountryId != null)
+        {
+            query = query.Where(x => x.ToWarehouse.CountryId == filter.CountryId || x.FromWarehouse.CountryId == filter.CountryId);
+        }
+
         if (!filter.IsAll)
         {
-            warehouseInventoryTransferQuery = warehouseInventoryTransferQuery
+            query = query
                 .Skip((filter.Page - 1) * filter.PageSize)
                 .Take(filter.PageSize);
         }
-
-        return (await warehouseInventoryTransferQuery.ToListAsync(), totalCount);
+        var totalCount = await query.CountAsync();
+        return (await query.ToListAsync(), totalCount);
     }
 
     private static IQueryable<WarehouseInventoryTransfer> BuildQueryFilter(WarehouseInventoryTransferFilter filter, IQueryable<WarehouseInventoryTransfer> query)

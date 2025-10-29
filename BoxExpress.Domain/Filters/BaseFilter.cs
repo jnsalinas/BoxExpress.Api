@@ -7,5 +7,5 @@ public class BaseFilter
     public string? SortBy { get; set; }
     public bool IsAscending { get; set; } = true;
     public bool IsAll { get; set; } = false;
-
+    public int? CountryId { get; set; }
 }

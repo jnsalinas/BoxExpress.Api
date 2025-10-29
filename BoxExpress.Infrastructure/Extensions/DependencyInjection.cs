@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddScoped<IDocumentTypeRepository, DocumentTypeRepository>();
         services.AddScoped<IInventoryMovementRepository, InventoryMovementRepository>();
         services.AddScoped<ICityRepository, CityRepository>();
+        services.AddScoped<ICountryRepository, CountryRepository>();
         services.AddScoped<IInventoryHoldRepository, InventoryHoldRepository>();
         services.AddScoped<IClientRepository, ClientRepository>();
         services.AddScoped<IClientAddressRepository, ClientAddressRepository>();
@@ -56,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IDeliveryProviderRepository, DeliveryProviderRepository>();
         services.AddScoped<IUserContext, UserContext>();
         services.AddScoped<IRoutePlanningClient, SmartMonkeyClient>();
+
         return services;
     }
 }

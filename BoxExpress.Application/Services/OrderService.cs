@@ -41,9 +41,11 @@ public class OrderService : IOrderService
     private readonly IUserContext _userContext;
     private readonly IStoreRepository _storeRepository;
     private readonly ICityRepository _cityRepository;
+    private readonly ICountryRepository _countryRepository;
     private readonly IFileService _fileService;
     private readonly IWarehouseInventoryService _warehouseInventoryService;
     private readonly IWarehouseRepository _warehouseRepository;
+    private readonly ICurrencyRepository _currencyRepository;
 
     public OrderService(
         IOrderRepository repository,
@@ -71,7 +73,9 @@ public class OrderService : IOrderService
         ICityRepository cityRepository,
         IFileService fileService,
         IWarehouseInventoryService warehouseInventoryService,
-        IWarehouseRepository warehouseRepository
+        IWarehouseRepository warehouseRepository,
+        ICountryRepository countryRepository,
+        ICurrencyRepository currencyRepository
 
     )
     {
@@ -101,10 +105,13 @@ public class OrderService : IOrderService
         _fileService = fileService;
         _warehouseInventoryService = warehouseInventoryService;
         _warehouseRepository = warehouseRepository;
+        _countryRepository = countryRepository;
+        _currencyRepository = currencyRepository;
     }
 
     public async Task<ApiResponse<IEnumerable<OrderDto>>> GetAllAsync(OrderFilterDto filter)
     {
+        filter.CountryId = _userContext?.CountryId != null ? _userContext.CountryId : filter.CountryId;
         var (orders, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<OrderFilter>(filter));
         var onTheWayStatus = await _orderStatusRepository.GetByNameAsync(OrderStatusConstants.OnTheWay);
         var canceledStatus = await _orderStatusRepository.GetByNameAsync(OrderStatusConstants.Cancelled);
@@ -162,12 +169,14 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<IEnumerable<OrderSummaryDto>>> GetSummaryAsync(OrderFilterDto filter)
     {
+        filter.CountryId = _userContext?.CountryId != null ? _userContext.CountryId : filter.CountryId;
         var summary = await _repository.GetSummaryAsync(_mapper.Map<OrderFilter>(filter));
         return ApiResponse<IEnumerable<OrderSummaryDto>>.Success(_mapper.Map<List<OrderSummaryDto>>(summary));
     }
 
     public async Task<ApiResponse<IEnumerable<OrderSummaryDto>>> GetSummaryCategoryAsync(OrderFilterDto filter)
     {
+        filter.CountryId = _userContext?.CountryId != null ? _userContext.CountryId : filter.CountryId;
         var summary = await _repository.GetSummaryCategoryAsync(_mapper.Map<OrderFilter>(filter));
         return ApiResponse<IEnumerable<OrderSummaryDto>>.Success(_mapper.Map<List<OrderSummaryDto>>(summary));
     }
@@ -267,6 +276,8 @@ public class OrderService : IOrderService
                     var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
                     if (!ReserveInventory.IsSuccess)
                         return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
+
+                    await _warehouseInventoryService.ManageOnTheWayInventoryAsync(order.WarehouseId!.Value, order.OrderItems);
                 }
             }
             //si la orden estaba en programado y pasa a sin programar, se libera el hold
@@ -291,7 +302,7 @@ public class OrderService : IOrderService
                 // if (!ReserveInventory.IsSuccess)
                 //     return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
             }
-            
+
             //si la orden es cancelada y tiene bodega asignada, se reserva el hold en PendingReturn el inventario
             if (isCanceled)
             {
@@ -405,6 +416,7 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<OrderDto>> AddOrderAsync(ShopifyOrderDto shopifyOrderDto)
     {
+        int? countryId = null;
         int storeId = shopifyOrderDto.StoreId ?? 0;
         if (shopifyOrderDto.StoreId == null && !string.IsNullOrEmpty(shopifyOrderDto.Store_Domain))
         {
@@ -415,6 +427,7 @@ public class OrderService : IOrderService
             }
 
             storeId = stores.First().Id;
+            countryId = stores.First().CountryId;
         }
         else if (shopifyOrderDto.PublicId.HasValue)
         {
@@ -424,6 +437,7 @@ public class OrderService : IOrderService
                 return ApiResponse<OrderDto>.Fail("Store not found");
             }
             storeId = stores.First().Id;
+            countryId = stores.First().CountryId;
         }
 
         var warehouseInventoroies = await _warehouseInventoryRepository.GetBySkusAsync(shopifyOrderDto.Line_Items.Select(x => x.Sku).ToList().ToHashSet(), storeId);
@@ -445,6 +459,7 @@ public class OrderService : IOrderService
             var city = await _cityRepository.GetByNameAsync(shopifyOrderDto.Shipping_Address.City);
             cityId = city?.Id;
         }
+
         string colonia = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower().Trim() == "nombre de la calle")?.Value;
         string scheduleDate = shopifyOrderDto.Note_Attributes?.FirstOrDefault(x => x.Name.ToLower().Trim() == "colocar día y entre que horario puede recibir")?.Value;
 
@@ -459,6 +474,7 @@ public class OrderService : IOrderService
             ClientAddress = shopifyOrderDto.Shipping_Address.City + ", " + (colonia != null ? colonia + ", " : "") + shopifyOrderDto.Shipping_Address.Address1,
             ClientAddressComplement = shopifyOrderDto.Shipping_Address.Address2,
             CityId = cityId,
+            CountryId = countryId,
             PostalCode = shopifyOrderDto.Shipping_Address.Zip,
             Latitude = shopifyOrderDto.Shipping_Address.Latitude,
             Longitude = shopifyOrderDto.Shipping_Address.Longitude,
@@ -469,10 +485,9 @@ public class OrderService : IOrderService
             }).ToList(),
             Code = shopifyOrderDto.Id.ToString() + "-" + shopifyOrderDto.Name,
             TotalAmount = decimal.Parse(shopifyOrderDto.Total_Price),
-            CurrencyId = 1,
             Notes = "Orden creada desde Shopify: " + shopifyOrderDto.Note + (scheduleDate != null ? " - " + scheduleDate : ""),
             CreatedAt = shopifyOrderDto.Created_At,
-            Contains = contains
+            Contains = contains,
         };
 
         return await AddOrderAsync(createOrderDto);
@@ -539,9 +554,10 @@ public class OrderService : IOrderService
             }
 
             decimal deliveryFee = store.DeliveryFee ?? 0;
-            if (deliveryFee == 0)
+            if (deliveryFee == 0 && createOrderDto.CountryId.HasValue)
             {
-                var countryCode = "MX"; //todo cambiar a la ciudad de la direccion
+                var country = await _countryRepository.GetByIdAsync(createOrderDto.CountryId.Value);
+                var countryCode = country != null ? country.Code : "MX";
                 var deliveryFeeSection = _configuration.GetSection($"{countryCode}:DeliveryFee");
                 if (deliveryFeeSection.Exists() && decimal.TryParse(deliveryFeeSection.Value, out var fee))
                 {
@@ -552,6 +568,23 @@ public class OrderService : IOrderService
                     deliveryFee = 150;
                 }
             }
+
+            if (createOrderDto.CityId.HasValue && !createOrderDto.CountryId.HasValue)
+            {
+                var city = await _cityRepository.GetByIdAsync(createOrderDto.CityId.Value);
+                if (city == null)
+                {
+                    return ApiResponse<OrderDto>.Fail("City not found");
+                }
+                createOrderDto.CountryId = city.CountryId;
+            }
+
+            if (createOrderDto.CountryId.HasValue)
+            {
+                var currency = await _currencyRepository.GetByCountryIdAsync(createOrderDto.CountryId.Value);
+                createOrderDto.CurrencyId = currency?.Id ?? 1;
+            }
+
 
             // Create Order
             var order = new Order
@@ -570,6 +603,7 @@ public class OrderService : IOrderService
                 CreatorId = userId,
                 IsEnabled = true,
                 Contains = createOrderDto.Contains,
+                CountryId = createOrderDto.CountryId,
             };
             await _unitOfWork.Orders.AddAsync(order);
 
@@ -664,10 +698,9 @@ public class OrderService : IOrderService
                 Code = ordersSheet.Cell(row, col++).GetString(),
                 TotalAmount = decimal.Parse(ordersSheet.Cell(row, col++).GetString()),
                 Notes = ordersSheet.Cell(row, col++).GetString(),
-                OrderItems = new List<OrderItemDto>()
+                OrderItems = new List<OrderItemDto>(),
+                CountryId = _userContext.CountryId != null ? _userContext.CountryId : null
             };
-
-            order.CurrencyId = 1;
 
             var skuvalidations = string.Empty;
             var orderItemsSKUS = ordersSheet.Cell(row, col++).GetString().Split(';');

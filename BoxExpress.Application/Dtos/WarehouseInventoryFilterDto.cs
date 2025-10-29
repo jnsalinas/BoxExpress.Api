@@ -13,5 +13,4 @@ public class WarehouseInventoryFilterDto : BaseFilterDto
     public int? Quantity { get; set; }
     public int? Status { get; set; }
     public string? Query { get; set; }
-
 }

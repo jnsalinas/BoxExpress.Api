@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<IDocumentTypeService, DocumentTypeService>();
         services.AddScoped<IInventoryMovementService, InventoryMovementService>();
         services.AddScoped<ICityService, CityService>();
+        services.AddScoped<ICountryService, CountryService>();
         services.AddScoped<IWarehouseInventoryService, WarehouseInventoryService>();
         services.AddScoped<IInventoryHoldService, InventoryHoldService>();
         services.AddScoped<IClientService, ClientService>();

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using BoxExpress.Application.Dtos;
 
 namespace BoxExpress.Api.Controllers
 {
@@ -16,9 +17,9 @@ namespace BoxExpress.Api.Controllers
         }
 
         [HttpPost("search")]
-        public async Task<IActionResult> Search()
+        public async Task<IActionResult> Search(CityFilterDto filter)
         {
-            var result = await _cityService.GetAllAsync();
+            var result = await _cityService.GetAllAsync(filter);
             return Ok(result);
         }
     }

@@ -17,7 +17,7 @@ namespace BoxExpress.Application.Services
         public TokenService(IOptions<JwtOptions> opts)
         {
             _jwt = opts.Value;
-                          
+
         }
 
         public AuthResponseDto CreateToken(string userId, string email, IEnumerable<Claim>? extraClaims = null)
@@ -53,6 +53,7 @@ namespace BoxExpress.Application.Services
                 Role = extraClaims?.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value,
                 StoreId = extraClaims?.FirstOrDefault(c => c.Type == "StoreId")?.Value,
                 WarehouseName = extraClaims?.FirstOrDefault(c => c.Type == "WarehouseName")?.Value,
+                CountryId = extraClaims?.FirstOrDefault(c => c.Type == ClaimTypes.Country)?.Value,
             };
         }
     }

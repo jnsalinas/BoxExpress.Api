@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BoxExpress.Application.Dtos;
 using BoxExpress.Application.Dtos.Common;
 using BoxExpress.Application.Interfaces;
+using BoxExpress.Domain.Constants;
 using BoxExpress.Domain.Interfaces;
 using BoxExpress.Utilities;
 
@@ -37,6 +38,7 @@ namespace BoxExpress.Application.Services
             var claimsExtras = new List<Claim>
             {
                 new Claim(ClaimTypes.Role, user.Role.Name.ToLower()),
+                new Claim(ClaimTypes.Country, user.CountryId.ToString()),
             };
 
             if (user.WarehouseId.HasValue)

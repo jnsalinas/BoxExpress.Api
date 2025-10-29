@@ -23,6 +23,7 @@ public class WarehouseService : IWarehouseService
     private readonly ICityRepository _cityRepository;
     private readonly IWarehouseInventoryService _warehouseInventoryService;
     private readonly IUserContext _userContext;
+    private readonly IUserRepository _userRepository;
     public WarehouseService(
         IWarehouseInventoryTransferRepository warehouseInventoryTransferRepository,
         IWarehouseInventoryRepository warehouseInventoryRepository,
@@ -33,7 +34,8 @@ public class WarehouseService : IWarehouseService
         IRoleRepository roleRepository,
         ICityRepository cityRepository,
         IWarehouseInventoryService warehouseInventoryService,
-        IUserContext userContext)
+        IUserContext userContext,
+        IUserRepository userRepository)
     {
         _warehouseInventoryTransferRepository = warehouseInventoryTransferRepository;
         _warehouseInventoryRepository = warehouseInventoryRepository;
@@ -45,10 +47,14 @@ public class WarehouseService : IWarehouseService
         _cityRepository = cityRepository;
         _warehouseInventoryService = warehouseInventoryService;
         _userContext = userContext;
+        _userRepository = userRepository;
     }
 
-    public async Task<ApiResponse<IEnumerable<WarehouseDto>>> GetAllAsync(WarehouseFilterDto filter) =>
-         ApiResponse<IEnumerable<WarehouseDto>>.Success(_mapper.Map<List<WarehouseDto>>(await _repository.GetFilteredAsync(_mapper.Map<WarehouseFilter>(filter))));
+    public async Task<ApiResponse<IEnumerable<WarehouseDto>>> GetAllAsync(WarehouseFilterDto filter)
+    {
+        filter.CountryId = _userContext?.CountryId != null ? _userContext.CountryId : filter.CountryId;
+        return ApiResponse<IEnumerable<WarehouseDto>>.Success(_mapper.Map<List<WarehouseDto>>(await _repository.GetFilteredAsync(_mapper.Map<WarehouseFilter>(filter))));
+    }
 
     public async Task<ApiResponse<WarehouseDetailDto?>> GetByIdAsync(int id) =>
         ApiResponse<WarehouseDetailDto?>.Success(_mapper.Map<WarehouseDetailDto>(await _repository.GetByIdWithDetailsAsync(id)));
@@ -184,6 +190,10 @@ public class WarehouseService : IWarehouseService
 
         if (existingWarehouse.Any())
             return ApiResponse<bool>.Fail("Ya existe un almacén con ese nombre");
+
+        var existingUser = await _userRepository.GetByEmailAsync(createWarehouseDto.Email);
+        if (existingUser != null)
+            return ApiResponse<bool>.Fail("El usuario ya existe");
 
         await _unitOfWork.BeginTransactionAsync();
         Warehouse warehouse = _mapper.Map<Warehouse>(createWarehouseDto);

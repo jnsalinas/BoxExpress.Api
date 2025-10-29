@@ -8,9 +8,9 @@ using BoxExpress.Application.Dtos;
 
 namespace BoxExpress.Application.Interfaces
 {
-    public interface ICityService
+    public interface ICountryService
     {
-        Task<ApiResponse<IEnumerable<CityDto>>> GetAllAsync(CityFilterDto filter);
+        Task<ApiResponse<IEnumerable<CountryDto>>> GetAllAsync();
 
     }
 }

@@ -34,16 +34,20 @@ public class WalletTransactionRepository : Repository<WalletTransaction>, IWalle
         {
             query = query.Where(w => w.CreatedAt <= filter.EndDate.Value);
         }
+        if (filter.CountryId.HasValue)
+        {
+            query = query.Where(w => w.Wallet.Store.CountryId == filter.CountryId.Value);
+        }
 
         var totalCount = await query.CountAsync();
 
         var transactionsQuery = query
-       .Include(w => w.OrderStatus)
-       .Include(w => w.TransactionType)
-       .Include(w => w.Wallet)
-           .ThenInclude(w => w.Store)
-       .Include(w => w.Creator)
-       .OrderByDescending(w => w.CreatedAt)
+            .Include(w => w.OrderStatus)
+            .Include(w => w.TransactionType)
+            .Include(w => w.Wallet)
+                .ThenInclude(w => w.Store)
+            .Include(w => w.Creator)
+            .OrderByDescending(w => w.CreatedAt)
        .AsQueryable();
 
         if (!filter.IsAll)

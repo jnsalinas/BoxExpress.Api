@@ -66,6 +66,7 @@ public class WarehouseInventoryService : IWarehouseInventoryService
 
     public async Task<ApiResponse<IEnumerable<ProductDto>>> GetWarehouseProductSummaryAsync(WarehouseInventoryFilterDto filter)
     {
+        filter.CountryId = _userContext?.CountryId != null ? _userContext.CountryId : filter.CountryId;
         var (products, totalCount) = await _repository.GetFilteredGroupedByProductAsync(_mapper.Map<WarehouseInventoryFilter>(filter));
         var variants = await _repository.GetByWarehouseAndProductsId(filter.WarehouseId, products.Select(p => p.Id).ToList(), new WarehouseInventoryFilter()
         {

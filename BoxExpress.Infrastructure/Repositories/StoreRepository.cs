@@ -25,14 +25,11 @@ public class StoreRepository : Repository<Store>, IStoreRepository
 
     public async Task<(List<Store> Stores, int TotalCount)> GetFilteredAsync(StoreFilter filter)
     {
-        var query = _context.Stores.AsQueryable();
-        var totalCount = await query.CountAsync();
-
-        var storesQuery = query
-       .Include(w => w.Wallet)
-       .Include(w => w.Country)
-       .Include(w => w.City)
-       .OrderByDescending(w => w.CreatedAt)
+        var storesQuery = _context.Stores
+            .Include(w => w.Wallet)
+            .Include(w => w.Country)
+            .Include(w => w.City)
+            .OrderByDescending(w => w.CreatedAt)
        .AsQueryable();
 
         if (filter.StoreId.HasValue)
@@ -50,9 +47,14 @@ public class StoreRepository : Repository<Store>, IStoreRepository
             storesQuery = storesQuery.Where(x => x.ShopifyShopDomain == filter.ShopifyShopDomain);
         }
 
-        if(filter.PublicId.HasValue)
+        if (filter.PublicId.HasValue)
         {
             storesQuery = storesQuery.Where(x => x.PublicId == filter.PublicId.Value);
+        }
+
+        if (filter.CountryId != null)
+        {
+            storesQuery = storesQuery.Where(x => x.CountryId == filter.CountryId);
         }
 
         if (!filter.IsAll)
@@ -63,12 +65,14 @@ public class StoreRepository : Repository<Store>, IStoreRepository
         }
 
         var stores = await storesQuery.ToListAsync();
+        var totalCount = await storesQuery.CountAsync();
         return (stores, totalCount);
     }
 
-    public async Task<Store?> GetBalanceSummary()
+    public async Task<Store?> GetBalanceSummary(BalanceSummaryFilter filter)
     {
         var walletSummary = await _context.Wallets
+            .Where(w => filter.CountryId == null || w.Store.CountryId == filter.CountryId)
             .GroupBy(w => 1) // Agrupar todo en un solo grupo
             .Select(g => new
             {
