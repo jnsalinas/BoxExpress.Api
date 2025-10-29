@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - BoxExpressQAWebApi
+name: Build and deploy ASP.Net Core app to Azure Web App - boxexpress-qa-service
 
 on:
   push:
@@ -21,32 +21,33 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
+          dotnet-version: '8.0'
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish BoxExpress.Api/BoxExpress.Api.csproj -c Release -o ${{env.DOTNET_ROOT}}/boxexpressapi
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          name: published-app
+          path: ${{env.DOTNET_ROOT}}/boxexpressapi
 
   deploy:
     runs-on: windows-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
+          name: published-app
+          path: ./published-app
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -61,5 +62,4 @@ jobs:
         with:
           app-name: 'BoxExpressQAWebApi'
           slot-name: 'Production'
-          package: .
-          
+          package: ./published-app
