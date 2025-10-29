@@ -27,7 +27,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish BoxExpress.Api/BoxExpress.Api.csproj -c Release -o ${{env.DOTNET_ROOT}}/boxexpressapi
+        run: dotnet publish BoxExpress.Api/BoxExpress.Api.csproj -c Release -o "${{env.DOTNET_ROOT}}/boxexpressapi"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
