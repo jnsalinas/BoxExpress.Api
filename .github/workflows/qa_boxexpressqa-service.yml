@@ -16,24 +16,28 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up .NET Core
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0'
 
-      - name: Build with dotnet
-        run: dotnet build BoxExpress.Api/BoxExpress.Api.csproj --configuration Release
+      - name: Restore dependencies
+        run: dotnet restore BoxExpress.Api/BoxExpress.Api.csproj
 
-      - name: dotnet publish
-        run: dotnet publish BoxExpress.Api/BoxExpress.Api.csproj -c Release -o ${{env.DOTNET_ROOT}}/boxexpressapi
+      - name: Build project
+        run: dotnet build BoxExpress.Api/BoxExpress.Api.csproj --configuration Release --no-restore
 
-      - name: Upload artifact for deployment job
+      - name: Publish project
+        run: dotnet publish BoxExpress.Api/BoxExpress.Api.csproj -c Release -o ./publish --no-build
+
+      - name: Upload artifact for deploy
         uses: actions/upload-artifact@v4
         with:
           name: published-app
-          path: ${{env.DOTNET_ROOT}}/boxexpressapi
+          path: ./publish
 
   deploy:
     runs-on: ubuntu-latest
@@ -43,18 +47,21 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download published app
         uses: actions/download-artifact@v4
         with:
           name: published-app
           path: ./published-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_ADCBACBA8ECD468AADD5732B5D02EA3A }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_71474CD1D37B4A819D63F83965CAC4E6 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0E2BA51C4D50425DB6C151B945FC0AEE }}
+
+      - name: Set environment to QA
+        run: echo "ASPNETCORE_ENVIRONMENT=QA" >> $GITHUB_ENV
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
