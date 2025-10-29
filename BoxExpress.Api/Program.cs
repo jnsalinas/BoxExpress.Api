@@ -77,7 +77,7 @@ if (app.Environment.IsProduction())
 }
 
 // Swagger (solo para dev/prod)
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction() || app.Environment.EnvironmentName == "QA")
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
