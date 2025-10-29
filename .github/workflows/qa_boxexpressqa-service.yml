@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # Required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -24,16 +24,16 @@ jobs:
           dotnet-version: '8.0'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build BoxExpress.Api/BoxExpress.Api.csproj --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish BoxExpress.Api/BoxExpress.Api.csproj -c Release -o ${{env.DOTNET_ROOT}}/boxexpressqaapi
+        run: dotnet publish BoxExpress.Api/BoxExpress.Api.csproj -c Release -o ${{env.DOTNET_ROOT}}/boxexpressapi
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: published-qa-app
-          path: ${{env.DOTNET_ROOT}}/boxexpressqaapi
+          name: published-app
+          path: ${{env.DOTNET_ROOT}}/boxexpressapi
 
   deploy:
     runs-on: ubuntu-latest
@@ -46,8 +46,8 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: published-qa-app
-          path: ./published-qa-app
+          name: published-app
+          path: ./published-app
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -56,10 +56,8 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_71474CD1D37B4A819D63F83965CAC4E6 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0E2BA51C4D50425DB6C151B945FC0AEE }}
 
-      - name: Deploy to Azure Web App (QA)
-        id: deploy-to-webapp
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'boxexpressqa-service'
-          slot-name: 'Production'
-          package: ./published-qa-app
+          package: ./published-app
