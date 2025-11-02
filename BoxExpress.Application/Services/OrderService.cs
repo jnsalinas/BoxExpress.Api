@@ -267,6 +267,8 @@ public class OrderService : IOrderService
                     var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
                     if (!ReserveInventory.IsSuccess)
                         return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
+
+                    await _warehouseInventoryService.ManageOnTheWayInventoryAsync(order.WarehouseId!.Value, order.OrderItems);
                 }
             }
             //si la orden estaba en programado y pasa a sin programar, se libera el hold
