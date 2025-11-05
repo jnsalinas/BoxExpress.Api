@@ -20,7 +20,7 @@ namespace BoxExpress.Application.Services
         }
         public async Task<ApiResponse<IEnumerable<CityDto>>> GetAllAsync(CityFilterDto filter)
         {
-            filter.CountryId = _userContext.CountryId != null ? _userContext.CountryId : filter.CountryId;
+            filter.CountryId = filter.CountryId.HasValue ? filter.CountryId.Value : _userContext.CountryId;
             return ApiResponse<IEnumerable<CityDto>>.Success(_mapper.Map<List<CityDto>>(await _repository.GetFilteredAsync(_mapper.Map<CityFilter>(filter))));
         }
     }

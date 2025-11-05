@@ -761,7 +761,6 @@ public class OrderService : IOrderService
             if (order == null)
                 return ApiResponse<OrderDto>.Fail("Order not found");
 
-
             var deliveredStatus = await _orderStatusRepository.GetByNameAsync(OrderStatusConstants.Delivered);
             if (order.OrderStatusId == deliveredStatus?.Id)
                 return ApiResponse<OrderDto>.Fail("No se puede actualizar una orden entregada");
@@ -774,6 +773,7 @@ public class OrderService : IOrderService
             order.ClientAddress.Complement = createOrderDto.ClientAddressComplement;
             order.ClientAddress.Latitude = createOrderDto.Latitude;
             order.ClientAddress.Longitude = createOrderDto.Longitude;
+            order.ClientAddress.City = null;
             order.ClientAddress.CityId = createOrderDto.CityId;
             order.ClientAddress.PostalCode = createOrderDto.PostalCode;
             order.ClientAddress.IsDefault = true;
@@ -787,6 +787,8 @@ public class OrderService : IOrderService
             order.CurrencyId = createOrderDto.CurrencyId;
             order.Code = createOrderDto.Code;
             order.StoreId = createOrderDto.StoreId;
+            order.City = null;
+            order.CityId = createOrderDto.CityId;
 
             // Obtener IDs de items que vienen en el DTO
             var dtoItemIds = createOrderDto.OrderItems
