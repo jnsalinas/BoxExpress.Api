@@ -44,6 +44,9 @@ public class ProductLoanRepository : Repository<ProductLoan>, IProductLoanReposi
         if (filter.CreatedById.HasValue)
             query = query.Where(x => x.CreatedById == filter.CreatedById.Value);
 
+        if (filter.CountryId.HasValue)
+            query = query.Where(x => x.Warehouse.CountryId == filter.CountryId.Value);
+
         query = query.OrderByDescending(x => x.CreatedAt);
 
         if (filter.Page > 0 && filter.PageSize > 0)

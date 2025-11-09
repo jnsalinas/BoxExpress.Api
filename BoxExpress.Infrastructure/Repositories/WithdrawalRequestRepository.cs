@@ -25,6 +25,9 @@ public class WithdrawalRequestRepository : Repository<WithdrawalRequest>, IWithd
         if (filter.StoreId.HasValue && filter.StoreId > 0)
             query = query.Where(w => w.StoreId.Equals(filter.StoreId));
 
+        if (filter.CountryId.HasValue)
+            query = query.Where(w => w.Store.CountryId == filter.CountryId.Value);
+
         int totalCount = query.Count();
         return (await query.ToListAsync(), totalCount);
     }

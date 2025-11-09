@@ -7,8 +7,7 @@ using BoxExpress.Domain.Entities;
 
 namespace BoxExpress.Domain.Interfaces
 {
-    public interface ICurrencyRepository : IRepository<Currency>
+    public interface ICountryRepository : IRepository<Country>
     {
-        Task<Currency?> GetByCountryIdAsync(int countryId);
     }
 }

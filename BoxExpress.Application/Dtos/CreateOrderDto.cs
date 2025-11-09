@@ -14,6 +14,7 @@ namespace BoxExpress.Application.Dtos
         public string ClientAddress { get; set; } = string.Empty;
         public string? ClientAddressComplement { get; set; }
         public int? CityId { get; set; }
+        public int? CountryId { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public string? PostalCode { get; set; }

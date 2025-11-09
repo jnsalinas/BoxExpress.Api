@@ -30,8 +30,6 @@ public class OrderRepository : Repository<Order>, IOrderRepository
 
         query = GetQueryFiltered(filter, query);
 
-        var totalCount = await query.CountAsync();
-
         var orderQuery = query.Include(x => x.Client)
             .Include(x => x.Category)
             .Include(x => x.ClientAddress)
@@ -52,6 +50,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
                 .Take(filter.PageSize);
         }
 
+        var totalCount = await query.CountAsync();
         return (await orderQuery.ToListAsync(), totalCount);
     }
 
@@ -111,6 +110,11 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         }
         if (filter.ProductVariantIds != null && filter.ProductVariantIds.Count > 0)
             query = query.Where(w => w.OrderItems.Any(oi => filter.ProductVariantIds.Contains(oi.ProductVariantId)));
+
+        if (filter.CountryId != null)
+        {
+            query = query.Where(w => w.CountryId == filter.CountryId);
+        }
 
         //todo quitar, es por pruebas
         query = query.Where(w => w.IsEnabled.HasValue && w.IsEnabled.Value);

@@ -9,5 +9,5 @@ public class BaseFilterDto
     public string? SortBy { get; set; }
     public string? SortDirection { get; set; }
     public bool IsAll { get; set; } = false;
-
+    public int? CountryId { get; set; }
 }

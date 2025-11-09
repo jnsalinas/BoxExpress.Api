@@ -135,12 +135,12 @@ public class ProductLoanService : IProductLoanService
         }
     }
 
-    public async Task<ApiResponse<IEnumerable<ProductLoanDto>>> GetFilteredAsync(ProductLoanFilterDto filterDto)
+    public async Task<ApiResponse<IEnumerable<ProductLoanDto>>> GetFilteredAsync(ProductLoanFilterDto filter)
     {
         try
         {
-            var filter = _mapper.Map<ProductLoanFilter>(filterDto);
-            var productLoans = await _productLoanRepository.GetFilteredAsync(filter);
+            filter.CountryId = _userContext?.CountryId != null ? _userContext.CountryId : filter.CountryId;
+            var productLoans = await _productLoanRepository.GetFilteredAsync(_mapper.Map<ProductLoanFilter>(filter));
 
             var dtos = _mapper.Map<IEnumerable<ProductLoanDto>>(productLoans);
 

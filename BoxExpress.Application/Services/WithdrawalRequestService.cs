@@ -33,6 +33,7 @@ public class WithdrawalRequestService : IWithdrawalRequestService
 
     public async Task<ApiResponse<IEnumerable<WithdrawalRequestDto>>> GetAllAsync(WithdrawalRequestFilterDto filter)
     {
+        filter.CountryId = _userContext.CountryId != null ? _userContext.CountryId : filter.CountryId;
         var (withdrawalRequest, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<WithdrawalRequestFilter>(filter));
         return ApiResponse<IEnumerable<WithdrawalRequestDto>>.Success(_mapper.Map<List<WithdrawalRequestDto>>(withdrawalRequest.OrderByDescending(x => x.CreatedAt)), new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }

@@ -112,7 +112,12 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
                 )
             )
             .Include(x => x.ProductVariant)
-            .ThenInclude(x => x.Product);
+            .ThenInclude(x => x.Product).AsQueryable();
+
+        if (filter.CountryId != null)
+        {
+            query = query.Where(x => x.Warehouse.CountryId == filter.CountryId);
+        }
 
         var totalCount = await query
             .Select(x => x.ProductVariant.Product.Id)

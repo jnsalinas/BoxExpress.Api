@@ -37,6 +37,7 @@ public class WalletTransactionService : IWalletTransactionService
 
     public async Task<ApiResponse<IEnumerable<WalletTransactionDto>>> GetAllAsync(WalletTransactionFilterDto filter)
     {
+        filter.CountryId = _userContext.CountryId != null ? _userContext.CountryId : filter.CountryId;
         var (transactions, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<WalletTransactionFilter>(filter));
         return ApiResponse<IEnumerable<WalletTransactionDto>>.Success(_mapper.Map<List<WalletTransactionDto>>(transactions), new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }

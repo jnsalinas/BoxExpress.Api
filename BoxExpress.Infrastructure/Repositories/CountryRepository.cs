@@ -10,17 +10,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BoxExpress.Infrastructure.Repositories
 {
-    public class CurrencyRepository : Repository<Currency>, ICurrencyRepository
+    public class CountryRepository : Repository<Country>, ICountryRepository
     {
         private readonly BoxExpressDbContext _context;
-        public CurrencyRepository(BoxExpressDbContext context) : base(context)
+        public CountryRepository(BoxExpressDbContext context) : base(context)
         {
             _context = context;
-        }
-
-        public async Task<Currency?> GetByCountryIdAsync(int countryId)
-        {
-            return await _context.Currency.FirstOrDefaultAsync(x => x.CountryId == countryId);
         }
     }
 }

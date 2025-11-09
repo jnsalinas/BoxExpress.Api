@@ -20,6 +20,8 @@ public class StoreService : IStoreService
     private readonly IAuthService _authService;
     private readonly IUserRepository _userRepository;
     private readonly IConfiguration _configuration;
+    private readonly IUserContext _userContext;
+    private readonly ICountryRepository _countryRepository;
     public StoreService(
         IUnitOfWork unitOfWork,
     IStoreRepository repository,
@@ -27,7 +29,9 @@ public class StoreService : IStoreService
     IRoleRepository roleRepository,
     IAuthService authService,
     IUserRepository userRepository, 
-    IConfiguration configuration)
+    IConfiguration configuration,
+    IUserContext userContext,
+    ICountryRepository countryRepository)
     {
         _authService = authService;
         _unitOfWork = unitOfWork;
@@ -36,6 +40,8 @@ public class StoreService : IStoreService
         _roleRepository = roleRepository;
         _userRepository = userRepository;
         _configuration = configuration;
+        _userContext = userContext;
+        _countryRepository = countryRepository;
     }
 
     public async Task<ApiResponse<StoreDto?>> GetByIdAsync(int storeId)
@@ -79,7 +85,8 @@ public class StoreService : IStoreService
             store.WalletId = wallet.Id;
             store.PublicId = Guid.NewGuid();
 
-            var countryCode = "MX"; //todo cambiar a la ciudad de la direccion
+            var country = await _countryRepository.GetByIdAsync(createStoreDto.CountryId);
+            var countryCode = country != null ? country.Code : "MX";
             var deliveryFeeSection = _configuration.GetSection($"{countryCode}:DeliveryFee");
             if (deliveryFeeSection.Exists() && decimal.TryParse(deliveryFeeSection.Value, out var fee))
             {
@@ -103,9 +110,7 @@ public class StoreService : IStoreService
             user.PasswordHash = BcryptHelper.Hash(createStoreDto.Password);
 
             await _unitOfWork.Users.AddAsync(user);
-
             await _unitOfWork.SaveChangesAsync();
-
             await _unitOfWork.CommitAsync();
 
             return await _authService.AuthenticateAsync(new LoginDto
@@ -123,13 +128,14 @@ public class StoreService : IStoreService
 
     public async Task<ApiResponse<IEnumerable<StoreDto>>> GetAllAsync(StoreFilterDto filter)
     {
+        filter.CountryId = _userContext?.CountryId != null ? _userContext.CountryId : filter.CountryId;
         var (stores, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<StoreFilter>(filter));
         return ApiResponse<IEnumerable<StoreDto>>.Success(_mapper.Map<List<StoreDto>>(stores), new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }
 
     public async Task<ApiResponse<StoreDto?>> GetBalanceSummary()
     {
-        return ApiResponse<StoreDto?>.Success(_mapper.Map<StoreDto?>(await _repository.GetBalanceSummary()));
+        return ApiResponse<StoreDto?>.Success(_mapper.Map<StoreDto?>(await _repository.GetBalanceSummary(new BalanceSummaryFilter { CountryId = _userContext?.CountryId ?? null })));
     }
 
     public async Task<bool> ExistsByTokenAsync(string token)

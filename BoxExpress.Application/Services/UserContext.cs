@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using BoxExpress.Application.Interfaces;
 
 namespace BoxExpress.Application.Services;
@@ -10,8 +10,7 @@ public class UserContext : IUserContext
     public UserContext(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
-    }
-
+}
     public int? UserId
     {
         get
@@ -23,6 +22,24 @@ public class UserContext : IUserContext
             if (claim == null)
                 return null;
             return int.Parse(claim.Value);
+        }
+    }
+
+    public int? CountryId
+    {
+        get
+        {
+            var headers = _httpContextAccessor.HttpContext?.Request?.Headers;
+            if (headers == null)
+                return null;
+            if (!headers.TryGetValue("X-Country-Id", out var values))
+                return null;
+            var value = values.ToString();
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+            if (int.TryParse(value, out var countryId))
+                return countryId;
+            return null;
         }
     }
 } 

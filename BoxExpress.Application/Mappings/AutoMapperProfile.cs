@@ -17,6 +17,7 @@ public class AutoMapperProfile : Profile
         CreateMap<OrderStatus, OrderStatusDto>();
         CreateMap<OrderCategory, OrderCategoryDto>();
         CreateMap<City, CityDto>();
+        CreateMap<Country, CountryDto>();
         CreateMap<ClientAddress, ClientAddressDto>();
         CreateMap<Client, ClientDto>();
         CreateMap<Currency, CurrencyDto>();
@@ -232,6 +233,7 @@ public class AutoMapperProfile : Profile
         CreateMap<InventoryHoldFilterDto, InventoryHoldFilter>();
         CreateMap<ProductVariantFilterDto, ProductVariantFilter>();
         CreateMap<ProductLoanFilterDto, ProductLoanFilter>();
+        CreateMap<CityFilterDto, CityFilter>();
 
         // DTOs de creación / actualización
         CreateMap<CreateStoreDto, Store>()

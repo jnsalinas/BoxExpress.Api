@@ -47,6 +47,7 @@ public class WarehouseInventoryTransferService : IWarehouseInventoryTransferServ
 
     public async Task<ApiResponse<IEnumerable<WarehouseInventoryTransferDto>>> GetAllAsync(WarehouseInventoryTransferFilterDto filter)
     {
+        filter.CountryId = _userContext?.CountryId != null ? _userContext.CountryId : filter.CountryId;
         var (transfers, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<WarehouseInventoryTransferFilter>(filter));
         return ApiResponse<IEnumerable<WarehouseInventoryTransferDto>>.Success(_mapper.Map<List<WarehouseInventoryTransferDto>>(transfers), new PaginationDto(totalCount, filter.PageSize, filter.Page));
     }

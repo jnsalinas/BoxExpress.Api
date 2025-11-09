@@ -6,9 +6,8 @@ namespace BoxExpress.Infrastructure.Persistence
     //eliminar la base de datos
     //ASPNETCORE_ENVIRONMENT=Development && dotnet ef database drop --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
 
-
     //Correr migrations:
-    //dotnet ef migrations add LatLongFix --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add AddCountryCode --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef migrations add AddGuidToStore --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     
@@ -47,6 +46,7 @@ namespace BoxExpress.Infrastructure.Persistence
         public DbSet<ProductLoan> ProductLoans { get; set; }
         public DbSet<ProductLoanDetail> ProductLoanDetails { get; set; }
         public DbSet<DeliveryProvider> DeliveryProviders { get; set; }
+        public DbSet<Currency> Currency { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Aplica DeleteBehavior.Restrict a todas las foreign keys

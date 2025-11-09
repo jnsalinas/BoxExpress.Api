@@ -45,6 +45,7 @@ public class InventoryHoldService : IInventoryHoldService
 
     public async Task<ApiResponse<IEnumerable<InventoryHoldDto>>> GetAllAsync(InventoryHoldFilterDto filter)
     {
+        filter.CountryId = _userContext?.CountryId != null ? _userContext.CountryId : filter.CountryId;
         var (inventoryHolds, totalCount) = await _repository.GetFilteredAsync(_mapper.Map<InventoryHoldFilter>(filter));
         var mapped = _mapper.Map<List<InventoryHoldDto>>(inventoryHolds);
 

@@ -119,6 +119,11 @@ public class InventoryHoldRepository : Repository<InventoryHold>, IInventoryHold
             query = query.Where(w => w.OrderItem != null && w.OrderItem.Order.StoreId == filter.StoreId.Value);
         }
 
+        if (filter.CountryId != null)
+        {
+            query = query.Where(w => w.WarehouseInventory.Warehouse.CountryId == filter.CountryId);
+        }
+
         if (!string.IsNullOrEmpty(filter.Query))
         {
             query = query.Where(w =>

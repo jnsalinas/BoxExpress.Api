@@ -13,5 +13,6 @@ namespace BoxExpress.Application.Dtos
         public string? Role { get; set; }
         public string? StoreId { get; set; }
         public string? WarehouseName { get; set; }
+        public string? CountryId { get; set; }
     }
 }
