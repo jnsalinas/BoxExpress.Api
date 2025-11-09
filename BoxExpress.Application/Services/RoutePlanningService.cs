@@ -17,12 +17,14 @@ public class RoutePlanningService : IRoutePlanningService
     private readonly IOrderRepository _orderRepository;
     private readonly IOrderStatusRepository _orderStatusRepository;
     private readonly IOrderService _orderService;
-    public RoutePlanningService(IRoutePlanningClient routePlanningClient, IOrderRepository orderRepository, IOrderStatusRepository orderStatusRepository, IOrderService orderService)
+    private readonly IUserContext _userContext;
+    public RoutePlanningService(IRoutePlanningClient routePlanningClient, IOrderRepository orderRepository, IOrderStatusRepository orderStatusRepository, IOrderService orderService, IUserContext userContext)
     {
         _routePlanningClient = routePlanningClient;
         _orderRepository = orderRepository;
         _orderStatusRepository = orderStatusRepository;
         _orderService = orderService;
+        _userContext = userContext;
     }
 
     public async Task<ApiResponse<RoutingResponseCreatePlanDto>> CreatePlanAsync()
@@ -35,6 +37,7 @@ public class RoutePlanningService : IRoutePlanningService
             EndScheduledDate = DateTime.Now,
             StatusId = statusid,
             TimeSlotId = 0,
+            CountryId = _userContext.CountryId != null ? _userContext.CountryId : null
         };
 
         var (orders, totalCount) = await _orderRepository.GetFilteredAsync(filter);
