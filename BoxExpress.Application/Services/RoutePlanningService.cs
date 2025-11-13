@@ -110,7 +110,7 @@ public class RoutePlanningService : IRoutePlanningService
         return ApiResponse<RoutingResponseCreatePlanDto>.Success(new RoutingResponseCreatePlanDto()
         {
             OrderIds = orders.Select(o => o.Id).ToList(),
-            PlanNames = resultsRouting.SelectMany(r => r.PlanNames).ToList(),
+            PlanNames = resultsRouting.Where(r => !string.IsNullOrEmpty(r.Label)).Select(r =>  r.Label).ToList(),
         }, null, "Plan creado exitosamente");
     }
 

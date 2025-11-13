@@ -3,4 +3,5 @@ public class RoutingResponseCreatePlanDto
 {
     public List<int>? OrderIds { get; set; }
     public List<string>? PlanNames { get; set; }
+    public string? Label { get; set; }
 }
