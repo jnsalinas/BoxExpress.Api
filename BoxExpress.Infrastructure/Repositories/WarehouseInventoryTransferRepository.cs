@@ -35,6 +35,8 @@ public class WarehouseInventoryTransferRepository : Repository<WarehouseInventor
         {
             query = query.Where(x => x.ToWarehouse.CountryId == filter.CountryId || x.FromWarehouse.CountryId == filter.CountryId);
         }
+        
+        var totalCount = await query.CountAsync();
 
         if (!filter.IsAll)
         {
@@ -42,7 +44,6 @@ public class WarehouseInventoryTransferRepository : Repository<WarehouseInventor
                 .Skip((filter.Page - 1) * filter.PageSize)
                 .Take(filter.PageSize);
         }
-        var totalCount = await query.CountAsync();
         return (await query.ToListAsync(), totalCount);
     }
 

@@ -43,6 +43,8 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         //.ThenByDescending(x => x.UpdatedAt)
         .AsQueryable();
 
+        var totalCount = await query.CountAsync();
+
         if (!filter.IsAll)
         {
             orderQuery = orderQuery
@@ -50,7 +52,6 @@ public class OrderRepository : Repository<Order>, IOrderRepository
                 .Take(filter.PageSize);
         }
 
-        var totalCount = await query.CountAsync();
         return (await orderQuery.ToListAsync(), totalCount);
     }
 

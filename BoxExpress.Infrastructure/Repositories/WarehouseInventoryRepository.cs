@@ -84,6 +84,8 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
                 .ThenInclude(x => x.City)
             .AsQueryable();
 
+        var totalCount = await query.CountAsync();
+
         if (!filter.IsAll)
         {
             query = query
@@ -91,7 +93,6 @@ public class WarehouseInventoryRepository : Repository<WarehouseInventory>, IWar
                 .Take(filter.PageSize);
         }
 
-        var totalCount = await query.CountAsync();
         return (await query.ToListAsync(), totalCount);
     }
 

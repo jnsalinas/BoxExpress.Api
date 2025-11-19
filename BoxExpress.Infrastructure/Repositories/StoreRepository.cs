@@ -56,6 +56,8 @@ public class StoreRepository : Repository<Store>, IStoreRepository
         {
             storesQuery = storesQuery.Where(x => x.CountryId == filter.CountryId);
         }
+        
+        var totalCount = await storesQuery.CountAsync();
 
         if (!filter.IsAll)
         {
@@ -65,7 +67,6 @@ public class StoreRepository : Repository<Store>, IStoreRepository
         }
 
         var stores = await storesQuery.ToListAsync();
-        var totalCount = await storesQuery.CountAsync();
         return (stores, totalCount);
     }
 

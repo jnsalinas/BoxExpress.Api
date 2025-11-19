@@ -8,6 +8,7 @@ using BoxExpress.Domain.Interfaces;
 using System.Globalization;
 using BoxExpress.Application.Dtos;
 using Newtonsoft.Json;
+using BoxExpress.Domain.Enums;
 
 namespace BoxExpress.Application.Services;
 
@@ -110,7 +111,7 @@ public class RoutePlanningService : IRoutePlanningService
         return ApiResponse<RoutingResponseCreatePlanDto>.Success(new RoutingResponseCreatePlanDto()
         {
             OrderIds = orders.Select(o => o.Id).ToList(),
-            PlanNames = resultsRouting.Where(r => !string.IsNullOrEmpty(r.Label)).Select(r =>  r.Label).ToList(),
+            PlanNames = resultsRouting.Where(r => !string.IsNullOrEmpty(r.Label)).Select(r => r.Label).ToList(),
         }, null, "Plan creado exitosamente");
     }
 
@@ -140,7 +141,28 @@ public class RoutePlanningService : IRoutePlanningService
             return ApiResponse<bool>.Fail("Estado no permitido");
         }
 
-        var resultUpdateStatus = await _orderService.UpdateStatusAsync(Convert.ToInt32(dto.Data.Label.Split("-")[0]), statusId.Value, new ChangeStatusDto() { Comments = "Desde integración SmartMoneky: " + dto.Data.Reports.FirstOrDefault()?.Comments ?? string.Empty });
+        int orderId = Convert.ToInt32(dto.Data.Label.Split("-")[0]);
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order == null)
+        {
+            return ApiResponse<bool>.Fail("Orden no encontrada");
+        }
+
+        if (order.OrderStatusId != statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Delivered)?.Id && order.OrderStatusId != statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Cancelled)?.Id && order.OrderStatusId != statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.OnTheWay)?.Id && order.OrderStatusId != statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Scheduled)?.Id)
+        {
+            return ApiResponse<bool>.Success(true, null, "El estado de la orden no permite actualización desde la integración");
+        }
+
+        if (order.OrderStatusId == statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.Scheduled)?.Id)
+        {
+            var resultUpdateStatusUpdate = await _orderService.UpdateStatusAsync(orderId, statuses.FirstOrDefault(s => s.Name == OrderStatusConstants.OnTheWay)!.Id, new ChangeStatusDto() { Comments = "Desde integración SmartMoneky: Cambio automatico de programado a en ruta previo a cambio de estado de real de la integracion " + dto.Data.Status + " - " + dto.Data.Reports.FirstOrDefault()?.Comments ?? string.Empty });
+            if (resultUpdateStatusUpdate.Data?.Id == null)
+            {
+                return ApiResponse<bool>.Fail("Error al actualizar el estado de la orden de programado a en ruta antes de la actualización final");
+            }
+        }
+
+        var resultUpdateStatus = await _orderService.UpdateStatusAsync(orderId, statusId.Value, new ChangeStatusDto() { Comments = "Desde integración SmartMoneky: " + dto.Data.Reports.FirstOrDefault()?.Comments ?? string.Empty });
         return ApiResponse<bool>.Success(resultUpdateStatus.Data?.Id != null);
     }
 }
