@@ -126,7 +126,9 @@ public class OrderService : IOrderService
                 NewStatusId = onTheWayStatus.Id,
             });
 
-            var ordersCanceledIds = orders.Where(x => x.OrderStatusId == canceledStatus.Id).Select(x => x.Id).ToList();
+            var ordersCanceledIds = orders//.Where(x => x.OrderStatusId == canceledStatus.Id).Select(x => x.Id)
+            .Select(x => x.Id)
+            .ToList();
             var orderCanceledCount = await _orderStatusHistoryRepository.GetOrderStatusCountByStatusesAsync(new OrderStatusHistoryFilter
             {
                 OrderIds = ordersCanceledIds,
