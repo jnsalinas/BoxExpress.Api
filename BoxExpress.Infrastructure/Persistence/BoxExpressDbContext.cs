@@ -7,7 +7,7 @@ namespace BoxExpress.Infrastructure.Persistence
     //ASPNETCORE_ENVIRONMENT=Development && dotnet ef database drop --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
 
     //Correr migrations:
-    //dotnet ef migrations add AddCountryCode --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
+    //dotnet ef migrations add AddChileanRegion --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef database update --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     //dotnet ef migrations add AddGuidToStore --project BoxExpress.Infrastructure --startup-project BoxExpress.Api
     
