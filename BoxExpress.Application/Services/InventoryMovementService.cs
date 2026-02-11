@@ -237,9 +237,19 @@ public class InventoryMovementService : IInventoryMovementService
     private async Task ProcessInventoryAdjustmentAsync(InventoryMovement movement, bool moveOntheWay, bool movePendingReturn, WarehouseInventory inventory)
     {
         // Validar que hay inventario suficiente
-        if (inventory.AvailableQuantity + movement.Quantity < 0)
+        if (!moveOntheWay)
         {
-            throw new Exception($"Inventario insuficiente para el producto {movement.ProductVariantId} en la bodega {movement.WarehouseId}");
+            if (inventory.AvailableQuantity + movement.Quantity < 0)
+            {
+                throw new Exception($"Inventario insuficiente para el producto {movement.ProductVariantId} en la bodega {movement.WarehouseId}");
+            }
+        }
+        else
+        {
+            if (inventory.OnTheWayQuantity + movement.Quantity < 0)
+            {
+                throw new Exception($"Inventario insuficiente en tránsito para el producto {movement.ProductVariantId} en la bodega {movement.WarehouseId}");
+            }
         }
 
         // Actualizar cantidades del inventario
