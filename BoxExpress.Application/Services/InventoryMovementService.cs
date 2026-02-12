@@ -62,7 +62,7 @@ public class InventoryMovementService : IInventoryMovementService
         catch (Exception ex)
         {
             await _unitOfWork.RollbackAsync();
-            return ApiResponse<bool>.Fail(ex.Message);
+            throw;
         }
     }
 
