@@ -240,103 +240,133 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<OrderDto>> UpdateStatusAsync(int orderId, int statusId, ChangeStatusDto? changeStatusDto)
     {
-        #region validations 
-        Order? order = await _repository.GetByIdWithDetailsAsync(orderId);
-        if (order == null)
-            return ApiResponse<OrderDto>.Fail("Order not found");
-        var previousStatus = order.Status;
-
-        if (order.OrderStatusId.Equals(statusId))
-            return ApiResponse<OrderDto>.Fail("Same status");
-
-        OrderStatus? orderStatus = await _orderStatusRepository.GetByIdAsync(statusId);
-        if (orderStatus == null)
-            return ApiResponse<OrderDto>.Fail("Status not found");
-
-        #endregion
-
-        if (orderStatus.Name == OrderStatusConstants.Delivered)
+        try
         {
-            //todo: validar si la orden estaba devuelta y tiene items por devolucion que tome el ultimo y lo revierta supongo
-            await _inventoryMovementService.ProcessDeliveryAsync(order);
-            await _walletTransactionService.RegisterSuccessfulDeliveryAsync(order, statusId);
-        }
-        else
-        {
-            bool isCanceled = orderStatus.Name.Equals(OrderStatusConstants.Cancelled) || orderStatus.Name.Equals(OrderStatusConstants.CancelledAlt) && order.WarehouseId.HasValue;
+            #region validations 
+            Order? order = await _repository.GetByIdWithDetailsAsync(orderId);
+            if (order == null)
+                return ApiResponse<OrderDto>.Fail("Order not found");
+            var previousStatus = order.Status;
 
-            if (previousStatus.Name.Equals(OrderStatusConstants.Delivered))
+            if (order.OrderStatusId.Equals(statusId))
+                return ApiResponse<OrderDto>.Fail("Same status");
+
+            OrderStatus? orderStatus = await _orderStatusRepository.GetByIdAsync(statusId);
+            if (orderStatus == null)
+                return ApiResponse<OrderDto>.Fail("Status not found");
+
+            #endregion
+
+            if (orderStatus.Name == OrderStatusConstants.Delivered)
             {
-                await _inventoryMovementService.RevertDeliveryAsync(order);
-                await _walletTransactionService.RegisterStatusCorrectionAsync(order, statusId);
-
-                //vuelve a reservar del inventario para luego validar si es cancelado y reusar lo mismo cuando previamente no tiene el estado de entregado
-                if (isCanceled)
+                //flujo cuando la orden fue entregada, aceptan la devolucion se quita el hold, vuelven a poner la orden en entregada y ya no tiene hold
+                //poner la orden en programado automaticamente y que haga el proceso normal de entrega
+                // _inventoryHoldService.
+                var inventoryHoldsActive = await _inventoryHoldService.GetAllAsync(new InventoryHoldFilterDto()
                 {
-                    var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
-                    if (!ReserveInventory.IsSuccess)
-                        return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
+                    OrderId = order.Id,
+                    Status = Domain.Enums.InventoryHoldStatus.Active
+                });
 
+                if (inventoryHoldsActive.Data == null || !inventoryHoldsActive.Data.Any())
+                {
+                    //simula programado
+                    var reserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
+                    if (!reserveInventory.IsSuccess)
+                    {
+                        throw new Exception($"No se pudo reservar el inventario para la orden {order.Id}: {reserveInventory.Message}");
+                    }
+
+                    //simula en ruta
                     await _warehouseInventoryService.ManageOnTheWayInventoryAsync(order.WarehouseId!.Value, order.OrderItems);
                 }
+
+
+                await _inventoryMovementService.ProcessDeliveryAsync(order);
+                await _walletTransactionService.RegisterSuccessfulDeliveryAsync(order, statusId);
             }
-            //si la orden estaba en programado y pasa a sin programar, se libera el hold
-            else if (previousStatus.Name.Equals(OrderStatusConstants.Scheduled) && orderStatus.Name.Equals(OrderStatusConstants.Unscheduled))
+            else
             {
-                var ReverseInventory = await _inventoryHoldService.ReverseInventoryHoldAsync(order.WarehouseId!.Value, order.OrderItems);
-                if (!ReverseInventory.IsSuccess)
-                    return ApiResponse<OrderDto>.Fail(ReverseInventory.Message ?? "Inventory not available");
-            }
-            //si la orden es progrmaada debe validar inventario y crear el hold en active
-            else if (orderStatus.Name.Equals(OrderStatusConstants.Scheduled))
-            {
-                var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
-                if (!ReserveInventory.IsSuccess)
-                    return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
-            }
-            //se cambio a Scheduled la logica de hold
-            else if (orderStatus.Name.Equals(OrderStatusConstants.OnTheWay))
-            {
-                await _warehouseInventoryService.ManageOnTheWayInventoryAsync(order.WarehouseId!.Value, order.OrderItems);
-                // var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
-                // if (!ReserveInventory.IsSuccess)
-                //     return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
+                bool isCanceled = orderStatus.Name.Equals(OrderStatusConstants.Cancelled) || orderStatus.Name.Equals(OrderStatusConstants.CancelledAlt) && order.WarehouseId.HasValue;
+
+                if (previousStatus.Name.Equals(OrderStatusConstants.Delivered))
+                {
+                    await _inventoryMovementService.RevertDeliveryAsync(order);
+                    await _walletTransactionService.RegisterStatusCorrectionAsync(order, statusId);
+
+                    //vuelve a reservar del inventario para luego validar si es cancelado y reusar lo mismo cuando previamente no tiene el estado de entregado
+                    if (isCanceled)
+                    {
+                        var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
+                        if (!ReserveInventory.IsSuccess)
+                            return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
+
+                        await _warehouseInventoryService.ManageOnTheWayInventoryAsync(order.WarehouseId!.Value, order.OrderItems);
+                    }
+                }
+                //si la orden estaba en programado y pasa a sin programar, se libera el hold
+                else if (previousStatus.Name.Equals(OrderStatusConstants.Scheduled) && orderStatus.Name.Equals(OrderStatusConstants.Unscheduled))
+                {
+                    var ReverseInventory = await _inventoryHoldService.ReverseInventoryHoldAsync(order.WarehouseId!.Value, order.OrderItems);
+                    if (!ReverseInventory.IsSuccess)
+                        return ApiResponse<OrderDto>.Fail(ReverseInventory.Message ?? "Inventory not available");
+                }
+                //si la orden es progrmada debe validar inventario y crear el hold en active
+                else if (orderStatus.Name.Equals(OrderStatusConstants.Scheduled))
+                {
+                    var reserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
+                    if (!reserveInventory.IsSuccess)
+                        return ApiResponse<OrderDto>.Fail(reserveInventory.Message ?? "Inventory not available");
+                }
+                //se cambio a Scheduled la logica de hold
+                else if (orderStatus.Name.Equals(OrderStatusConstants.OnTheWay))
+                {
+                    await _warehouseInventoryService.ManageOnTheWayInventoryAsync(order.WarehouseId!.Value, order.OrderItems);
+                    // var ReserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId!.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.Active);
+                    // if (!ReserveInventory.IsSuccess)
+                    //     return ApiResponse<OrderDto>.Fail(ReserveInventory.Message ?? "Inventory not available");
+                }
+
+                //si la orden es cancelada y tiene bodega asignada, se reserva el hold en PendingReturn el inventario
+                if (isCanceled)
+                {
+                    var reserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.PendingReturn);
+                    if (!reserveInventory.IsSuccess)
+                        return ApiResponse<OrderDto>.Fail(reserveInventory.Message ?? "Inventory not available");
+                }
             }
 
-            //si la orden es cancelada y tiene bodega asignada, se reserva el hold en PendingReturn el inventario
-            if (isCanceled)
+            string? photoUrl = null;
+            if (changeStatusDto != null && changeStatusDto.Photo != null)
             {
-                var reserveInventory = await _inventoryHoldService.HoldInventoryForOrderAsync(order.WarehouseId.Value, order.OrderItems, Domain.Enums.InventoryHoldStatus.PendingReturn);
-                if (!reserveInventory.IsSuccess)
-                    return ApiResponse<OrderDto>.Fail(reserveInventory.Message ?? "Inventory not available");
+                photoUrl = await _fileService.UploadFileAsync(changeStatusDto.Photo);
             }
+
+            await _orderStatusHistoryRepository.AddAsync(new()
+            {
+                OrderId = order.Id,
+                OldStatusId = order.OrderStatusId,
+                NewStatusId = statusId,
+                CreatedAt = DateTime.UtcNow,
+                CreatorId = _userContext.UserId != null ? _userContext.UserId.Value : 1,
+                CourierName = changeStatusDto?.CourierName,
+                DeliveryProviderId = changeStatusDto?.DeliveryProviderId,
+                OnRouteEvidenceUrl = photoUrl,
+                Notes = changeStatusDto?.Comments,
+            });
+
+            order.Status = orderStatus;
+            order.OrderStatusId = statusId;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            await _repository.UpdateAsync(order);
+            return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
         }
-
-        string? photoUrl = null;
-        if (changeStatusDto != null && changeStatusDto.Photo != null)
+        catch (Exception ex)
         {
-            photoUrl = await _fileService.UploadFileAsync(changeStatusDto.Photo);
+            await _unitOfWork.RollbackAsync();
+            return ApiResponse<OrderDto>.Fail(ex.Message);
         }
-
-        await _orderStatusHistoryRepository.AddAsync(new()
-        {
-            OrderId = order.Id,
-            OldStatusId = order.OrderStatusId,
-            NewStatusId = statusId,
-            CreatedAt = DateTime.UtcNow,
-            CreatorId = _userContext.UserId != null ? _userContext.UserId.Value : 1,
-            CourierName = changeStatusDto?.CourierName,
-            DeliveryProviderId = changeStatusDto?.DeliveryProviderId,
-            OnRouteEvidenceUrl = photoUrl,
-            Notes = changeStatusDto?.Comments,
-        });
-
-        order.Status = orderStatus;
-        order.OrderStatusId = statusId;
-        order.UpdatedAt = DateTime.UtcNow;
-
-        await _repository.UpdateAsync(order);
-        return ApiResponse<OrderDto>.Success(_mapper.Map<OrderDto>(order));
     }
 
     public async Task<ApiResponse<OrderDto>> UpdateScheduleAsync(int orderId, OrderScheduleUpdateDto orderScheduleUpdateDto)
