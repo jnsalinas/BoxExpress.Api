@@ -28,6 +28,15 @@ public class WithdrawalRequestRepository : Repository<WithdrawalRequest>, IWithd
         if (filter.CountryId.HasValue)
             query = query.Where(w => w.Store.CountryId == filter.CountryId.Value);
 
+        if(filter.StartDate.HasValue)
+            query = query.Where(w => w.CreatedAt.Date >= filter.StartDate.Value.Date);
+
+        if(filter.EndDate.HasValue)
+            query = query.Where(w => w.CreatedAt.Date <= filter.EndDate.Value.Date);
+
+        if(filter.Status.HasValue)
+            query = query.Where(w => w.Status == filter.Status.Value);
+
         int totalCount = query.Count();
         return (await query.ToListAsync(), totalCount);
     }
