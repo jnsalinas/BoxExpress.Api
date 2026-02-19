@@ -244,7 +244,7 @@ public class OrderService : IOrderService
     {
         try
         {
-            await _unitOfWork.BeginTransactionAsync();
+            // await _unitOfWork.BeginTransactionAsync();
 
             #region validations 
             Order? order = await _repository.GetByIdWithDetailsAsync(orderId);
