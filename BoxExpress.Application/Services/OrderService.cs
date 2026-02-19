@@ -244,6 +244,8 @@ public class OrderService : IOrderService
     {
         try
         {
+            await _unitOfWork.BeginTransactionAsync();
+
             #region validations 
             Order? order = await _repository.GetByIdWithDetailsAsync(orderId);
             if (order == null)
@@ -282,7 +284,6 @@ public class OrderService : IOrderService
                     //simula en ruta
                     await _warehouseInventoryService.ManageOnTheWayInventoryAsync(order.WarehouseId!.Value, order.OrderItems);
                 }
-
 
                 await _inventoryMovementService.ProcessDeliveryAsync(order);
                 await _walletTransactionService.RegisterSuccessfulDeliveryAsync(order, statusId);
