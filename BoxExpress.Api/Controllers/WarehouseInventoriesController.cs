@@ -37,7 +37,7 @@ public class WarehouseInventoriesController : ControllerBase
 
             filter.StoreId = int.Parse(storeId);
 
-            return Ok(await _service.GetWarehouseProductSummaryGroupAsync(filter));
+            // return Ok(await _service.GetWarehouseProductSummaryGroupAsync(filter));
         }
         else if (role?.ToLower() == RolConstants.Warehouse)
         {
