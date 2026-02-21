@@ -48,6 +48,6 @@ public class ProductVariantService : IProductVariantService
         return response;
     }
 
-    public async Task<ApiResponse<List<ProductVariantDto>>> GetVariantsAutocompleteAsync(string query) =>
-        ApiResponse<List<ProductVariantDto>>.Success(_mapper.Map<List<ProductVariantDto>>(await _repository.GetVariantsAutocompleteAsync(query)));
+    public async Task<ApiResponse<List<ProductVariantDto>>> GetVariantsAutocompleteAsync(AutocompleteVariantFilterDto filter) =>
+        ApiResponse<List<ProductVariantDto>>.Success(_mapper.Map<List<ProductVariantDto>>(await _repository.GetVariantsAutocompleteAsync(_mapper.Map<AutocompleteVariantFilter>(filter))));
 }

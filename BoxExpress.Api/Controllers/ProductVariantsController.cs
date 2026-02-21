@@ -3,6 +3,8 @@ using BoxExpress.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using BoxExpress.Application.Dtos;
 using System.Linq;
+using System.Security.Claims;
+using BoxExpress.Domain.Constants;
 
 namespace BoxExpress.Api.Controllers;
 
@@ -35,12 +37,28 @@ public class ProductVariantsController : ControllerBase
 
     [HttpGet("autocomplete")]
     public async Task<IActionResult> Autocomplete([FromQuery] string query)
-
     {
         if (string.IsNullOrWhiteSpace(query))
             return BadRequest("Query is required.");
 
-        var result = await _productVariantService.GetVariantsAutocompleteAsync(query);
+        AutocompleteVariantFilterDto filter = new AutocompleteVariantFilterDto
+        {
+            Query = query
+        };
+
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role?.ToLower() == RolConstants.Store)
+        {
+            var storeId = User.FindFirst("StoreId")?.Value;
+            if (storeId == null)
+            {
+                return BadRequest("StoreId is required for store role.");
+            }
+
+            filter.StoreId = int.Parse(storeId);
+        }
+
+        var result = await _productVariantService.GetVariantsAutocompleteAsync(filter);
         return Ok(result);
     }
 

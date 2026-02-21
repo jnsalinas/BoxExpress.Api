@@ -220,6 +220,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductVariant.Product.Name));
 
         // Filtros
+        CreateMap<AutocompleteVariantFilterDto, AutocompleteVariantFilter>();
         CreateMap<WarehouseFilterDto, WarehouseFilter>();
         CreateMap<OrderFilterDto, OrderFilter>();
         CreateMap<OrderStatusFilterDto, OrderStatusFilter>();
